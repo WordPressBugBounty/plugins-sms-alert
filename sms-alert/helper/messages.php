@@ -83,15 +83,15 @@ class SmsAlertMessages
                 // not in use end
 
                 'DEFAULT_BUYER_SMS_STATUS_CHANGED'     => sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL),
-                'DEFAULT_BUYER_NOTE'                   => sprintf(__('Hello %1$s, a new note has been added to your order %2$s on %3$s: %4$s%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]:', '[shop_url]', '[note]', PHP_EOL, PHP_EOL),
-                'DEFAULT_BUYER_OTP'                    => sprintf(__('Your verification code for %1$s is %2$s %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[shop_url]', '[otp]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BUYER_NOTE'                   => sprintf(__('Hello %1$s, a new note has been added to your order %2$s on %3$s: %4$s%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]:', '[store_name]', '[note]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BUYER_OTP'                    => sprintf(__('Your verification code for mobile verification is %1$s %2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[otp]', PHP_EOL, PHP_EOL),
                 'OTP_SENT_PHONE'                       => sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'),
 				'OTP_SENT_plarground'                       => sprintf(__('Use 1234 as OTP to proceed, as real message is not sent in playground mode.', 'sms-alert')),
                 'DEFAULT_WPAM_BUYER_SMS_STATUS_CHANGED' =>
                                                                         sprintf(__('Hello %1$s, status of your affiliate account %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[affiliate_id]', '[store_name]', '[affiliate_status]', PHP_EOL, PHP_EOL),
                 // Review Request
                 'DEFAULT_CUSTOMER_REVIEW_MESSAGE'      =>
-                sprintf(__('Hi %1$s, thank you for your recent order on %2$s. Can you take 1 minute to leave a review about your experience with us? %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[store_name]', 'https://www.google.com/search?q=[shop_url]', PHP_EOL, PHP_EOL),
+                sprintf(__('Hi %1$s, thank you for your recent order on %2$s. Can you take 1 minute to leave a review about your experience with us? %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[store_name]', 'https://www.google.com/search?q=[store_name]', PHP_EOL, PHP_EOL),
                 // New Gravity User
                 'DEFAULT_GRAVITY_NEW_USER'            =>
                 sprintf(__('Dear user, your account with %1$s has been %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'),  '[store_name]', '[user_status]', PHP_EOL, PHP_EOL),
@@ -111,7 +111,7 @@ class SmsAlertMessages
                 sprintf(__('%1$s: status of order %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]', PHP_EOL, PHP_EOL),
                 // Notify Me
                 'DEFAULT_BACK_IN_STOCK_CUST_MSG'       =>
-                sprintf(__('Hello, %1$s is now available, you can order it on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[item_name]', '[shop_url]', PHP_EOL, PHP_EOL),
+                sprintf(__('Hello, %1$s is now available, you can order it on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[item_name]', '[store_name]', PHP_EOL, PHP_EOL),
                 'DEFAULT_BACK_IN_STOCK_SUBSCRIBE_MSG'  =>
                 sprintf(__('We have noted your request and we will notify you as soon as %s is available for order with us.', 'sms-alert'), '[item_name]'),
                 // Event Manager
@@ -128,8 +128,8 @@ class SmsAlertMessages
                 sprintf(__('%1$s: Hello %2$s, you have been assigned a new delivery for %3$s%4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[first_name]', '[item_name]', '[item_name_qty]', PHP_EOL, PHP_EOL),
 
                 // Contact form
-                'DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'         => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[shop_url]', PHP_EOL, PHP_EOL),
-                'DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'      => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[shop_url]'),
+                'DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'         => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
+                'DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'      => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
                     
                 'DEFAULT_WPAM_ADMIN_SMS_STATUS_CHANGED' => sprintf(__('%1$s: status of affiliate %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[affiliate_id]', '[affiliate_status]', PHP_EOL, PHP_EOL),
                 'DEFAULT_WPAM_BUYER_SMS_TRANS_STATUS_CHANGED' => sprintf(__('Hello %1$s,commission has been %2$s for %3$s to your affiliate account %4$s against order %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[transaction_type]', '[commission_amt]', '[affiliate_id]', '#[order_id]', PHP_EOL, PHP_EOL),

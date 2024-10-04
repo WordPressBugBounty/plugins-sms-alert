@@ -107,7 +107,7 @@ class SmsAlertcURLOTP
     {
         $country_code         = smsalert_get_option('default_country_code', 'smsalert_general');
         $country_code_enabled = smsalert_get_option('checkout_show_country_code', 'smsalert_general');
-        $nos                  = explode(',', $nos);
+        $nos                  = !empty($nos)?explode(',', $nos):'';
         $valid_no             = array();
         if (is_array($nos) ) {
             foreach ( $nos as $no ) {
@@ -257,7 +257,7 @@ class SmsAlertcURLOTP
         $password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
         $senderid = smsalert_get_option('smsalert_api', 'smsalert_gateway');
         $template = smsalert_get_option('sms_otp_send', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_BUYER_OTP'));
-        $template = str_replace('[shop_url]', get_site_url(), $template);
+        $template = str_replace(array('[store_name]','[shop_url]'), array(get_bloginfo(),get_site_url()), $template);
 
         if ($phone === false ) {
             $data                        = array();

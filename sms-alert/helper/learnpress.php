@@ -419,13 +419,7 @@ class SmsAlertLearnPress
     {
         $billing_phone = ! empty($_POST['billing_phone']) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
         if ('' !== $billing_phone ) {
-            if (version_compare(WC_VERSION, '8.2', '<') ) {
-                 update_post_meta($order_id, '_billing_phone', $billing_phone);
-            } else {
-                $order = wc_get_order($order_id);
-                $order->update_meta_data('_billing_phone', $billing_phone);
-                $order->save();
-            }
+            update_post_meta($order_id, '_billing_phone', $billing_phone);
         }
     }
 
@@ -499,17 +493,10 @@ class SmsAlertLearnPress
     public static function smsalertLpSendSmsOnChangedStatus( $order_id, $old_status, $new_status )
     {
         if ('' !== $old_status && ( $old_status !== $new_status ) ) {
-            $buyer_sms_notify = smsalert_get_option('lpress_order_status_' . $new_status, 'smsalert_lpress_general', 'on');
+			$buyer_sms_notify = smsalert_get_option('lpress_order_status_' . $new_status, 'smsalert_lpress_general', 'on');
             $admin_sms_notify = smsalert_get_option('lpress_admin_notification_' . $new_status, 'smsalert_lpress_general', 'on');
-            if (version_compare(WC_VERSION, '7.1', '<') ) {
-                $user_id          = get_post_meta($order_id, '_user_id', true);
-                $billing_phone     = get_post_meta($order_id, '_billing_phone', true);
-            } else {
-                $order    = wc_get_order($order_id);
-                $user_id  = $order->get_user_id(); 
-                $billing_phone  = !empty($order->get_billing_phone())?$order->get_billing_phone():$order->get_shipping_phone(); 
-            }
-
+            $user_id          = get_post_meta($order_id, '_user_id', true);
+            $billing_phone     = get_post_meta($order_id, '_billing_phone', true);
             if ('on' === $buyer_sms_notify ) {
                 $buyer_sms_content = smsalert_get_option('lpress_sms_body_' . $new_status, 'smsalert_lpress_message', sprintf(__('Hello %1$s, status of your %2$s with %3$s has been changed to %4$s.', 'sms-alert'), '[username]', '[order_id]', '[store_name]', '[order_status]'));
                 do_action('sa_send_sms', $billing_phone, self::parseSmsContent($order_id, $buyer_sms_content, $new_status, $user_id));

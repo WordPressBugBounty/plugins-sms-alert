@@ -174,12 +174,10 @@ class WooCommerceRegistrationForm extends FormInterface
     {
         if ($form == null || $form == 'register') {
             echo wp_kses_post('<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_signup" value="' . __('Signup with Mobile', 'sms-alert') . '" style="width: 100%; display:block"><span class="button__text">' . __('Signup with Mobile', 'sms-alert') . '</span></button></div>');
-
-            if (is_plugin_active('google-captcha/google-captcha.php')) {
-                add_action('wp_footer', array( $this, 'addSignupwithmobileShortcode' ), 1);
-            } else {
-                add_action('wp_footer', array( $this, 'addSignupwithmobileShortcode' ), 15); 
-            } 
+            add_action('wp_footer', array( $this, 'addSignupwithmobileShortcode' ), 15); 
+			if (is_plugin_active('google-captcha/google-captcha.php')) {
+                gglcptch_add_scripts();
+            }
         }
     }
     

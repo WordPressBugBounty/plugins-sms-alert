@@ -60,7 +60,7 @@ class SAUpgrade
             $otp_template = smsalert_get_option('sms_otp_send', 'smsalert_message');
             if ('Your verification code is [otp]' === $otp_template ) {
                 $output                 = get_option('smsalert_message');
-                $output['sms_otp_send'] = 'Your verification code for [shop_url] is [otp]';
+                $output['sms_otp_send'] = 'Your verification code for mobile verification is [otp]';
                 update_option('smsalert_message', $output);
             }
         }

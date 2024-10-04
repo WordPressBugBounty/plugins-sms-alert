@@ -259,10 +259,9 @@ class WPLogin extends FormInterface
     {
         if ($form == null || is_array($form) || $form == 'login') {
             echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . __('Login with OTP', 'sms-alert') . '" style="width: 100%;box-sizing: border-box;display:block">' . __('Login with OTP', 'sms-alert') . '</button></div>';
+			add_action('wp_footer', array( $this, 'addLoginwithotpShortcode' ), 15);
             if (is_plugin_active('google-captcha/google-captcha.php')) {
-                add_action('wp_footer', array( $this, 'addLoginwithotpShortcode' ), 1);
-            } else {
-                add_action('wp_footer', array( $this, 'addLoginwithotpShortcode' ), 15);
+                gglcptch_add_scripts();
             }
         }        
     }

@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.6
-Stable tag: 3.7.3
+Stable tag: 3.7.5
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -234,6 +234,14 @@ Please refer [here](https://kb.smsalert.co.in/wordpress) for plugin usage guide.
 14. Woocommerce Bookings - Admin Templates
 
 == Changelog ==
+= 3.7.5 =
+* Bugfix: Error on Order details page send sms widget on specific php versions
+
+= 3.7.4 =
+* Bugfix: Conflict with Speed Optimizer plugin and google recaptcha in login with otp and signup with otp forms
+* Bugfix: If otp for register is disabled then after registration gives warning message
+* Bugfix: notice on smsalert widget, order edit page
+
 = 3.7.3 =
 * Bugfix: Signup with mobile customer role issue
 * Bugfix: website flickering (blocksy theme)

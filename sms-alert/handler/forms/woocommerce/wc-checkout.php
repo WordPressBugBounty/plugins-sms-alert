@@ -336,6 +336,8 @@ class WooCommerceCheckOutForm extends FormInterface
 	var allow_otp_countries = '.json_encode($this->allow_otp_countries).';
 	var register_otp = "'.( ( smsalert_get_option('buyer_signup_otp', 'smsalert_general') === 'on' ) ? true : false ).'";
 	var btn_text = "'.smsalert_get_option('otp_verify_btn_text', 'smsalert_general', '').'";
+	function saCheckoutOtp()
+	{
 	function smsalert() {
 	  if (signup_checkout == "yes" && guest_checkout != "yes" && register_otp && !user_logged_in)
 	  {
@@ -483,7 +485,17 @@ class WooCommerceCheckOutForm extends FormInterface
 		function reset_otp_val() 
 		{
 		   "11111" == jQuery("#order_verify").val() && jQuery("#order_verify").val("");
-		}';
+		}
+	    }
+		if (window.jQuery) {
+		saCheckoutOtp();
+		}
+		else{
+		  window.onload = function() {
+            saCheckoutOtp();
+          };
+		}
+		';
 		if ( ! wp_script_is( 'sainlinescript-handle-footer', 'enqueued' ) ) {
          wp_register_script( 'sainlinescript-handle-footer', '', [], '', true );
          wp_enqueue_script( 'sainlinescript-handle-footer'  ); 
@@ -1518,10 +1530,10 @@ class WooCommerceCheckOutForm extends FormInterface
     public static function displaySendSmsMetaBox( $data )
     {
         global $woocommerce;
-        
-		$data = ( $data instanceof WP_Post ) ? wc_get_order( $data->ID ) : new WC_Order($data->ID); 
+		
+		$data = ( $data instanceof WP_Post ) ? wc_get_order( $data->ID ) : new WC_Order($data->get_id()); 
         $order_id = $data->get_id();
-
+		
         $username  = smsalert_get_option('smsalert_name', 'smsalert_gateway');
         $password  = smsalert_get_option('smsalert_password', 'smsalert_gateway');
         $result    = SmsAlertcURLOTP::getTemplates($username, $password);

@@ -72,10 +72,17 @@ class smsalert_Setting_Options
         if (! self::is_user_authorised() ) {
             add_action('admin_notices', __CLASS__ . '::showAdminNoticeSuccess');
         }
+		else if(!is_plugin_active( 'chat-on-desk/ChatOnDesk-wc-order-sms.php' ))
+		{
+			add_action( 'load-index.php', 
+				function(){
+					add_action('admin_notices', __CLASS__ . '::showWhatsappNotification');
+				}
+			);
+		}
 		if (SmsAlertUtility::isPlayground()) { 
             add_action('admin_notices', __CLASS__ . '::showPlayGroundNotices');
         }
-
         self::smsalertDashboardSetup();
         self::resetOTPModalStyle();
 
@@ -171,7 +178,36 @@ class smsalert_Setting_Options
             
         }
     }
-
+	
+    /**
+     * Prompts chatondesk notification.
+     *
+     * @return stirng
+     */
+    public static function showWhatsappNotification()
+    {
+		$credits = json_decode(SmsAlertcURLOTP::getCredits(), true);  
+        if (! empty($credits) ) {
+            if (!empty($credits['description']['routes'])) {
+                foreach ( $credits['description']['routes'] as $credit ) {
+                    if (strtolower($credit['route']) === 'transactional' ) {
+        global $current_user;
+        wp_get_current_user();						
+        ?>
+		<div class="notice notice-warning is-dismissible">
+		<div class="e-notice__content">
+		<h3>Expand Your Messaging Capabilities with WhatsApp!</h3>
+		<p>As a valued SMS Alert customer, you already know the power of seamless communication. Now, take it a step further with our new WhatsApp messaging service—FREE for 30 days! Connect with your customers on the platform they prefer and enhance your outreach effortlessly.</p>
+        <p>Get started today and enjoy the same trusted service you rely on, now with WhatsApp. <a href="https://www.chatondesk.com/request-demo/?utm_source=wordpress&utm_medium=sms_alert_plugin&utm_campaign=free_trial&utm_content=top_banner&utm_keyword=<?php echo smsalert_get_option('smsalert_name', 'smsalert_gateway'); ?>&email=<?php echo $current_user->user_email; ?>&phone=&cname=<?php echo $current_user->user_firstname . ' ' . $current_user->user_lastname; ?>" class="button button-primary" target="_blank"><span>Get Started with Free Trial</span></a></p>
+			</div>
+		</div>		
+      <?php
+		  }
+		 }
+		}
+	  }
+    }
+	
     /**
      * Prompts admin to login to SMS Alert if not already logged in.
      *

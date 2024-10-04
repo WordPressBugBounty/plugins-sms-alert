@@ -79,15 +79,15 @@ class SA_Forminator extends FormInterface
 						}		
 				});  
 			    setTimeout(function(){addSmsalertShortcode();}, 200);
-				addFominatorShortcode' . esc_attr($unique_id) . '();
+				addFominatorShortcode' . esc_attr($id) . '();
 			  });
 					function addSmsalertShortcode()
-					{				jQuery(".forminator-button-next").on("forminator.front.pagination.move", function (e) {
-					 addFominatorShortcode' . esc_attr($id) . '();
+					{						jQuery(".forminator-button-next").on("forminator.front.pagination.move", function (e) {
+						setTimeout(function(){addFominatorShortcode' . esc_attr($id) . '();}, 200);
 			        });
                    }
 				   
-				   function addFominatorShortcode' . esc_attr($unique_id) . '()
+				   function addFominatorShortcode' . esc_attr($id) . '()
 				   {
 					   if(jQuery(".forminator-button").hasClass("forminator-button-submit") && jQuery(".'.$unique_class.'.sa-wp-form").find(".sa-otp-btn-init").length == 0)
 					  {						 

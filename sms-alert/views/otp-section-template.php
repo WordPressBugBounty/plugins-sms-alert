@@ -354,7 +354,7 @@
             <td colspan="3" style="margin-top:20px;position:relative" >
 			
 			
-            <div class="smsalert_tokens"><a href="#" data-val="[otp]" style="margin-top:20px">OTP</a> | <a href="#" data-val="[shop_url]" style="margin-top:20px">Shop Url</a> </div>
+            <div class="smsalert_tokens"><a href="#" data-val="[otp]" style="margin-top:20px">OTP</a> | <a href="#" data-val="[shop_url]" style="margin-top:20px">Shop Url</a> | <a href="#" data-val="[store_name]" style="margin-top:20px">Shop Name</a> </div>
 			
             <textarea parent_accordian="otpsection" name="smsalert_message[sms_otp_send]" id="smsalert_message[sms_otp_send]" class="token-area"><?php echo esc_textarea($sms_otp_send); ?></textarea>
 			
