@@ -405,7 +405,12 @@ class WooCommerceRegistrationForm extends FormInterface
     public function woocommerceSiteRegistrationErrors( $errors, $username, $email )
     {
         SmsAlertUtility::checkSession();
-        $user_phone = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';        
+        $user_phone = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : ''; 
+		
+        if (SmsAlertUtility::isBlank($user_phone) ) {
+            return new WP_Error('registration-error-invalid-phone', __('Please enter phone number.', 'sms-alert'));
+        }	
+		
         if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {        
             return $errors;
         }
@@ -432,10 +437,6 @@ class WooCommerceRegistrationForm extends FormInterface
             if (count($getusers) > 0 ) {
                 return new WP_Error('registration-error-number-exists', __('An account is already registered with this mobile number. Please login.', 'sms-alert'));
             }
-        }
-
-        if (isset($user_phone) && SmsAlertUtility::isBlank($user_phone) ) {
-            return new WP_Error('registration-error-invalid-phone', __('Please enter phone number.', 'sms-alert'));
         }
 
         do_action('woocommerce_register_post', $username, $email, $errors);

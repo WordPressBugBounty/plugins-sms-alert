@@ -422,62 +422,63 @@ class WooCommerceCheckOutForm extends FormInterface
 		}
 		}
 	}
-	function addShortcode()
-	{
-		if(allow_otp_verification && allow_otp_countries != "")
+	    }
+		function addShortcode()
 		{
-			var billing_phone = jQuery(".woocommerce-checkout").find("input[name=billing_phone]");
-			var country_code = (enable_country && typeof billing_phone.intlTelInput("getSelectedCountryData").dialCode !="undefined") ? billing_phone.intlTelInput("getSelectedCountryData").dialCode : "";
-
-			if(country_code!=""){
-			 if(jQuery.inArray(country_code,allow_otp_countries)=== -1){
-				return;
-			 }
-			}
-		}
-		removeShortcode();
-		reset_otp_val();
-		if (is_popup)
-		{
-		var uniqueid = generateUniqueId();
-		if (jQuery("form").hasClass("wc-block-components-form"))
-		{
-			var phone_selector = (jQuery("#billing-phone").length != 0)?"#billing-phone":"#shipping-phone";
-			add_smsalert_button(".wc-block-components-checkout-place-order-button",phone_selector,uniqueid,btn_text);
-			jQuery(document).on("click", "#sa_verify_"+uniqueid,function(event){
-				event.preventDefault();
-			send_otp(this,".wc-block-components-checkout-place-order-button",phone_selector,"","");
-			});
-		} else {
-		add_smsalert_button("#place_order","#billing_phone",uniqueid,btn_text);
-		jQuery(document).on("click", "#sa_verify_"+uniqueid,function(event){
-				event.preventDefault();
-		send_otp(this,"#place_order","#billing_phone","","");
-		});
-		}
-		jQuery(".phone-valid,#billing_phone").trigger("keyup");
-		jQuery(document).on("keypress", "input", function(e){
-			var pform 	= jQuery(this).parents("form");
-			if (e.which === 13 && pform.find("#sa_verify_"+uniqueid).length > 0)
+			if(allow_otp_verification && allow_otp_countries != "")
 			{
-				e.preventDefault();
-				pform.find("#sa_verify_"+uniqueid).trigger("click");
+				var billing_phone = jQuery(".woocommerce-checkout").find("input[name=billing_phone]");
+				var country_code = (enable_country && typeof billing_phone.intlTelInput("getSelectedCountryData").dialCode !="undefined") ? billing_phone.intlTelInput("getSelectedCountryData").dialCode : "";
+
+				if(country_code!=""){
+				 if(jQuery.inArray(country_code,allow_otp_countries)=== -1){
+					return;
+				 }
+				}
 			}
-		});
-		} else {
-		jQuery("#order_verify_field,#smsalert_otp_token_submit").removeClass("sa-default-btn-hide")	
+			removeShortcode();
+			reset_otp_val();
+			if (is_popup)
+			{
+			var uniqueid = generateUniqueId();
+			if (jQuery("form").hasClass("wc-block-components-form"))
+			{
+				var phone_selector = (jQuery("#billing-phone").length != 0)?"#billing-phone":"#shipping-phone";
+				add_smsalert_button(".wc-block-components-checkout-place-order-button",phone_selector,uniqueid,btn_text);
+				jQuery(document).on("click", "#sa_verify_"+uniqueid,function(event){
+					event.preventDefault();
+				send_otp(this,".wc-block-components-checkout-place-order-button",phone_selector,"","");
+				});
+			} else {
+			add_smsalert_button("#place_order","#billing_phone",uniqueid,btn_text);
+			jQuery(document).on("click", "#sa_verify_"+uniqueid,function(event){
+					event.preventDefault();
+			send_otp(this,"#place_order","#billing_phone","","");
+			});
+			}
+			jQuery(".phone-valid,#billing_phone").trigger("keyup");
+			jQuery(document).on("keypress", "input", function(e){
+				var pform 	= jQuery(this).parents("form");
+				if (e.which === 13 && pform.find("#sa_verify_"+uniqueid).length > 0)
+				{
+					e.preventDefault();
+					pform.find("#sa_verify_"+uniqueid).trigger("click");
+				}
+			});
+			} else {
+			jQuery("#order_verify_field,#smsalert_otp_token_submit").removeClass("sa-default-btn-hide")	
+			}
 		}
-	}
-	function removeShortcode()
-	{
-		if (is_popup)
+		function removeShortcode()
 		{
-		jQuery(".place-order .smsalert_otp_btn_submit,.wc-block-components-checkout-place-order-button.smsalert_otp_btn_submit").remove();
-		jQuery("#place_order,.wc-block-components-checkout-place-order-button").removeClass("sa-default-btn-hide");
-		} else {
-		jQuery("#order_verify_field,#smsalert_otp_token_submit").addClass("sa-default-btn-hide")	
+			if (is_popup)
+			{
+			jQuery(".place-order .smsalert_otp_btn_submit,.wc-block-components-checkout-place-order-button.smsalert_otp_btn_submit").remove();
+			jQuery("#place_order,.wc-block-components-checkout-place-order-button").removeClass("sa-default-btn-hide");
+			} else {
+			jQuery("#order_verify_field,#smsalert_otp_token_submit").addClass("sa-default-btn-hide")	
+			}
 		}
-	}
 		function generateUniqueId()
 		{
 			return Math.random().toString(36).substr(2, 9);
@@ -486,7 +487,6 @@ class WooCommerceCheckOutForm extends FormInterface
 		{
 		   "11111" == jQuery("#order_verify").val() && jQuery("#order_verify").val("");
 		}
-	    }
 		if (window.jQuery) {
 		saCheckoutOtp();
 		}

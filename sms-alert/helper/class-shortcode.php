@@ -100,14 +100,14 @@ class Shortcode
         $sa_mobile_placeholder = ( ! empty($callback['sa_mobile_placeholder']) ) ? $callback['sa_mobile_placeholder'] : esc_html__('Enter Mobile Number', 'sms-alert');
         $sa_button = ( ! empty($callback['sa_button']) ) ? $callback['sa_button'] : esc_html__('Subscribe', 'sms-alert');
         $form_html = "<form id='sa-subscribe-form'>
-			   <input type='hidden' name='grp_name' id='sa_grp_name' value='".$grp_name."'>
+			   <input type='hidden' name='grp_name' id='sa_grp_name' value='".esc_attr($grp_name)."'>
 			   <p>
-			   <label for='name' class ='sa_subscriber'>" .$sa_name. ":</label>
-		       <input type='text' name='sa_name' id='sa_name' class ='sa_input' placeholder='" .$sa_placeholder. "'></br>
-			   <p/><p> <label for='mobile' class ='sa_subscriber'>" .$sa_mobile. ":</label>
-			    <input type='text' name='sa_mobile' class='phone-valid sa_input' id='sa_mobile' placeholder='" .$sa_mobile_placeholder. "'></br>
+			   <label for='name' class ='sa_subscriber'>" .esc_html($sa_name). ":</label>
+		       <input type='text' name='sa_name' id='sa_name' class ='sa_input' placeholder='" .esc_attr($sa_placeholder). "'></br>
+			   <p/><p> <label for='mobile' class ='sa_subscriber'>" .esc_html($sa_mobile). ":</label>
+			    <input type='text' name='sa_mobile' class='phone-valid sa_input' id='sa_mobile' placeholder='" .esc_attr($sa_mobile_placeholder). "'></br>
 			   <p/><p>
-			   <input type='button' class='button' name='subscribe' id='sa_subscribe' value='".$sa_button."'>
+			   <input type='button' class='button' name='subscribe' id='sa_subscribe' value='".esc_attr($sa_button)."'>
                </p>
                 <div class='sasub_output'></div>			   
 		</form>";
@@ -118,7 +118,7 @@ class Shortcode
 		var grp_name=jQuery('#sa_grp_name').val();
 		jQuery(this).val('Please Wait...').attr('disabled',true);
 		jQuery.ajax({
-			url: '".admin_url('admin-ajax.php')."',
+			url: '".esc_url(admin_url('admin-ajax.php'))."',
 			type: 'POST',
 			data:'action=save_subscribe&name='+name+'&mobile='+mobile+'&grp_name='+grp_name,
 			success: function(data){			
@@ -145,8 +145,8 @@ class Shortcode
      */
     function saveSubscribeData()
     {
-        $grp_name = $_POST['grp_name'];
-        $datas[] = array('person_name'=>$_POST['name'],'number'=>$_POST['mobile']);
+        $grp_name = sanitize_text_field($_POST['grp_name']);
+        $datas[] = array('person_name'=>sanitize_text_field($_POST['name']),'number'=>sanitize_text_field($_POST['mobile']));
         $response = SmsAlertcURLOTP::createContact($datas, $grp_name);
         $response = json_decode($response, true);
         if ($response['status']=='success') {

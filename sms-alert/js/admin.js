@@ -472,6 +472,20 @@ $sa(".btn_reset_style").on("click", function(e) {
 	$sa(this).addClass('sa-reset-initiated'),
 	$sa("#smsalert_reset_style_modal").addClass("sa-show"), $sa("#smsalert_reset_style_modal").after('<div class="sa-modal-backdrop sa-fade"></div>'), $sa(".sa-modal-backdrop").addClass("sa-show"),$sa("#sconfirmed").off().on("click",{post_name: $sa(this).attr("temp-style")}, resetSaStyle)
 });
+$sa(document).on('click', '#smsalert-remind-later', function() {
+       $sa.ajax({
+        url: "admin.php",
+        type: "GET",
+		data: "option=dismiss_chatondesk_notice",
+        crossDomain: !0,
+        success: function(data) {
+			$sa('#smsalert-remind-later').parents('.notice-warning').find('.notice-dismiss').trigger('click');
+        },
+        error: function(e) {
+            console.log(e)
+        }
+    });
+});
 function resetSaStyle(event) {
 	$sa('.sa-reset-initiated').addClass("anchordisabled");
 	$sa(".sa-modal").removeClass("sa-show");

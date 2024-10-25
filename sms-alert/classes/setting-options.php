@@ -74,11 +74,15 @@ class smsalert_Setting_Options
         }
 		else if(!is_plugin_active( 'chat-on-desk/ChatOnDesk-wc-order-sms.php' ))
 		{
-			add_action( 'load-index.php', 
-				function(){
-					add_action('admin_notices', __CLASS__ . '::showWhatsappNotification');
-				}
-			);
+			$chatondesk_notice = get_option('dismiss_chatondesk_notice', 0);
+			if($chatondesk_notice != 1)
+			{
+				add_action( 'load-index.php', 
+					function(){
+						add_action('admin_notices', __CLASS__ . '::showWhatsappNotification');
+					}
+				);
+			}
 		}
 		if (SmsAlertUtility::isPlayground()) { 
             add_action('admin_notices', __CLASS__ . '::showPlayGroundNotices');
@@ -102,7 +106,10 @@ class smsalert_Setting_Options
                 break;
             case 'smsalert-woocommerce-countrylist':
                 wp_send_json(SmsAlertcURLOTP::country_list());
-                break;    
+                break;
+            case 'dismiss_chatondesk_notice':
+                update_option('dismiss_chatondesk_notice', 1);
+                break;				
             }
         }
     }
@@ -198,7 +205,7 @@ class smsalert_Setting_Options
 		<div class="e-notice__content">
 		<h3>Expand Your Messaging Capabilities with WhatsApp!</h3>
 		<p>As a valued SMS Alert customer, you already know the power of seamless communication. Now, take it a step further with our new WhatsApp messaging service—FREE for 30 days! Connect with your customers on the platform they prefer and enhance your outreach effortlessly.</p>
-        <p>Get started today and enjoy the same trusted service you rely on, now with WhatsApp. <a href="https://www.chatondesk.com/request-demo/?utm_source=wordpress&utm_medium=sms_alert_plugin&utm_campaign=free_trial&utm_content=top_banner&utm_keyword=<?php echo smsalert_get_option('smsalert_name', 'smsalert_gateway'); ?>&email=<?php echo $current_user->user_email; ?>&phone=&cname=<?php echo $current_user->user_firstname . ' ' . $current_user->user_lastname; ?>" class="button button-primary" target="_blank"><span>Get Started with Free Trial</span></a></p>
+        <p>Get started today and enjoy the same trusted service you rely on, now with WhatsApp. <a href="https://www.chatondesk.com/request-demo/?utm_source=wordpress&utm_medium=sms_alert_plugin&utm_campaign=free_trial&utm_content=top_banner&utm_keyword=<?php echo smsalert_get_option('smsalert_name', 'smsalert_gateway'); ?>&email=<?php echo $current_user->user_email; ?>&phone=&cname=<?php echo $current_user->user_firstname . ' ' . $current_user->user_lastname; ?>" class="button button-primary" target="_blank"><span>Get Started with Free Trial</span></a><a style="margin-left:20px;text-decoration: none" href="javascript:void(0)" id="smsalert-remind-later">Don't show it again</a></p>
 			</div>
 		</div>		
       <?php
@@ -483,7 +490,10 @@ class smsalert_Setting_Options
                 update_option($name, $value);
             }
         }
-        
+        do_action('litespeed_purge_all');
+		if ( function_exists('wp_cache_clear_cache') ) {
+          wp_cache_clear_cache();
+        }
         wp_safe_redirect(admin_url('admin.php?page=sms-alert&m=1'));
         exit;
     }

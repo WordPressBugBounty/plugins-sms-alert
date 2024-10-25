@@ -571,7 +571,7 @@ class SAPopup
             $input.= '<input type="number" class="otp-number '.esc_attr($hide_class).'" id="digit-'.esc_attr($i + 1).'" name="digit-'.esc_attr($i + 1).'" oninput="saGroup(this)" onkeyup="tabChange('.esc_attr($i + 1).',this)" data-next="digit-'.esc_attr($i + 2).'" data-previous="digit-'.esc_attr($otp_length - $j--).'" data-max="1" autocomplete="off">';
         }
         $content.= $input;
-        $content.= '<input type="number" oninput="saGroup(this)" name="smsalert_customer_validation_otp_token" autofocus="true" placeholder="'.esc_attr($placeholder).'" id="smsalert_customer_validation_otp_token" class="input-text otp_input" pattern="[0-9]{'.esc_attr($otp_length).'}" title="Only digits within range 4-8 are allowed." data-max="' . esc_attr($otp_length) . '">';
+        $content.= '<input type="number" oninput="saGroup(this)" name="smsalert_customer_validation_otp_token" placeholder="'.esc_attr($placeholder).'" id="smsalert_customer_validation_otp_token" class="input-text otp_input" pattern="[0-9]{'.esc_attr($otp_length).'}" title="Only digits within range 4-8 are allowed." data-max="' . esc_attr($otp_length) . '">';
         
         $content.= '<br><button type="button" name="smsalert_otp_validate_submit" style="color:grey; pointer-events:none;" id="sa_verify_otp" class="button smsalert_otp_validate_submit" value="Validate OTP">'.esc_attr($sa_button).'</button><br><a href="#" style="float:right" class="sa_resend_btn" onclick="saResendOTP(this)">'.esc_attr($sa_resend_btns).'</a><span class="sa_timer" style="min-width:80px; float:right"><span class="satimer">00:00:00</span> sec</span><span class="sa_forgot" style="float:right">'.esc_attr($sa_resend_otp).'</span><br></div></div></div>';    
         return $content;        

@@ -103,6 +103,16 @@ class SAUpgrade
             $reminder_table_name = $wpdb->prefix . "smsalert_booking_reminder";
             $wpdb->query("ALTER TABLE $reminder_table_name ADD source varchar(50) NOT NULL DEFAULT 'woocommerce-bookings',ADD msg_sent TINYINT NOT NULL DEFAULT 0");
         }
+		$senderid = smsalert_get_option('smsalert_api', 'smsalert_gateway');
+		if ($db_version <= '3.7.5' && !SmsAlertUtility::isPlayground() && $senderid == 'ESTORE') {
+            $sms_otp_send  = smsalert_get_option('sms_otp_send', 'smsalert_message');
+			if($sms_otp_send != '')
+			{
+				$output   = get_option('smsalert_message');
+                $output['sms_otp_send'] = SmsAlertMessages::showMessage('DEFAULT_BUYER_OTP');
+                update_option('smsalert_message', $output);
+			}
+        }
 
         update_option('smsalert_upgrade_settings', array( 'version' => $plugin_version ));
     }

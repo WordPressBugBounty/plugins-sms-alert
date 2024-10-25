@@ -52,7 +52,7 @@ $sa(document).ready(
                 var umobile = $sa("#sc_umobile").val();
                 var fname     = $sa("#sc_fname").val();
                 var fmobile = $sa("#sc_fmobile").val();
-                var intRegex = /^\d+$/;
+                var intRegex = /^\+?\d+$/;
         
                 if((!intRegex.test(umobile) && umobile != '') || (!intRegex.test(fmobile) && fmobile != '')) {
                     $sa('#sc_btn').before('<li class="sc_error" style="color:red">*Invalid Mobile Number</li>');
@@ -77,7 +77,7 @@ $sa(document).ready(
                             type:'POST',
                             data:'action=save_cart_data&'+formdata,
                             success : function (response) {
-                                $sa('#sc_btn').removeClass('button--loading');
+                                $sa('#sc_btn').removeClass('button--loading').attr("disabled",false);
                                 $sa('.sc_form').hide();
                                 $sa('#sc_response').html(response);
                                 setTimeout(
