@@ -293,7 +293,7 @@ class ContactForm7 extends FormInterface
     {
         if (class_exists('WPCF7_TagGenerator') ) {
             $tag_generator = WPCF7_TagGenerator::get_instance();
-            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorText' ));
+            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorText' ),array('version'=>2));
         }
     }
 

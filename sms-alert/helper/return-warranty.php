@@ -10,7 +10,6 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-
 if (! defined('ABSPATH') ) {
     exit;
 }
@@ -73,8 +72,10 @@ class Sa_Return_Warranty
      */
     public function updateWcWarrantySettings( $data )
     {
-        $options = $_POST;
-        if ('smsalert_warranty' === $options['tab'] ) {
+		if(current_user_can('edit_posts') && wp_verify_nonce( $_POST['smsalert_nonce'], 'smsalert_wp_nonce' ))
+        {
+          $options = $_POST;
+          if ('smsalert_warranty' === $options['tab'] ) {
             foreach ( $options as $name => $value ) {
                 if (is_array($value) ) {
                     foreach ( $value as $k => $v ) {
@@ -85,7 +86,8 @@ class Sa_Return_Warranty
                 }
                 update_option($name, $value);
             }
-        }
+         }
+		}
     }
 
     /**
@@ -219,6 +221,7 @@ class Sa_Return_Warranty
             'checkTemplateFor' => 'return_warranty',
             'templates'        => self::getReturnWarrantyTemplates(),
             );
+			echo wp_nonce_field('smsalert_wp_nonce', 'smsalert_nonce', true, false);
             get_smsalert_template('views/message-template.php', $return_warranty_param);
         }
     }

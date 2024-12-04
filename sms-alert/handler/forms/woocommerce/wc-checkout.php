@@ -1424,6 +1424,7 @@ class WooCommerceCheckOutForm extends FormInterface
 						),
 						$order_variables
 					);
+				$order_variables = array_map('strval', $order_variables);	
 				$sms_data['sms_body'] = str_replace(array_keys($order_variables), array_values($order_variables), $content);
 			} else{
 				$sms_data['sms_body'] = $content;

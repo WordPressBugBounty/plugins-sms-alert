@@ -28,7 +28,7 @@
                 "onlyCountries": whitelist_countries
             };
 			
-            if(country != undefined)
+            if(country != undefined && selected_countries.length == 0)
 			{
 				default_opt['initialCountry'] = country;
 			}
