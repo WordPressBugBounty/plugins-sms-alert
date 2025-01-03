@@ -1424,7 +1424,9 @@ class WooCommerceCheckOutForm extends FormInterface
 						),
 						$order_variables
 					);
-				$order_variables = array_map('strval', $order_variables);	
+				$order_variables = array_map(function ($value) {
+					return !is_array($value) ? strval($value) : ''; 
+				}, $order_variables);	
 				$sms_data['sms_body'] = str_replace(array_keys($order_variables), array_values($order_variables), $content);
 			} else{
 				$sms_data['sms_body'] = $content;
@@ -2335,9 +2337,8 @@ class SA_CodTOPrepaid
      */
     public function addDefaultSetting( $defaults = array() )
     {
-        
-        $this->payment_methods           = maybe_unserialize(smsalert_get_option('checkout_payment_plans', 'smsalert_cod_to_prepaid'));
-        $this->otp_for_selected_gateways = ( smsalert_get_option('otp_for_selected_gateways', 'smsalert_cod_to_prepaid') === 'on' ) ? true : false;         
+        //$this->payment_methods           = maybe_unserialize(smsalert_get_option('checkout_payment_plans', 'smsalert_cod_to_prepaid'));
+        //$this->otp_for_selected_gateways = ( smsalert_get_option('otp_for_selected_gateways', 'smsalert_cod_to_prepaid') === 'on' ) ? true : false;         
         $defaults['smsalert_cod_to_prepaid']['order_status']                   = 'Processing';
         $defaults['smsalert_cod_to_prepaid']['notification_frequency']         = '10';
         $defaults['smsalert_cod_to_prepaid']['customer_notify']                = 'off';
@@ -2616,7 +2617,7 @@ class All_Order_List extends WP_List_Table
      */
     public function column_default( $item, $column_name )
     {
-        return $item->$column_name;
+        return $item->get_id();
     }
 
     /**
@@ -2630,7 +2631,7 @@ class All_Order_List extends WP_List_Table
     {
         return sprintf(
             '<input type="checkbox" name="id[]" value="%s" />',
-            $item['id']
+            $item->get_id()
         );
     }
 
@@ -2644,7 +2645,7 @@ class All_Order_List extends WP_List_Table
     public function column_status( $item )
     {
 		
-        $post_status = sprintf('<button class="button-primary"/>%s</a>', str_replace('wc-', '', $item->status));
+        $post_status = sprintf('<button class="button-primary"/>%s</a>', str_replace('wc-', '', $item->get_status()));
         return $post_status;
     }
 
@@ -2724,7 +2725,7 @@ function all_order_variable_page_handler()
     <?php $table_data->display(); ?>
     </form>
     <div id="sa_order_variable" class="sa_variables" style="display:none">
-        <h3 class="h3-background">Select your variable <span id="order_id" class="alignright"><?php echo esc_attr($order_id); ?></span></h3>
+        <h3 class="h3-background">Select your variable <span id="order_id" class="alignright"></span></h3>
         <ul id="order_list"></ul>
     </div>
 </div>

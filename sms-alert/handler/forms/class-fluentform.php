@@ -142,32 +142,35 @@ class SaFluentForm extends FormInterface
         $form_enable = smsalert_get_option('fluent_order_status_' . $form_id, 'smsalert_fluent_general', 'on');
         $otp_enable  = smsalert_get_option('fluent_otp_' . $form_id, 'smsalert_fluent_general', 'on');
         $phone_field = smsalert_get_option('fluent_sms_phone_' . $form_id, 'smsalert_fluent_general', '');
-        $inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery("input[name='.$phone_field.']").addClass("phone-valid");';
-        if ('on' === $form_enable && 'on' === $otp_enable && '' !== $phone_field ) {
-            $uniqueNo = rand();
-            $inline_script .= 'jQuery("form#fluentform_' . esc_attr($form_id) . '").each(function () 
-				{
-				  	if(!jQuery(this).hasClass("sa-wp-form"))
+        if ('on' === $form_enable && '' !== $phone_field ) {
+			$inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery("input[name='.$phone_field.']").addClass("phone-valid");';
+			if ('on' === $otp_enable ) 
+			{
+				$uniqueNo = rand();
+				$inline_script .= 'jQuery("form#fluentform_' . esc_attr($form_id) . '").each(function () 
 					{
-					    jQuery(this).addClass("'.$unique_class.' sa-wp-form");
-					}		
-				});
-                jQuery(document).on("elementor/popup/show", (event, id, instance) => {
-					add_smsalert_button(".'.$unique_class.' .ff-btn-submit","input[name=' . esc_attr($phone_field) . ']","'.$uniqueNo.'");
-					jQuery(document).on("click", "#sa_verify_'.$uniqueNo.'",function(event){
-						event.stopImmediatePropagation();
-						send_otp(this,".'.$unique_class.' .ff-btn-submit","input[name=' . esc_attr($phone_field) . ']","","");
-						});	
-						initialiseCountrySelector(".phone-valid");	
-			});';
-            echo do_shortcode('[sa_verify id="form1" phone_selector="' . esc_attr($phone_field) . '" submit_selector= ".'.$unique_class.' .ff-btn-submit" ]');
+						if(!jQuery(this).hasClass("sa-wp-form"))
+						{
+							jQuery(this).addClass("'.$unique_class.' sa-wp-form");
+						}		
+					});
+					jQuery(document).on("elementor/popup/show", (event, id, instance) => {
+						add_smsalert_button(".'.$unique_class.' .ff-btn-submit","input[name=' . esc_attr($phone_field) . ']","'.$uniqueNo.'");
+						jQuery(document).on("click", "#sa_verify_'.$uniqueNo.'",function(event){
+							event.stopImmediatePropagation();
+							send_otp(this,".'.$unique_class.' .ff-btn-submit","input[name=' . esc_attr($phone_field) . ']","","");
+							});	
+							initialiseCountrySelector(".phone-valid");	
+				});';
+				echo do_shortcode('[sa_verify id="form1" phone_selector="' . esc_attr($phone_field) . '" submit_selector= ".'.$unique_class.' .ff-btn-submit" ]');
+				$inline_script .= '});';
+			}
+			if (! wp_script_is('sainlinescript-handle-footer', 'enqueued') ) {
+				wp_register_script('sainlinescript-handle-footer', '', [], '', true);
+				wp_enqueue_script('sainlinescript-handle-footer'); 
+			}
+			wp_add_inline_script("sainlinescript-handle-footer", $inline_script);
         }
-        $inline_script .= '});';
-        if (! wp_script_is('sainlinescript-handle-footer', 'enqueued') ) {
-            wp_register_script('sainlinescript-handle-footer', '', [], '', true);
-            wp_enqueue_script('sainlinescript-handle-footer'); 
-        }
-        wp_add_inline_script("sainlinescript-handle-footer", $inline_script);
     }
 
 

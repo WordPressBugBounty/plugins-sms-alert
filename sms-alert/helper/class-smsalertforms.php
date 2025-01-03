@@ -17,7 +17,6 @@ use Elementor\Controls_Manager;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Typography;
-use Elementor\Core\Schemes\Typography as Scheme_Typography;
 use Elementor\Group_Control_Background;
 use Elementor\Core\Schemes\Color as Scheme_Color;
 
@@ -496,7 +495,9 @@ class SMSAlertForms extends Widget_Base
             [
                 'name'      => 'heading_description_typography',
                 'label'     => __('Typography', 'sms-alert'),
-                'scheme'    => Scheme_Typography::TYPOGRAPHY_4,
+                'global' => [
+			        'default' => \Elementor\Core\Kits\Documents\Tabs\Global_Typography::TYPOGRAPHY_ACCENT,
+		        ],
                 'selector'  => '{{WRAPPER}} .smsalertform-widget-description,.smsalertform-widget-description #sa-subscribe-form',
                 'condition' => [
                     'custom_title_description' => 'yes',

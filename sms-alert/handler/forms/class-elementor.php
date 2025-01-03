@@ -436,10 +436,10 @@ class Elementor extends ElementorPro\Modules\Forms\Fields\Field_Base
 						var recaptcha_div = jQuery("#form-field-'.$field['custom_id'].'").parents("form").find("[data-sitekey]");
 					    if(recaptcha_div.length>0 && recaptcha_div.attr("data-size") == "invisible")
 						{
-						  recaptcha_div.removeClass("elementor-g-recaptcha").addClass("g-recaptcha").attr("id","sa-grecaptcha").html("");	
+						  recaptcha_div.removeClass("elementor-g-recaptcha").addClass("g-recaptcha").attr("id","sa-grecaptcha_'.$field['custom_id'].'").html("");	
 						  var site_key = recaptcha_div.attr("data-sitekey");
 						  grecaptcha.ready(function() {  
-							grecaptcha.render("sa-grecaptcha", {
+							grecaptcha.render("sa-grecaptcha_'.$field['custom_id'].'", {
 								"sitekey" : site_key
 						    });
 							grecaptcha.execute();

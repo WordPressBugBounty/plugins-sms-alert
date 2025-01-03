@@ -94,7 +94,13 @@ class ContactForm7 extends FormInterface
         add_filter('wpcf7_editor_panels', array( $this, 'newMenuSmsAlert' ), 98);
         add_action('wpcf7_after_save', array( &$this, 'saveForm' ));
         add_action('wpcf7_before_send_mail', array( $this, 'sendsmsC7' ));
-        add_action('wpcf7_admin_init', array( $this, 'addSmsalertPhoneTag' ), 20, 0);
+		
+		if ( ! version_compare( WPCF7_VERSION, '6.0', '>' ) ) {
+		  add_action('wpcf7_admin_init', array( $this, 'addSmsalertPhoneTag' ), 20, 0);
+		}
+		else{
+		  add_action('wpcf7_admin_init', array( $this, 'addSmsalertPhoneTagV2' ), 20, 0);
+		}
         add_action('wpcf7_init', array( $this, 'smsalertWpcf7AddShortcodePhonefieldFrontend' ));
         add_filter('wpcf7_messages', array( $this, 'wpcf7BillingPhoneMessages' ), 10, 1);
         add_action('wpcf7_admin_notices', array( $this,'smsalertWpcf7ShowWarnings'), 10, 3);
@@ -285,6 +291,19 @@ class ContactForm7 extends FormInterface
     }
 
     /**
+     * Tag generator for smsalert phone field to cf7 for version 2
+     *
+     * @return void
+     */
+    public function addSmsalertPhoneTagV2()
+    {
+        if (class_exists('WPCF7_TagGenerator') ) {
+            $tag_generator = WPCF7_TagGenerator::get_instance();
+            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorTextV2' ),array('version'=>2));
+        }
+    }
+	
+	/**
      * Tag generator for smsalert phone field to cf7
      *
      * @return void
@@ -293,11 +312,11 @@ class ContactForm7 extends FormInterface
     {
         if (class_exists('WPCF7_TagGenerator') ) {
             $tag_generator = WPCF7_TagGenerator::get_instance();
-            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorText' ),array('version'=>2));
+            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorText' ));
         }
     }
-
-    /**
+	
+	/**
      * Tag generator form for smsalert phone tag in cf7 backend
      *
      * @param object $contact_form cf7 form object.
@@ -377,6 +396,57 @@ class ContactForm7 extends FormInterface
         <p class="description mail-tag"><label for="<?php echo esc_attr($args['content'] . '-mailtag'); ?>"><?php echo wp_kses_post(sprintf(__('To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.', 'sms-alert'), '<strong><span class="mail-tag"></span></strong>')); ?><input type="text" class="mail-tag code hidden" readonly="readonly" id="<?php echo esc_attr($args['content'] . '-mailtag'); ?>" /></label></p>
     </div>
         <?php
+    }
+
+    /**
+     * Tag generator form for smsalert phone tag in cf7 backend
+     *
+     * @param object $contact_form cf7 form object.
+     * @param array  $args         cf7 form arguments.
+     *
+     * @return void
+     */
+    public function smsalertWpcf7TagGeneratorTextV2( $contact_form, $options = '' )
+    {
+
+	$tgg = new WPCF7_TagGeneratorGenerator( $options['content'] );
+
+?>
+<div class="control-box">
+	<?php
+		$tgg->print( 'field_type', array(
+			'with_required' => true,
+			'select_options' => array(
+				'billing_phone' => __( 'SMS Alert Phone', 'sms-alert' ),
+			),
+		) );
+
+		$tgg->print( 'field_name', array(
+			'field_name' => 'otp_enabled_popup'
+		) );
+		?>
+		<fieldset>
+		<label>
+		<input type="checkbox" data-tag-part="option" data-tag-option="otp_enabled_popup">
+		Use this field for sending OTP to Mobile Number	</label>
+		</fieldset>
+		<?php
+        $tgg->print( 'default_value', array(
+			'with_placeholder' => true,
+		) );
+		$tgg->print( 'id_attr' );
+		$tgg->print( 'class_attr' );
+	?>
+</div>
+
+<footer class="insert-box">
+	<?php
+		$tgg->print( 'insert_box_content' );
+
+		$tgg->print( 'mail_tag_tip' );
+	?>
+</footer>
+<?php
     }
 
     /**

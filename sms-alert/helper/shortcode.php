@@ -110,6 +110,7 @@ class SAVerify
 						if(grecaptcha)
 						{
 							grecaptcha.execute().then(function(token) {
+							  jQuery("' . $phone_selector . '").parents("form").find(".g-recaptcha-response").val(token);
 							  send_otp(self,"' . $submit_selector . '","' . $phone_selector . '","'.$username_selector.'","'.$password_selector.'");
 							});
 						}

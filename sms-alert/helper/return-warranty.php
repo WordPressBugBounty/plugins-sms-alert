@@ -72,18 +72,20 @@ class Sa_Return_Warranty
      */
     public function updateWcWarrantySettings( $data )
     {
-		if(current_user_can('edit_posts') && wp_verify_nonce( $_POST['smsalert_nonce'], 'smsalert_wp_nonce' ))
+		if(current_user_can('manage_options') && wp_verify_nonce( $_POST['smsalert_nonce'], 'smsalert_wp_nonce' ))
         {
           $options = $_POST;
           if ('smsalert_warranty' === $options['tab'] ) {
-            foreach ( $options as $name => $value ) {
-                if (is_array($value) ) {
-                    foreach ( $value as $k => $v ) {
-                        if (! is_array($v) ) {
-                            $value[ $k ] = sanitize_text_field(wp_unslash($v));
-                        }
-                    }
-                }
+			foreach ( $options as $name => $value ) {
+				if(!is_array($value))
+				{
+					continue;
+				}
+				foreach ( $value as $k => $v ) {
+					if (! is_array($v) ) {
+						$value[ $k ] = sanitize_text_field(wp_unslash($v));
+					}
+				}
                 update_option($name, $value);
             }
          }
@@ -268,7 +270,7 @@ class Sa_Return_Warranty
 
             $vs               = str_replace(' ', '-', strtolower($vs));
             $wc_warranty_text = smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '');
-            $current_val      = smsalert_get_option('warranty_status_' . $vs, 'smsalert_warranty', 'on');
+            $current_val      = smsalert_get_option('warranty_status_' . $vs, 'smsalert_warranty', '');
 
             $checkbox_name_id  = 'smsalert_warranty[warranty_status_' . $vs . ']';
             $text_area_name_id = 'smsalert_warranty[sms_text_' . $vs . ']';
