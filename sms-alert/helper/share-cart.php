@@ -303,19 +303,21 @@ class Share_Cart
         }
         if (isset($_REQUEST['sc_umobile']) ) {
             global $phoneLogic;
+            $sc_umobile = sanitize_text_field($_REQUEST['sc_umobile']);
+            $sc_fmobile = sanitize_text_field($_REQUEST['sc_fmobile']);
+			
+            $invalid_fmob= str_replace('##phone##', $sc_fmobile, $phoneLogic->_get_otp_invalid_format_message());
             
-            $invalid_fmob= str_replace('##phone##', $_REQUEST['sc_fmobile'], $phoneLogic->_get_otp_invalid_format_message());
+            $invalid_scmob= str_replace('##phone##', $sc_umobile, $phoneLogic->_get_otp_invalid_format_message());
             
-            $invalid_scmob= str_replace('##phone##', $_REQUEST['sc_umobile'], $phoneLogic->_get_otp_invalid_format_message());
+            $sc_fmobile = SmsAlertcURLOTP::checkPhoneNos($sc_fmobile);
             
-            $_REQUEST['sc_fmobile'] = SmsAlertcURLOTP::checkPhoneNos($_REQUEST['sc_fmobile']);
+            $sc_umobile = SmsAlertcURLOTP::checkPhoneNos($sc_umobile);
             
-            $_REQUEST['sc_umobile'] = SmsAlertcURLOTP::checkPhoneNos($_REQUEST['sc_umobile']);
-            
-            if (empty($_REQUEST['sc_umobile'])) {
+            if (empty($sc_umobile)) {
                 echo $invalid_scmob;die();
             }
-            if (empty($_REQUEST['sc_fmobile'])) {
+            if (empty($sc_fmobile)) {
                 echo $invalid_fmob;die();
             }
             
@@ -342,7 +344,6 @@ class Share_Cart
 
             // Checking if we have values coming from the input fields.
             $name  = sanitize_text_field($_REQUEST['sc_uname']);
-            $phone = sanitize_text_field($_REQUEST['sc_umobile']);
 
             $current_session_exist_in_db = $public->current_session_exist_in_db($cart_session_id);
             // If we have already inserted the Users session ID in Session variable and it is not NULL and Current session ID exists in Database we update the abandoned cart row.
@@ -355,8 +356,8 @@ class Share_Cart
                     $wpdb->update(
                         $table_name,
                         array(
-                        'name'          => sanitize_text_field($name),
-                        'phone'         => filter_var($phone, FILTER_SANITIZE_NUMBER_INT),
+                        'name'          => $name,
+                        'phone'         => filter_var($sc_umobile, FILTER_SANITIZE_NUMBER_INT),
                         'cart_contents' => serialize($product_array),
                         'cart_total'    => sanitize_text_field($cart_total),
                         'currency'      => sanitize_text_field($cart_currency),
@@ -384,8 +385,8 @@ class Share_Cart
 						( name, phone, cart_contents, cart_total, currency, time, session_id, msg_sent )
 						VALUES ( %s, %s, %s, %0.2f, %s, %s, %s, %d )',
                         array(
-                        sanitize_text_field($name),
-                        filter_var($phone, FILTER_SANITIZE_NUMBER_INT),
+						$name,
+                        filter_var($sc_umobile, FILTER_SANITIZE_NUMBER_INT),
                         serialize($product_array),
                         sanitize_text_field($cart_total),
                         sanitize_text_field($cart_currency),
@@ -401,25 +402,21 @@ class Share_Cart
             }
 
             // Send Msg to friend
-            if ($_REQUEST['sc_fmobile'] ) {
+			$table_name = $wpdb->prefix . SA_CART_TABLE_NAME;
 
-                $table_name = $wpdb->prefix . SA_CART_TABLE_NAME;
+			// $lastid               = $wpdb->insert_id;
+			$lastid = $wpdb->get_results('SELECT MAX(id) FROM ' . $table_name, ARRAY_A);
 
-                // $lastid               = $wpdb->insert_id;
-                $lastid = $wpdb->get_results('SELECT MAX(id) FROM ' . $table_name, ARRAY_A);
+			$data = $wpdb->get_results('SELECT * FROM ' . $table_name . ' WHERE id = ' . $lastid[0]['MAX(id)'], ARRAY_A);
+			$data = array_shift($data);
 
-                $data = $wpdb->get_results('SELECT * FROM ' . $table_name . ' WHERE id = ' . $lastid[0]['MAX(id)'], ARRAY_A);
-                $data = array_shift($data);
-
-                $data['cart_url']     = $this->create_cart_url($session_id, $data['id']);
-                $data['friend_name']  = sanitize_text_field($_REQUEST['sc_fname']);
-                $data['friend_phone'] = sanitize_text_field($_REQUEST['sc_fmobile']);
-                $data['your_phone']   = sanitize_text_field($_REQUEST['sc_umobile']);
-                $data['your_name']    = sanitize_text_field($_REQUEST['sc_uname']);
-                $phone                = sanitize_text_field($_REQUEST['sc_fmobile']);
-                $message              = smsalert_get_option('customer_notify', 'smsalert_share_cart_message');
-                do_action('sa_send_sms', $phone, $this->parseSmsBody($data, $message));
-            }
+			$data['cart_url']     = $this->create_cart_url($session_id, $data['id']);
+			$data['friend_name']  = sanitize_text_field($_REQUEST['sc_fname']);
+			$data['friend_phone'] = $sc_fmobile;
+			$data['your_phone']   = $sc_umobile;
+			$data['your_name']    = $name;
+			$message              = smsalert_get_option('customer_notify', 'smsalert_share_cart_message');
+			do_action('sa_send_sms', $sc_fmobile, $this->parseSmsBody($data, $message));
 
             echo 'Cart Shared Successfully.';
             die();

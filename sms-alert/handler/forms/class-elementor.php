@@ -19,7 +19,7 @@ if (! is_plugin_active('elementor/elementor.php') ) {
     return; 
 }
 
-if (! is_plugin_active('elementor-pro/elementor-pro.php') ) {
+if (! is_plugin_active('elementor-pro/elementor-pro.php') && ! is_plugin_active('pro-elements/pro-elements.php')) {
     return; 
 }    
   
@@ -152,7 +152,7 @@ class SAElementor extends FormInterface
     {
         $user_authorize = new smsalert_Setting_Options();
         $islogged       = $user_authorize->is_user_authorised();
-        return ( is_plugin_active('elementor/elementor.php') && $islogged && is_plugin_active('elementor-pro/elementor-pro.php') ) ? true : false;
+        return ( is_plugin_active('elementor/elementor.php') && $islogged && (is_plugin_active('elementor-pro/elementor-pro.php') || is_plugin_active('pro-elements/pro-elements.php')) ) ? true : false;
     }
 
     /**

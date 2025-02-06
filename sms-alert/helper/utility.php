@@ -386,7 +386,8 @@ class SmsAlertUtility
     }
 	
 	public static function isPlayground(){
-		return $_SERVER['HTTP_HOST'] == 'playground.wordpress.net'  ? true : false;
+		$sandbox_mode = get_option('smsalert_sandbox_mode', 0);
+		return ($_SERVER['HTTP_HOST'] == 'playground.wordpress.net' && $sandbox_mode == 1)  ? true : false;
 	}
     
     /**

@@ -486,6 +486,20 @@ $sa(document).on('click', '#smsalert-remind-later', function() {
         }
     });
 });
+$sa(document).on('click', '#smsalert-sandbox-mode', function() {
+       $sa.ajax({
+        url: "admin.php",
+        type: "GET",
+		data: "option=smsalert_sandbox_mode",
+        crossDomain: !0,
+        success: function(data) {
+			window.location.reload();
+        },
+        error: function(e) {
+            console.log(e)
+        }
+    });
+});
 function resetSaStyle(event) {
 	$sa('.sa-reset-initiated').addClass("anchordisabled");
 	$sa(".sa-modal").removeClass("sa-show");

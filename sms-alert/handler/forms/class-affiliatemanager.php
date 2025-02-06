@@ -300,7 +300,8 @@ class AffiliateManager extends FormInterface
     public static function getAffiliateById( $affiliate_id = null )
     {
         global $wpdb;
-        $db_fields = $wpdb->get_results('SELECT * FROM ' . $wpdb->prefix . 'wpam_affiliates where affiliateId =' . $affiliate_id, ARRAY_A);
+		$query = 'SELECT * FROM ' . $wpdb->prefix . 'wpam_affiliates where affiliateId = %s';
+        $db_fields = $wpdb->get_results($wpdb->prepare($query, $affiliate_id), ARRAY_A);
         $response  = array_shift($db_fields);
         return $response;
     }

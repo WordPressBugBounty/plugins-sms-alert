@@ -90,8 +90,10 @@ class WPLogin extends FormInterface
 
         if ('on' === $enabled_login_with_otp ) {
             if (is_plugin_active('easy-login-woocommerce/xoo-el-main.php') || is_plugin_active('easy-login-woocommerce-premium/xoo-el-main.php') ) {
-                add_action('xoo_el_login_form_end', array( $this, 'smsalertDisplayLoginWithOtp' ));
-                add_action('xoo_el_form_end', array( $this, 'smsalertDisplayLoginWithOtp' ), 10, 2);
+				add_action('xoo_el_form_end', array( $this, 'smsalertDisplayLoginWithOtp' ), 10, 2);
+				if (!has_action('xoo_el_form_end', array($this, 'smsalertDisplayLoginWithOtp'))) {
+                  add_action('xoo_el_login_form_end', array( $this, 'smsalertDisplayLoginWithOtp' ));
+				}
             }
             add_action('woocommerce_login_form_end', array( $this, 'smsalertDisplayLoginWithOtp' ));
             add_action('um_after_login_fields', array( $this, 'smsalertDisplayLoginWithOtp' ), 1002);

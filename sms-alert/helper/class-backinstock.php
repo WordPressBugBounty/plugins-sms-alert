@@ -52,6 +52,7 @@ class Sa_Backinstock
             add_action('woocommerce_simple_add_to_cart', array( $this, 'displayInSimpleProduct' ), 63);
             add_action('woocommerce_after_variations_form', array( $this, 'saDisplayInNoVariationProduct' ));
             add_filter('woocommerce_available_variation', array( $this, 'saDisplayInVariation' ), 100, 3);
+            add_action('blocksy:woocommerce:product-single:add_to_cart:before', array( $this, 'saDisplayInBlocksy' ), 100);
             $this->handleSubcribeRequest($_REQUEST);
         }
 
@@ -510,6 +511,19 @@ class Sa_Backinstock
         $get_stock                 = $atts['availability_html'];
         $atts['availability_html'] = $get_stock . $this->displaySaSubscribeBox($product, $variation);
         return $atts;
+    }
+	
+	 /**
+     * SA display in blocksy.
+     *
+     * @param array  $atts      atts.
+     *
+     * @return array
+     */
+    public function saDisplayInBlocksy()
+    {
+		global $product;
+        echo $this->displaySaSubscribeBox($product);
     }
 
     /**

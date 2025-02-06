@@ -84,9 +84,8 @@ class smsalert_Setting_Options
 				);
 			}
 		}
-		if (SmsAlertUtility::isPlayground()) { 
-            add_action('admin_notices', __CLASS__ . '::showPlayGroundNotices');
-        }
+        add_action('admin_notices', __CLASS__ . '::showPlayGroundNotices');
+		
         self::smsalertDashboardSetup();
         self::resetOTPModalStyle();
 
@@ -109,6 +108,9 @@ class smsalert_Setting_Options
                 break;
             case 'dismiss_chatondesk_notice':
                 update_option('dismiss_chatondesk_notice', 1);
+                break;
+            case 'smsalert_sandbox_mode':
+                update_option('smsalert_sandbox_mode', 1);
                 break;				
             }
         }
@@ -241,15 +243,27 @@ class smsalert_Setting_Options
      */
     public static function showPlayGroundNotices()
     {
+		global $pagenow;
+		if ('admin.php' === $pagenow && 'sms-alert' === sanitize_text_field($_GET['page']) && $_SERVER['HTTP_HOST'] == 'playground.wordpress.net' ) {
+		$sandbox_mode = get_option('smsalert_sandbox_mode', 0);	
         ?>
-	<div class="notice notice-warning">
-        <p>
-        <?php
+		<div class="notice notice-warning">
+		<div class="e-notice__content">
+		<p><?php
 			echo wp_kses_post(sprintf(__('Our SMS Alert service does not send messages through WordPress playground site.', 'sms-alert')));
-        ?>
-        </p>
+        ?></p>
+		 <?PHP
+		 if($sandbox_mode != 1)
+		 {
+		 ?>
+           <p>To check SMS Alert functionality, please enable sandbox mode. <a style="margin-left:20px;text-decoration: none" href="javascript:void(0)" id="smsalert-sandbox-mode">Enable Sandbox Mode</a></p>
+		 <?PHP
+		 }
+		 ?>
+			</div>
 		</div>		
         <?php
+		}
     }
     
     /**

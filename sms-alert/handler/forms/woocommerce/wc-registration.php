@@ -104,8 +104,10 @@ class WooCommerceRegistrationForm extends FormInterface
         $signup_with_mobile = smsalert_get_option('signup_with_mobile', 'smsalert_general', 'off');
         if ('on' === $signup_with_mobile ) {
             if (is_plugin_active('easy-login-woocommerce/xoo-el-main.php') || is_plugin_active('easy-login-woocommerce-premium/xoo-el-main.php') ) {
-                add_action('xoo_el_register_form_end', array( $this, 'smsalertDisplaySignupWithMobile' ), 10);
                 add_action('xoo_el_form_end', array( $this, 'smsalertDisplaySignupWithMobile' ), 10);
+				if (!has_action('xoo_el_form_end', array($this, 'smsalertDisplaySignupWithMobile'))) {
+				  add_action('xoo_el_register_form_end', array( $this, 'smsalertDisplaySignupWithMobile' ), 10);
+				}
             }
             add_action('woocommerce_register_form_end', array( $this, 'smsalertDisplaySignupWithMobile' ), 10);    
             
