@@ -1534,7 +1534,7 @@ class WooCommerceCheckOutForm extends FormInterface
     {
         global $woocommerce;
 		
-		$data = ( $data instanceof WP_Post ) ? wc_get_order( $data->ID ) : new WC_Order($data->get_id()); 
+		$data = ( ($data instanceof WP_Post) || !(\Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()) ) ? wc_get_order( $data->ID ) : new WC_Order($data->get_id()); 
         $order_id = $data->get_id();
 		
         $username  = smsalert_get_option('smsalert_name', 'smsalert_gateway');

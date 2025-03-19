@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.7
-Stable tag: 3.7.9
+Stable tag: 3.8.0
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -234,6 +234,9 @@ Please refer [here](https://kb.smsalert.co.in/wordpress) for plugin usage guide.
 14. Woocommerce Bookings - Admin Templates
 
 == Changelog ==
+= 3.8.0 =
+* compatibility check for latest woocommerce version
+
 = 3.7.9 =
 * Bugfix: Notify me not working in blocksy theme
 * Bugfix: Two login with otp button showing in Login/Signup Popup pro plugin

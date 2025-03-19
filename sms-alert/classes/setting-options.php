@@ -88,8 +88,8 @@ class smsalert_Setting_Options
 		
         self::smsalertDashboardSetup();
         self::resetOTPModalStyle();
-
-        if (array_key_exists('option', $_GET) ) {
+        $current_user_is_admin = current_user_can('manage_options');
+        if (array_key_exists('option', $_GET) && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'smsalert-nonce' ) ) {
             switch ( trim(sanitize_text_field(wp_unslash($_GET['option']))) ) {
             case 'smsalert-woocommerce-senderlist':
                 $user = isset($_GET['user']) ? sanitize_text_field(wp_unslash($_GET['user'])) : '';
