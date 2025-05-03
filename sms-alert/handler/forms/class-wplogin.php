@@ -336,7 +336,7 @@ class WPLogin extends FormInterface
 					}		
 				});
 		    </script>';
-            echo do_shortcode('[sa_verify user_selector="#username" pwd_selector="#password" submit_selector=".'.$unique_class.'.login :submit"]');
+            echo do_shortcode('[sa_verify user_selector="#username" pwd_selector="#password" submit_selector=".'.$unique_class.'.login :submit:not(.show-password-input)"]');
         }
     }
     /**

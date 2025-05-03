@@ -70,11 +70,11 @@ class SAVerify
     public function sa_verify_form( $callback )
     {
         //ob_start();
-        $phone_selector    = ( ! empty($callback['phone_selector']) ) ? $callback['phone_selector'] : '';
-        $submit_selector   = ( ! empty($callback['submit_selector']) ) ? $callback['submit_selector'] : '';
-        $username_selector = ( ! empty($callback['user_selector']) ) ? $callback['user_selector'] : '';
-        $password_selector = ( ! empty($callback['pwd_selector']) ) ? $callback['pwd_selector'] : '';
-        $placeholder       = ( ! empty($callback['placeholder']) ) ? $callback['placeholder'] : '';
+        $phone_selector    = ( ! empty($callback['phone_selector']) ) ? sanitize_text_field($callback['phone_selector']) : '';
+        $submit_selector   = ( ! empty($callback['submit_selector']) ) ? sanitize_text_field($callback['submit_selector']) : '';
+        $username_selector = ( ! empty($callback['user_selector']) ) ? sanitize_text_field($callback['user_selector']) : '';
+        $password_selector = ( ! empty($callback['pwd_selector']) ) ? sanitize_text_field($callback['pwd_selector']) : '';
+        $placeholder       = ( ! empty($callback['placeholder']) ) ? sanitize_text_field($callback['placeholder']) : '';
         
         $uniqueNo            = rand();
         if (! empty($submit_selector) && ! preg_match('/[#.]/', $submit_selector) ) {
