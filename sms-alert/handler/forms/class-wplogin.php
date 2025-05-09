@@ -142,9 +142,6 @@ class WPLogin extends FormInterface
         case 'smsalert-ajax-otp-validate':
             $this->handleWpLoginAjaxFormValidateAction($_POST);
             break;
-        case 'smsalert_ajax_form_validate':
-            $this->handleWpLoginCreateUserAction($_POST);
-            break;
         case 'smsalert_ajax_login_with_otp':
             $this->handleLoginWithOtp();
             break;
@@ -438,34 +435,6 @@ class WPLogin extends FormInterface
     }
 
     /**
-     * Handle wp login create user action.
-     *
-     * @param array $postdata posted data by user.
-     *
-     * @return void
-     */
-    public function handleWpLoginCreateUserAction( $postdata )
-    {
-        $redirect_to = isset($postdata['redirect_to']) ? $postdata['redirect_to'] : null;
-        // added this line on 28-11-2018 due to affiliate login redirect issue.
-
-        SmsAlertUtility::checkSession();
-        if (! isset($_SESSION[ $this->form_session_var ])
-            || 'validated' !== $_SESSION[ $this->form_session_var ] 
-        ) {
-            return;
-        }
-
-        $user = is_email($postdata['log']) ? get_user_by('email', $postdata['log']) : get_user_by('login', $postdata['log']);
-        if (! $user ) {
-            $user = is_email($postdata['username']) ? get_user_by('email', $postdata['username']) : get_user_by('login', $postdata['username']);
-        }
-
-        update_user_meta($user->data->ID, $this->phone_number_key, sanitize_text_field($postdata['sa_phone_number']));
-        $this->loginWpUser($user->data->user_login, $redirect_to);
-    }
-
-    /**
      * If your user is authenticated then redirect him to page.
      *
      * @param object $user_log   logged user details.
@@ -506,7 +475,7 @@ class WPLogin extends FormInterface
         if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) ) {
             if (! empty($_POST['redirect']) ) {
                 $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));
-            } elseif (wc_get_raw_referer() ) {
+            } elseif ( function_exists('wc_get_raw_referer') ) {
                 $redirect = wc_get_raw_referer();
             }
             unset($_SESSION['login_otp_success']);
@@ -538,7 +507,7 @@ class WPLogin extends FormInterface
         if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) ) {
             if (! empty($_POST['redirect']) ) {
                 $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));
-            } elseif (wc_get_raw_referer() ) {
+            } elseif ( function_exists('wc_get_raw_referer') ) {
                 $redirect = wc_get_raw_referer();
             } else {
                 $redirect = wc_get_page_permalink('myaccount');

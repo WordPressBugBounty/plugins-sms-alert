@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.8
-Stable tag: 3.8.1
+Stable tag: 3.8.2
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -216,6 +216,10 @@ Please use wordpress [support forum](https://wordpress.org/support/plugin/sms-al
 
 Please refer [here](https://kb.smsalert.co.in/wordpress) for plugin usage guide.
 
+= How can I report security bugs? =
+
+You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team help validate, triage and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/wordpress/plugin/sms-alert/vdp)
+
 == Screenshots ==
 
 1. OTP for Checkout.
@@ -234,6 +238,11 @@ Please refer [here](https://kb.smsalert.co.in/wordpress) for plugin usage guide.
 14. Woocommerce Bookings - Admin Templates
 
 == Changelog ==
+= 3.8.2 =
+* Enhancement: Security fixes for sa verify shortcode
+* Enhancement: compatibility fixes for latest wordpress version
+* compatibility check for latest woocommerce version
+
 = 3.8.1 =
 * Bugfix: Not able to type in the OTP field when using Magnific Popup
 * Enhancement: Security fixes for sa verify shortcode
