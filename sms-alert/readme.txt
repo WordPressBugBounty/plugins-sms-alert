@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.8
-Stable tag: 3.8.2
+Stable tag: 3.8.3
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -237,7 +237,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 13. Booking Calendar - Notification on new bookings and booking reminder sms
 14. Woocommerce Bookings - Admin Templates
 
+
 == Changelog ==
+= 3.8.3 =
+* Enhancement:  Security fixes for Back in Stock Notifier
+
 = 3.8.2 =
 * Enhancement: Security fixes for sa verify shortcode
 * Enhancement: compatibility fixes for latest wordpress version

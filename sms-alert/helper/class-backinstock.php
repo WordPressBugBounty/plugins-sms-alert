@@ -358,14 +358,29 @@ class Sa_Backinstock
     {
         global $wpdb;
         $table_prefix = $wpdb->prefix;
-        $datas        = $wpdb->get_results("SELECT * FROM {$table_prefix}postmeta WHERE meta_key = 'smsalert_instock_pid' and meta_value = '$product_id'", ARRAY_A);
+        $datas = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$table_prefix}postmeta WHERE meta_key = %s AND meta_value = %s",
+				'smsalert_instock_pid',
+				$product_id
+			),
+			ARRAY_A
+		);
         $obj          = array();
         $posts        = array();
         foreach ( $datas as $dkey => $data ) {
 
             $post_id   = $data['post_id'];
-            $post_data = $wpdb->get_results("SELECT ID , post_title, post_author FROM {$table_prefix}posts WHERE post_status = 'smsalert_subscribed' and ID = '$post_id'", ARRAY_A);
-
+            $post_data = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT ID, post_title, post_author 
+					 FROM {$table_prefix}posts 
+					 WHERE post_status = %s AND ID = %d",
+					'smsalert_subscribed',
+					$post_id
+				),
+				ARRAY_A
+			);
             $post_user_id             = $post_data[0]['post_author'];
             $smsalert_bis_cust_notify = smsalert_get_option('customer_bis_notify', 'smsalert_bis_general', 'on');
             if (! empty($post_data) && 'instock' === $product_status && 'on' === $smsalert_bis_cust_notify ) {
@@ -542,9 +557,9 @@ class Sa_Backinstock
             $user_id = 0;
         }
 
-        $user_phone   = isset($post_data['user_phone']) ? $post_data['user_phone'] : '';
-        $product_id   = isset($post_data['product_id']) ? $post_data['product_id'] : '';
-        $variation_id = isset($post_data['variation_id']) ? $post_data['variation_id'] : '';
+        $user_phone   = isset($post_data['user_phone']) ? sanitize_text_field($post_data['user_phone']) : '';
+        $product_id   = isset($post_data['product_id']) ? sanitize_text_field($post_data['product_id']) : '';
+        $variation_id = isset($post_data['variation_id']) ? sanitize_text_field($post_data['variation_id']) : '';
 
         $subscriber_phone = SmsAlertcURLOTP::checkPhoneNos($user_phone);
         if (! $subscriber_phone ) {
@@ -671,8 +686,27 @@ class Sa_Backinstock
 
         $table_prefix = $wpdb->prefix;
         $product_id   = ( $variation_id > '0' || $variation_id > 0 ) ? $variation_id : $product_id;
-        $datas        = $wpdb->get_results("SELECT * FROM {$table_prefix}postmeta pm1 inner join {$table_prefix}postmeta pm2 on pm1.post_id= pm2.post_id WHERE pm1.meta_key = 'smsalert_instock_pid' and pm1.meta_value = '$product_id' and pm2.meta_key ='smsalert_subscriber_phone' and pm2.meta_value in('$wcc_ph','$wocc_ph','$wth_pls_ph')", ARRAY_A);
-
+        $datas = $wpdb->get_results(
+					$wpdb->prepare(
+						"
+						SELECT * 
+						FROM {$table_prefix}postmeta pm1 
+						INNER JOIN {$table_prefix}postmeta pm2 
+							ON pm1.post_id = pm2.post_id 
+						WHERE pm1.meta_key = %s 
+							AND pm1.meta_value = %s 
+							AND pm2.meta_key = %s 
+							AND pm2.meta_value IN (%s, %s, %s)
+						",
+						'smsalert_instock_pid',
+						$product_id,
+						'smsalert_subscriber_phone',
+						$wcc_ph,
+						$wocc_ph,
+						$wth_pls_ph
+					),
+					ARRAY_A
+				);
         $post_ids  = array_map(
             function ( $item ) {
                 return $item['post_id'];
@@ -754,7 +788,14 @@ class All_Subscriber_List extends WP_List_Table
 
         global $wpdb;
 
-        $sql = "SELECT P.ID, P.post_author, P.post_title, P.post_status,P.post_content, PM.meta_value FROM {$wpdb->prefix}posts P inner join {$wpdb->prefix}postmeta PM on P.ID = PM.post_id WHERE P.post_type = 'sainstocknotifier' and PM.meta_key = 'smsalert_instock_pid'";
+        $sql = $wpdb->prepare(
+			"SELECT P.ID, P.post_author, P.post_title, P.post_status, P.post_content, PM.meta_value
+			 FROM {$wpdb->prefix}posts P
+			 INNER JOIN {$wpdb->prefix}postmeta PM ON P.ID = PM.post_id
+			 WHERE P.post_type = %s AND PM.meta_key = %s",
+			'sainstocknotifier',
+			'smsalert_instock_pid'
+		);
 
         if (! empty($_REQUEST['orderby']) ) {
             $sql .= ' ORDER BY ' . sanitize_text_field(wp_unslash($_REQUEST['orderby']));
@@ -781,9 +822,20 @@ class All_Subscriber_List extends WP_List_Table
     public static function getNosSubscribersByProductId( $product_id = null )
     {
         global $wpdb;
-        $sql    = "SELECT count(*) as cnt FROM {$wpdb->prefix}posts P inner join {$wpdb->prefix}postmeta PM on P.ID = PM.post_id WHERE P.post_type = 'sainstocknotifier' and PM.meta_key = 'smsalert_instock_pid' and P.post_status = 'smsalert_subscribed'";
-        $sql   .= "and PM.meta_value='" . $product_id . "'";
-        $result = $wpdb->get_results($sql, 'ARRAY_A');
+        $sql = $wpdb->prepare(
+			"SELECT COUNT(*) as cnt 
+			 FROM {$wpdb->prefix}posts P 
+			 INNER JOIN {$wpdb->prefix}postmeta PM ON P.ID = PM.post_id 
+			 WHERE P.post_type = %s 
+			   AND PM.meta_key = %s 
+			   AND P.post_status = %s 
+			   AND PM.meta_value = %s",
+			'sainstocknotifier',
+			'smsalert_instock_pid',
+			'smsalert_subscribed',
+			$product_id
+		);
+		$result = $wpdb->get_results($sql, ARRAY_A);
         return ( ! empty($result) ) ? $result[0]['cnt'] : 0;
     }
 
