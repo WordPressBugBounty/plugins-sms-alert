@@ -305,7 +305,7 @@ class SAVerify
             'buyer_login_otp'         => ( 'on' === $default_login_otp ? true : false ),
             'hide_default_login_form' => smsalert_get_option('hide_default_login_form', 'smsalert_general'),
             'hide_default_admin_login_form' => smsalert_get_option('hide_default_admin_login_form', 'smsalert_general'),
-            'is_wp_login'               => (is_login()) ? true : false,
+            'is_wp_login'               => (is_user_logged_in()) ? true : false,
             'signup_with_mobile'      => ( 'on' === $signup_with_mobile ? true : false ),
             'lang' => $wpml_lang
 

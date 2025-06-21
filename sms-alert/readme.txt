@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.8
-Stable tag: 3.8.3
+Stable tag: 3.8.4
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -239,6 +239,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= 3.8.4 =
+* Bugfix: magnificPopup warning message in console
+* Bugfix: The login popup on the checkout page is not functioning correctly when using the Elessi theme
+* Bugfix: Contact form7 warning message with popup makert plugin
+* Enhancement: Support woocommerce booking appointment variable
+* compatibility check for latest woocommerce version
+
 = 3.8.3 =
 * Enhancement:  Security fixes for Back in Stock Notifier
 

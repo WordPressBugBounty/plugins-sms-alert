@@ -363,6 +363,78 @@ class SAWCInvoicePdf
     }
 }
 
+/**
+* SAWCAppointment
+*/
+if (is_plugin_active('woocommerce-appointments/woocommerce-appointments.php') ) {
+    new SAWCAppointment();
+}
+/**
+ * PHP version 5
+ *
+ * @category Helper
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ * SAWCAppointment class
+ */
+class SAWCAppointment
+{
+
+    /**
+     * Construct function
+     *
+     * @return array
+     */
+    public function __construct()
+    {
+        add_filter('sa_wc_order_sms_customer_before_send', array( $this, 'replaceTokenWcTemplates' ), 10, 2);
+        add_filter('sa_wc_variables', array( $this, 'addTokensWcTemplates' ), 10, 2);
+    }
+
+    /**
+     * Add tokens wc templates function.
+     *
+     * @param array  $variables variables.
+     * @param string $status    status.
+     *
+     * @return array
+     */
+    public function addTokensWcTemplates( $variables, $status )
+    {
+        if (is_plugin_active('woocommerce-appointments/woocommerce-appointments.php') ) {
+            $variables = array_merge(
+                $variables,
+                array(
+                '[appointment_date]' => 'Appointment Date'
+                )
+            );
+        }
+        return $variables;
+    }
+
+    /**
+     * Replace token wc templates function.
+     *
+     * @param array $sms_data sms_data.
+     * @param int   $order_id order_id.
+     *
+     * @return array
+     */
+    public function replaceTokenWcTemplates( $sms_data, $order_id )
+    {
+        if (is_plugin_active('woocommerce-appointments/woocommerce-appointments.php') ) {
+            $appointment_ids = WC_Appointment_Data_Store::get_appointment_ids_from_order_id( $order_id );
+			$appointmet_id = !empty($appointment_ids[0])?$appointment_ids[0]:'';
+			$appointment = get_wc_appointment( $appointmet_id );
+			$start_date = $appointment->get_start_date();
+			$sms_data['sms_body'] = str_replace('[appointment_date]', $start_date, $sms_data['sms_body']);
+        }
+        return $sms_data;
+    }
+}
+
 /* Raffle Ticket */
 if (is_plugin_active('raffle-ticket-generator/raffle-ticket-generator.php') ) {
     new SAraffleTicket();

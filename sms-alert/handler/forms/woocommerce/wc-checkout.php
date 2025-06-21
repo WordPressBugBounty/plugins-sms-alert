@@ -710,7 +710,10 @@ class WooCommerceCheckOutForm extends FormInterface
             m=jQuery(this).parents("form").find("input[name=billing_phone]").val();
         }
         a=jQuery("div.woocommerce");
+		if(typeof a.block === "function")
+		{
 		a.addClass("processing").block({message:null,overlayCSS:{background:"#fff",opacity:.6}});
+		}
         jQuery(this).addClass("sa-otp-btn-init");
 		saInitOTPProcess(
 			this,
@@ -718,10 +721,16 @@ class WooCommerceCheckOutForm extends FormInterface
 			{user_phone:m},
 			' . esc_attr($otp_resend_timer) . ',
 			function(resp){
-				a.removeClass( "processing" ).unblock();
+				if(typeof a.unblock === "function")
+		        {
+				  a.removeClass( "processing" ).unblock();
+				}
 			},
 			function(resp){
-				a.removeClass( "processing" ).unblock();
+				if(typeof a.unblock === "function")
+		        {
+				  a.removeClass( "processing" ).unblock();
+				}
 			},
 			"input[name=billing_phone]"
 		);

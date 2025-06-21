@@ -15,7 +15,7 @@ if (! defined('ABSPATH') ) {
     exit;
 }
 
-if (! is_plugin_active('ws-form/ws-form.php') ) {
+if (! is_plugin_active('ws-form/ws-form.php') && ! is_plugin_active('ws-form-pro/ws-form.php') ) {
     return; 
 }
 /**
@@ -117,7 +117,7 @@ class SA_Wsform extends FormInterface
     {
         $user_authorize = new smsalert_Setting_Options();
         $islogged       = $user_authorize->is_user_authorised();
-        return ( is_plugin_active('ws-form/ws-form.php') && $islogged ) ? true : false;
+        return ( (is_plugin_active('ws-form/ws-form.php') || is_plugin_active('ws-form-pro/ws-form.php')) && $islogged ) ? true : false;
     }
 
     /**
@@ -222,7 +222,7 @@ class SA_Wsform extends FormInterface
      */
     public function handleFormOptions()
     {
-        if (is_plugin_active('ws-form/ws-form.php') ) {
+        if (is_plugin_active('ws-form/ws-form.php') || is_plugin_active('ws-form-pro/ws-form.php') ) {
             add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }

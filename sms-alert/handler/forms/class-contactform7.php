@@ -850,7 +850,10 @@ class ContactForm7 extends FormInterface
             $send_to_admin = true;
         }
 
-        $visitor_number = $this->getCf7TagSToString($options['visitorNumber'], $form);
+        if(!empty($options['visitorNumber']))
+		{
+           $visitor_number = $this->getCf7TagSToString($options['visitorNumber'], $form);
+		}
 
         if (!empty($options['visitor_notification']) && 'on' === $options['visitor_notification'] && !empty($options['visitorNumber']) && !empty($options['visitorMessage']) ) {
             $visitor_message = $this->getCf7TagSToString($options['visitorMessage'], $form);
