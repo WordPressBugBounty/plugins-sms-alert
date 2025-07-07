@@ -184,7 +184,7 @@ class Share_Cart
         $text_body        = smsalert_get_option(
             'customer_notify',
             'smsalert_share_cart_message',
-            SmsAlertMessages::showMessage('DEFAULT_SHARE_CART_MSG')
+            sprintf(__('Hey %1$s, your friend %2$s has shared his %3$s cart with you. Click %4$s to view.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[friend_name]', '[billing_first_name]', '[store_name]', '[cart_url]', PHP_EOL, PHP_EOL)
         );
 
         $templates['share_cart']['enabled']        = $current_val;

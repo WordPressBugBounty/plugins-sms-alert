@@ -311,7 +311,7 @@ class SA_WPadverts extends FormInterface
             $currentVal      = smsalert_get_option('author_adv_notify_' . strtolower($vs), 'author_adv_general', 'on');
             $checkboxNameId  = 'smsalert_adv_general[author_adv_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_adv_message[author_sms_adv_body_' . strtolower($vs) . ']';
-            $defaultTemplate = smsalert_get_option('author_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'));
+            $defaultTemplate = smsalert_get_option('author_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL));
             $textBody       = smsalert_get_option('author_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When customer send ' . ucwords($vs);
             $templates[$ks]['enabled']        = $currentVal;

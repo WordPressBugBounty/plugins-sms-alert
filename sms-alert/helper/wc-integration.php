@@ -277,8 +277,17 @@ class SAShipmentIntegration
         $order_status_settings = smsalert_get_option('order_status', 'smsalert_general', array());
         $order_status = $order->get_status();
         if (in_array($order_status, $order_status_settings, true)  ) {
-            $default_buyer_sms = defined('SmsAlertMessages::DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($order_status))) ? constant('SmsAlertMessages::DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($order_status))) : SmsAlertMessages::showMessage('DEFAULT_BUYER_SMS_STATUS_CHANGED');
+			
+			$default_templates = array(
+			    'DEFAULT_BUYER_SMS_PROCESSING'         => sprintf(__('Hello %1$s, thank you for placing your order %2$s with %3$s.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+                'DEFAULT_BUYER_SMS_COMPLETED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been dispatched and shall deliver to you shortly.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BUYER_SMS_ON_HOLD'            => sprintf(__('Hello %1$s, your order %2$s with %3$s has been put on hold, our team will contact you shortly with more details.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+                'DEFAULT_BUYER_SMS_CANCELLED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been cancelled due to some un-avoidable conditions. Sorry for the inconvenience caused.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+				'DEFAULT_BUYER_SMS_PENDING'            => sprintf(__('Hello %s, you are just one step away from placing your order, please complete your payment, to proceed.', 'sms-alert'), '[billing_first_name]')
+			);
 
+            $default_buyer_sms = !empty($default_templates['DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($order_status))])?$default_templates['DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($order_status))]:sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL);
+			
             $buyer_sms_body             = smsalert_get_option('sms_body_' . $order_status, 'smsalert_message', $default_buyer_sms);
 
 			if ( version_compare( WC_VERSION, '7.1', '<' ) ) {
@@ -987,7 +996,7 @@ class SAWCDokan
 
         $enabled = smsalert_get_option('multivendor_notification_approved', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_APPROVED'));
+            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
@@ -1009,7 +1018,7 @@ class SAWCDokan
 
         $enabled = smsalert_get_option('multivendor_notification_rejected', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REJECTED'));
+            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
@@ -1089,7 +1098,7 @@ class SAWCMP
         $author_no = get_the_author_meta('billing_phone', $user_id);
         $enabled   = smsalert_get_option('multivendor_notification_approved', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_APPROVED'));
+            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
@@ -1105,7 +1114,7 @@ class SAWCMP
         $author_no = get_the_author_meta('billing_phone', $user_id);
         $enabled   = smsalert_get_option('multivendor_notification_rejected', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REJECTED'));
+            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
@@ -1121,7 +1130,7 @@ class SAWCMP
         $author_no = get_the_author_meta('billing_phone', $user_id);
         $enabled   = smsalert_get_option('multivendor_notification_rejected', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REJECTED'));
+            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
@@ -1139,7 +1148,7 @@ class SAWCMP
 
         $enabled = smsalert_get_option('multivendor_notification_approved', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_APPROVED'));
+            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
@@ -1227,7 +1236,7 @@ class SAWCFM
 
         $enabled = smsalert_get_option('multivendor_notification_approved', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_APPROVED'));
+            $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $member_id));
         }
     }
@@ -1250,7 +1259,7 @@ class SAWCFM
 
         $enabled = smsalert_get_option('multivendor_notification_rejected', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
-            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REJECTED'));
+            $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
             do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $member_id));
         }
     }

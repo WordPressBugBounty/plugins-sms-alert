@@ -100,9 +100,9 @@ class SmsAlertLearnPress
         $become_teacher                       = smsalert_get_option('become_teacher', 'smsalert_lpress_general', 'on');
         $student_notification_course_enroll   = smsalert_get_option('course_enroll', 'smsalert_lpress_general', 'on');
         $student_notification_course_finished = smsalert_get_option('course_finished', 'smsalert_lpress_general', 'on');
-        $sms_body_become_teacher_msg          = smsalert_get_option('sms_body_become_teacher_msg', 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_NEW_TEACHER_REGISTER'));
-        $sms_body_course_enroll_msg           = smsalert_get_option('sms_body_course_enroll', 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_USER_COURSE_ENROLL'));
-        $sms_body_course_finished_msg         = smsalert_get_option('sms_body_course_finished', 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_USER_COURSE_FINISHED'));
+        $sms_body_become_teacher_msg          = smsalert_get_option('sms_body_become_teacher_msg', 'smsalert_lpress_message', sprintf(__('Congratulation %1$s, you have become an instructor with %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
+        $sms_body_course_enroll_msg           = smsalert_get_option('sms_body_course_enroll', 'smsalert_lpress_message', sprintf(__('Congratulation %1$s, you have enrolled course %2$s with %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[username]', '[course_name]', '[store_name]', PHP_EOL, PHP_EOL));
+        $sms_body_course_finished_msg         = smsalert_get_option('sms_body_course_finished', 'smsalert_lpress_message', sprintf(__('Congratulation you have finished course %1$s with %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[course_name]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
         foreach ( $lpress_statuses as $ks  => $vs ) {
@@ -115,7 +115,7 @@ class SmsAlertLearnPress
             $text_body = smsalert_get_option(
                 'lpress_sms_body_' . $vs,
                 'smsalert_lpress_message',
-                SmsAlertMessages::showMessage('DEFAULT_LPRESS_BUYER_SMS_STATUS_CHANGED')
+                sprintf(__('Hello %1$s, status of your %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[username]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL)
             );
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);
@@ -169,9 +169,9 @@ class SmsAlertLearnPress
         $admin_become_teacher               = smsalert_get_option('admin_become_teacher', 'smsalert_lpress_general', 'on');
         $admin_notification_course_enroll   = smsalert_get_option('admin_course_enroll', 'smsalert_lpress_general', 'on');
         $admin_notification_course_finished = smsalert_get_option('admin_course_finished', 'smsalert_lpress_general', 'on');
-        $sms_body_admin_become_teacher_msg  = smsalert_get_option('sms_body_admin_become_teacher_msg', 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_NEW_TEACHER_REGISTER'));
-        $sms_body_course_enroll_admin_msg   = smsalert_get_option('sms_body_course_enroll_admin_msg', 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_COURSE_ENROLL'));
-        $sms_body_course_finished_admin_msg = smsalert_get_option('sms_body_course_finished_admin_msg', 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_COURSE_FINISHED'));
+        $sms_body_admin_become_teacher_msg  = smsalert_get_option('sms_body_admin_become_teacher_msg', 'smsalert_lpress_message', sprintf(__('%1$s: Hi admin, an instructor %2$s has been joined.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[username]', PHP_EOL, PHP_EOL));
+        $sms_body_course_enroll_admin_msg   = smsalert_get_option('sms_body_course_enroll_admin_msg', 'smsalert_lpress_message', sprintf(__('%1$s: Hi Admin %2$s has enrolled course - %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[username]', '[course_name]', PHP_EOL, PHP_EOL));
+        $sms_body_course_finished_admin_msg = smsalert_get_option('sms_body_course_finished_admin_msg', 'smsalert_lpress_message', sprintf(__('%1$s: Hi Admin %2$s has finished course %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[username]', '[course_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
         foreach ( $lpress_statuses as $ks  => $vs ) {
@@ -181,7 +181,7 @@ class SmsAlertLearnPress
             $checkbox_name_id = 'smsalert_lpress_general[lpress_admin_notification_' . $vs . ']';
             $textarea_name_id = 'smsalert_lpress_message[lpress_admin_sms_body_' . $vs . ']';
 
-            $text_body = smsalert_get_option('lpress_admin_sms_body_' . $vs, 'smsalert_lpress_message', SmsAlertMessages::showMessage('DEFAULT_LPRESS_ADMIN_SMS_STATUS_CHANGED'));
+            $text_body = smsalert_get_option('lpress_admin_sms_body_' . $vs, 'smsalert_lpress_message', sprintf(__('%1$s: status of order %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]', PHP_EOL, PHP_EOL));
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);
             $templates[ $ks ]['enabled']        = $current_val;

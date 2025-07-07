@@ -205,7 +205,7 @@ class SmsAlertUtility
      */
     public static function _get_invalid_otp_method()
     {
-        return SmsAlertMessages::showMessage('INVALID_OTP');
+        return __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert');
     }
 
     /**

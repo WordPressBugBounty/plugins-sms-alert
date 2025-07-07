@@ -156,7 +156,7 @@ class WCSubscription
             $check_box_name_id = 'smsalert_wcs_general[cust_subs_' . $vs . '_msg]';
             $text_area_name_id = 'smsalert_wcs_message[sms_body_cust_subs_' . $vs . '_msg]';
 
-            $default_template = ( 'Created' === $order_status ) ? SmsAlertMessages::showMessage('DEFAULT_CUST_SUBS_CREATE_MSG') : SmsAlertMessages::showMessage('DEFAULT_CUST_SUBS_STATUS_MSG');
+            $default_template = ( 'Created' === $order_status ) ? sprintf(__('Hello %1$s thank you for your subscription %2$s with %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', PHP_EOL, PHP_EOL) : sprintf(__('Hello %1$s, status of your subscription %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', '[subscription_status]', PHP_EOL, PHP_EOL);
             $text_body        = smsalert_get_option('sms_body_cust_subs_' . $vs . '_msg', 'smsalert_wcs_message', ( ( '' !== $default_template ) ? $default_template : '' ));
 
             $templates[ 'cust_subs_' . $ks ]['title']          = 'When Subscription is ' . ucwords($order_status);
@@ -200,7 +200,7 @@ class WCSubscription
             $check_box_name_id = 'smsalert_wcs_general[admin_subs_' . $vs . '_msg]';
             $text_area_name_id = 'smsalert_wcs_message[sms_body_admin_subs_' . $vs . '_msg]';
 
-            $default_template = ( 'Created' === $order_status ) ? SmsAlertMessages::showMessage('DEFAULT_ADMIN_SUBS_CREATE_MSG') : SmsAlertMessages::showMessage('DEFAULT_ADMIN_SUBS_STATUS_MSG');
+            $default_template = ( 'Created' === $order_status ) ? sprintf(__('%1$s You have a new subscription %2$s for order value Rs. %3$s. Please check your admin dashboard for complete details.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]:', '#[subscription_id]', '[order_amount]', PHP_EOL, PHP_EOL) : sprintf(__('%1$s Status of subscription %2$s worth Rs. %3$s is changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[store_name]:', '#[subscription_id]', '[order_amount]', '[subscription_status]', PHP_EOL, PHP_EOL);
             $text_body        = smsalert_get_option('sms_body_admin_subs_' . $vs . '_msg', 'smsalert_wcs_message', ( ( '' !== $default_template ) ? $default_template : '' ));
 
             $templates[ 'admin_subs_' . $ks ]['title']          = 'When Subscription is ' . ucwords($order_status);
@@ -238,11 +238,11 @@ class WCSubscription
             $scheduler_data = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '1',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_WC_RENEWAL_CUSTOMER_MESSAGE'),
+            'message'   => sprintf(__('Hello %1$s, your subscription %2$s with %3$s is due for renewal on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', '[renewal_date]', PHP_EOL, PHP_EOL),
             );
             $scheduler_data['cron'][] = array(
             'frequency' => '2',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_WC_RENEWAL_CUSTOMER_MESSAGE'),
+            'message'   => sprintf(__('Hello %1$s, your subscription %2$s with %3$s is due for renewal on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', '[renewal_date]', PHP_EOL, PHP_EOL),
             );
         }
         foreach ( $scheduler_data['cron'] as $key => $data ) {

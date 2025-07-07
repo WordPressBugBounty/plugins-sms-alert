@@ -19,9 +19,9 @@ if (empty($wpcf7->id()) ) {
     $form_fields  = $contact_form->scan_form_tags();
     $visitor_msg_enable = ( isset($data['visitor_notification']) ) ? $data['visitor_notification'] : "off";
     $admin_msg_enable = ( isset($data['admin_notification']) ) ? $data['admin_notification'] : "off";
-    $admin_message = ( ! empty($data['text']) ) ? trim($data['text']) : SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE');
+    $admin_message = ( ! empty($data['text']) ) ? trim($data['text']) : sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL);
     $visitor_no = ( ! empty($data['visitorNumber']) ) ? $data['visitorNumber'] : "[billing_phone]";
-    $visitor_msg = ( ! empty($data['visitorMessage']) ) ? $data['visitorMessage'] :SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE');
+    $visitor_msg = ( ! empty($data['visitorMessage']) ) ? $data['visitorMessage'] :sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]');
     ?>    
 <div id="cf7si-sms-sortables" class="meta-box-sortables ui-sortable">
  <div class="tab-panels woocommerce">

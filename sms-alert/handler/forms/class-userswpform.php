@@ -355,7 +355,7 @@ class UsersWpForm extends FormInterface
             smsalert_site_otp_validation_form($user_login, $user_email, $phone_number, SmsAlertUtility::_get_invalid_otp_method(), 'phone', false);
         }
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         }
     }
 
@@ -380,7 +380,7 @@ class UsersWpForm extends FormInterface
         $_SESSION['sa_mobile_verified'] = true;
         $_SESSION['sa_mobile_userswp']  = $phone_number;
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
     }
 

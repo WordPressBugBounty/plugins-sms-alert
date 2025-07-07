@@ -88,7 +88,7 @@ class WCAbandonedCart
         $current_val      = smsalert_get_option('customer_notify', 'smsalert_ac_general', 'on');
         $checkbox_name_id = 'smsalert_ac_general[customer_notify]';
         $textarea_name_id = 'smsalert_ac_message[customer_notify]';
-        $text_body        = smsalert_get_option('customer_notify', 'smsalert_ac_message', SmsAlertMessages::showMessage('DEFAULT_AC_CUSTOMER_MESSAGE'));
+        $text_body        = smsalert_get_option('customer_notify', 'smsalert_ac_message', sprintf(__('Hey %1$s, We noticed you could not complete your order. Click on the link below to place your order. Shop Now - %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[checkout_url]', PHP_EOL, PHP_EOL));
 
         $templates = array();
 
@@ -104,7 +104,7 @@ class WCAbandonedCart
         $current_val      = smsalert_get_option('admin_notify', 'smsalert_ac_general', 'on');
         $checkbox_name_id = 'smsalert_ac_general[admin_notify]';
         $textarea_name_id = 'smsalert_ac_message[admin_notify]';
-        $text_body        = smsalert_get_option('admin_notify', 'smsalert_ac_message', SmsAlertMessages::showMessage('DEFAULT_AC_ADMIN_MESSAGE'));
+        $text_body        = smsalert_get_option('admin_notify', 'smsalert_ac_message', sprintf(__('%1$s: Product %2$s is left in cart by %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[item_name]', '[name]', PHP_EOL, PHP_EOL));
 
         $templates['cartbounty-admin']['title']          = 'Send message to admin when product is left in cart';
         $templates['cartbounty-admin']['enabled']        = $current_val;

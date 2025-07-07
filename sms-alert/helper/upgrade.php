@@ -109,7 +109,7 @@ class SAUpgrade
 			if($sms_otp_send != '')
 			{
 				$output   = get_option('smsalert_message');
-                $output['sms_otp_send'] = SmsAlertMessages::showMessage('DEFAULT_BUYER_OTP');
+                $output['sms_otp_send'] = sprintf(__('Your verification code for mobile verification is %1$s %2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[otp]', PHP_EOL, PHP_EOL);
                 update_option('smsalert_message', $output);
 			}
         }

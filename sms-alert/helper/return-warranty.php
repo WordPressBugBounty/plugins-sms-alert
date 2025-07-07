@@ -275,7 +275,7 @@ class Sa_Return_Warranty
             $checkbox_name_id  = 'smsalert_warranty[warranty_status_' . $vs . ']';
             $text_area_name_id = 'smsalert_warranty[sms_text_' . $vs . ']';
 
-            $text_body = smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '') ? smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '') : SmsAlertMessages::showMessage('DEFAULT_WARRANTY_STATUS_CHANGED');
+            $text_body = smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '') ? smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '') : sprintf(__('Hello %1$s, status of your RMA no. %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '[rma_number]', '[store_name]', '[rma_status]', PHP_EOL, PHP_EOL);
 
             $templates[ $ks ]['title']          = 'When RMA is ' . ucwords($vs);
             $templates[ $ks ]['enabled']        = $current_val;

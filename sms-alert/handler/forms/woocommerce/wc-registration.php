@@ -321,7 +321,7 @@ class WooCommerceRegistrationForm extends FormInterface
         }
 
         if (strcmp($_SESSION['phone_number_mo'], $data['billing_phone']) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('PHONE_MISMATCH'), 'error'));
+            wp_send_json(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error');
         } else {
             do_action('smsalert_validate_otp', 'phone');
         }
@@ -485,7 +485,7 @@ class WooCommerceRegistrationForm extends FormInterface
             'type'        => 'tel',
             'required'    => true,
             'input_class' => array('phone-valid'),
-            'label'       => SmsAlertMessages::showMessage('Phone'),
+            'label'       => __('Phone', 'sms-alert'),
             'id'       => 'reg_billing_phone',
             ),
             ( isset($_POST['billing_phone']) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '' )
@@ -575,7 +575,7 @@ class WooCommerceRegistrationForm extends FormInterface
             smsalert_site_otp_validation_form($user_login, $user_email, $phone_number, SmsAlertUtility::_get_invalid_otp_method(), 'phone', false);
         }
         if (isset($_SESSION[ $this->form_session_var2 ]) || isset($_SESSION[ $this->form_session_var3 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         }
     }
 
@@ -599,7 +599,7 @@ class WooCommerceRegistrationForm extends FormInterface
         }
         $_SESSION['sa_mobile_verified'] = true;
         if (isset($_SESSION[ $this->form_session_var2 ]) || isset($_SESSION[ $this->form_session_var3 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
     }
 

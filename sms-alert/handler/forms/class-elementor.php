@@ -171,7 +171,7 @@ class SAElementor extends FormInterface
             return;
         }
         if (isset($_SESSION[ $this->form_session_var ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         }
     }
 
@@ -195,7 +195,7 @@ class SAElementor extends FormInterface
         }
         $_SESSION['sa_mobile_verified'] = true;
         if (isset($_SESSION[ $this->form_session_var ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
     }
 
@@ -628,7 +628,7 @@ class Sendmsms_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\A
             'placeholder' => __('Write yout text or use fields shortcode', 'sms-alert'),
             'label_block' => true,
             'render_type' => 'none',
-            'default' => SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'),
+            'default' => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
             'classes' => '',
             'description' => __('Use fields shortcodes for send form data or write your custom text.', 'sms-alert'),
             ]
@@ -667,7 +667,7 @@ class Sendmsms_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\A
             'placeholder' => __('Write yout text or use fields shortcode', 'sms-alert'),
             'label_block' => true,
             'render_type' => 'none',
-            'default' => SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'),
+            'default' => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
             'classes' => '',
             'description' => __('Use fields shortcodes for send form data or write your custom text.', 'sms-alert'),
             'separator' => 'after',

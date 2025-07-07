@@ -32,7 +32,7 @@ if (! empty($Jet_forms) ) {
         }
         ?>
                 </div>                
-                <textarea data-parent_id="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_jetform_message[jetform_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_jetform_message[jetformt_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('jetform_admin_notification_' . esc_attr($ks), 'smsalert_jetform_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('jetform_admin_sms_body_' . $ks, 'smsalert_jetform_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'))); ?></textarea>
+                <textarea data-parent_id="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_jetform_message[jetform_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_jetform_message[jetformt_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('jetform_admin_notification_' . esc_attr($ks), 'smsalert_jetform_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('jetform_admin_sms_body_' . $ks, 'smsalert_jetform_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
                 <div id="menu_jetform_admin_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
                 </td>
                 </tr>

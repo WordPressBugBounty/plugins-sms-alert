@@ -33,7 +33,7 @@ if (! empty($fluent_forms) ) {
         }
         ?>
                 </div>                
-                <textarea data-parent_id="smsalert_fluent_general[fluent_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_fluent_message[fluent_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_fluent_message[fluent_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('fluent_admin_notification_' . esc_attr($ks), 'smsalert_fluent_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('fluent_admin_sms_body_' . $ks, 'smsalert_fluent_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'))); ?></textarea>
+                <textarea data-parent_id="smsalert_fluent_general[fluent_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_fluent_message[fluent_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_fluent_message[fluent_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('fluent_admin_notification_' . esc_attr($ks), 'smsalert_fluent_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('fluent_admin_sms_body_' . $ks, 'smsalert_fluent_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
                 <div id="menu_fluent_admin_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
                 </td>
                 </tr>

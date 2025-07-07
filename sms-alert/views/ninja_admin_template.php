@@ -39,7 +39,7 @@ if (! empty($ninja_forms) ) {
         }
         ?>
                 </div>
-                <textarea data-parent_id="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('ninja_admin_notification_' . esc_attr($ks), 'smsalert_ninja_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?>><?php echo esc_textarea(smsalert_get_option('ninja_admin_sms_body_' . $ks, 'smsalert_ninja_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'))); ?></textarea>
+                <textarea data-parent_id="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('ninja_admin_notification_' . esc_attr($ks), 'smsalert_ninja_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?>><?php echo esc_textarea(smsalert_get_option('ninja_admin_sms_body_' . $ks, 'smsalert_ninja_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
                 <div id="menu_ninja_admin_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
                 </td>
                 </tr>

@@ -248,7 +248,7 @@ class Sa_Backinstock
         $text_body        = smsalert_get_option(
             'customer_bis_notify',
             'smsalert_bis_message',
-            SmsAlertMessages::showMessage('DEFAULT_BACK_IN_STOCK_CUST_MSG')
+            sprintf(__('Hello, %1$s is now available, you can order it on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[item_name]', '[store_name]', PHP_EOL, PHP_EOL)
         );
 
         $templates = array();
@@ -268,7 +268,7 @@ class Sa_Backinstock
         $text_body        = smsalert_get_option(
             'subscribed_bis_notify',
             'smsalert_bis_message',
-            SmsAlertMessages::showMessage('DEFAULT_BACK_IN_STOCK_SUBSCRIBE_MSG')
+            sprintf(__('We have noted your request and we will notify you as soon as %s is available for order with us.', 'sms-alert'), '[item_name]')
         );
 
         $templates['subscribed']['title']          = 'Send message to customer when product is subscribed';

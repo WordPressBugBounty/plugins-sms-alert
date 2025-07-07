@@ -207,9 +207,7 @@ class EverestForm extends FormInterface
             $form_data,
             esc_html__('Admin Message', 'sms-alert'),            
             array(
-            'default' => SmsAlertMessages::showMessage(
-                'DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'
-            ),
+            'default' => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
             'smarttags'  => array(
                                 'type'        => 'fields',
                                 'form_fields' => 'smsalert',
@@ -243,9 +241,7 @@ class EverestForm extends FormInterface
             $form_data,
             esc_html__('Visitor Message', 'sms-alert'),            
             array(
-            'default' => SmsAlertMessages::showMessage(
-                'DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'
-            ),
+            'default' => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
             'smarttags'  => array(
                                 'type'        => 'fields',
                                 'form_fields' => 'smsalert',
@@ -354,7 +350,7 @@ class EverestForm extends FormInterface
         ) {
             wp_send_json(
                 SmsAlertUtility::_create_json_response(
-                    SmsAlertMessages::showMessage('INVALID_OTP'), 'error'
+                    __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'
                 )
             );
             exit();

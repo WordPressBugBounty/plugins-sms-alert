@@ -60,7 +60,7 @@ class SAameliabooking extends FormInterface
     public function ameliaNewCustomer($reservation, $booking)
     {
         $buyerNumber= $reservation['phone'];        
-        $defaultSms = SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE');
+        $defaultSms = sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]');
         do_action('sa_send_sms', $buyerNumber, $defaultSms);        
     }
 

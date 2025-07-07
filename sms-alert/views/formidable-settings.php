@@ -9,8 +9,8 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$admin_message = ( isset($values['admin_message']) ) ? trim($values['admin_message']) : SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_ADMIN_MESSAGE');
-$visitor_msg = ( isset($values['visitor_message']) ) ? $values['visitor_message'] :SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE');
+$admin_message = ( isset($values['admin_message']) ) ? trim($values['admin_message']) : sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL);
+$visitor_msg = ( isset($values['visitor_message']) ) ? $values['visitor_message'] :sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]');
 $results = Formidable::getFormFields($values['id']);
 $enable_otp = isset($values['smsalert_enable_otp'])?$values['smsalert_enable_otp']:'';
 $enable_message = isset($values['smsalert_enable_message'])?$values['smsalert_enable_message']:'';

@@ -75,7 +75,7 @@ class SmsAlertEdd
             $text_body = smsalert_get_option(
                 'edd_sms_body_' . $vs,
                 'edd_settings',
-                SmsAlertMessages::showMessage('DEFAULT_EDD_BUYER_SMS_STATUS_CHANGED')
+                sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL)
             );
             
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);
@@ -109,7 +109,7 @@ class SmsAlertEdd
             $text_body = smsalert_get_option(
                 'edd_admin_sms_body_' . $vs,
                 'edd_settings',
-                SmsAlertMessages::showMessage('DEFAULT_EDD_ADMIN_SMS_STATUS_CHANGED')
+                sprintf(__('%1$s: status of order %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]', PHP_EOL, PHP_EOL)
             );
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);

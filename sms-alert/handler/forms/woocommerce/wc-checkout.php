@@ -207,8 +207,16 @@ class WooCommerceCheckOutForm extends FormInterface
 
                 $admin_phone_number     = str_replace('store_manager', $author_no, $admin_phone_number);
             }
-            $default_template           = SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($new_status)));
-            $default_admin_sms          = ( ( ! empty($default_template) ) ? $default_template : SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_STATUS_CHANGED') );
+			$default_templates = array(
+			    'DEFAULT_ADMIN_SMS_CANCELLED'          => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is Cancelled.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]', PHP_EOL, PHP_EOL),
+                'DEFAULT_ADMIN_SMS_PENDING'            => sprintf(__('%1$s: Hello, %2$s is trying to place order %3$s value Rs. %4$s', 'sms-alert'), '[store_name]', '[billing_first_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_ON_HOLD'            => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is On Hold Now.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_COMPLETED'          => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is completed.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_PROCESSING'         => sprintf(__('%1$s: You have a new order %2$s for order value %3$s. Please check your admin dashboard for complete details.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]')
+			);
+			
+            $default_template           = !empty($default_templates['DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($new_status))])?$default_templates['DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($new_status))]:sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]');
+            $default_admin_sms          = ( ( ! empty($default_template) ) ? $default_template : sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]') );
             $admin_sms_body             = smsalert_get_option('admin_sms_body_' . $new_status, 'smsalert_message', $default_admin_sms);
             $admin_sms_body             = str_replace('[refund_amount]', $refundamount, $admin_sms_body);
             $admin_sms_body             = str_replace('[order_status]', 'partially refunded', $admin_sms_body);    
@@ -832,9 +840,9 @@ class WooCommerceCheckOutForm extends FormInterface
             return;
         }
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         } elseif (isset($_SESSION[ $this->form_session_var3 ]) ) {
-			wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+			wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
 			exit();
         } else {
             wc_add_notice(SmsAlertUtility::_get_invalid_otp_method(), 'error');
@@ -861,7 +869,7 @@ class WooCommerceCheckOutForm extends FormInterface
         }
 
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             $this->unsetOTPSessionVariables();
             exit();
         } elseif (isset($_SESSION[ $this->form_session_var3 ]) ) {
@@ -874,7 +882,7 @@ class WooCommerceCheckOutForm extends FormInterface
 				$output = $order->save();
 			}
             if ($output > 0 ) {
-                wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+                wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
                 $this->unsetOTPSessionVariables();
                 exit();
             } 
@@ -1012,7 +1020,7 @@ class WooCommerceCheckOutForm extends FormInterface
         $smsalert_notification_cancelled  = ( is_array($smsalert_notification_status) && array_key_exists('cancelled', $smsalert_notification_status) ) ? $smsalert_notification_status['cancelled'] : 'cancelled';
 
         $smsalert_notification_notes = smsalert_get_option('buyer_notification_notes', 'smsalert_general', 'on');
-        $sms_body_new_note           = smsalert_get_option('sms_body_new_note', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_BUYER_NOTE'));
+        $sms_body_new_note           = smsalert_get_option('sms_body_new_note', 'smsalert_message', sprintf(__('Hello %1$s, a new note has been added to your order %2$s on %3$s: %4$s%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]:', '[store_name]', '[note]', PHP_EOL, PHP_EOL));
 
         $templates = array();
         foreach ( $order_statuses as $ks  => $order_status ) {
@@ -1029,9 +1037,17 @@ class WooCommerceCheckOutForm extends FormInterface
 
             $checkbox_name_id = 'smsalert_general[order_status][' . $vs . ']';
             $textarea_name_id = 'smsalert_message[sms_body_' . $vs . ']';
+			
+			$default_templates = array(
+			    'DEFAULT_BUYER_SMS_PROCESSING'         => sprintf(__('Hello %1$s, thank you for placing your order %2$s with %3$s.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+                'DEFAULT_BUYER_SMS_COMPLETED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been dispatched and shall deliver to you shortly.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BUYER_SMS_ON_HOLD'            => sprintf(__('Hello %1$s, your order %2$s with %3$s has been put on hold, our team will contact you shortly with more details.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+                'DEFAULT_BUYER_SMS_CANCELLED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been cancelled due to some un-avoidable conditions. Sorry for the inconvenience caused.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+				'DEFAULT_BUYER_SMS_PENDING'            => sprintf(__('Hello %s, you are just one step away from placing your order, please complete your payment, to proceed.', 'sms-alert'), '[billing_first_name]')
+			);
 
-            $default_template = SmsAlertMessages::showMessage('DEFAULT_BUYER_SMS_' . str_replace('-', '_', strtoupper($vs)));
-            $text_body        = smsalert_get_option('sms_body_' . $vs, 'smsalert_message', ( ( ! empty($default_template) ) ? $default_template : SmsAlertMessages::showMessage('DEFAULT_BUYER_SMS_STATUS_CHANGED') ));
+            $default_template = !empty($default_templates['DEFAULT_BUYER_SMS_' . str_replace('-', '_', strtoupper($vs))])?$default_templates['DEFAULT_BUYER_SMS_' . str_replace('-', '_', strtoupper($vs))]:sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL);
+            $text_body        = smsalert_get_option('sms_body_' . $vs, 'smsalert_message', ( ( ! empty($default_template) ) ? $default_template : sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL)));
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($order_status);
             $templates[ $ks ]['enabled']        = $current_val;
@@ -1072,8 +1088,15 @@ class WooCommerceCheckOutForm extends FormInterface
             $current_val      = smsalert_get_option('multivendor_notification_' . $vs, 'smsalert_general', 'on');
             $checkbox_name_id = 'smsalert_general[multivendor_notification_' . $vs . ']';
             $textarea_name_id = 'smsalert_message[multivendor_sms_body_' . $vs . ']';
-            $default_template = SmsAlertMessages::showMessage('DEFAULT_NEW_USER_' . str_replace('-', '_', strtoupper($vs)));
-            $text_body        = smsalert_get_option('multivendor_sms_body_' . $vs, 'smsalert_message', ( ( ! empty($default_template) ) ? $default_template : SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_STATUS_CHANGED') ));
+			$default_templates = array(
+			  'DEFAULT_NEW_USER_REGISTER'            => sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'),
+			  'DEFAULT_NEW_USER_APPROVED'            =>
+                sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL),
+              'DEFAULT_NEW_USER_REJECTED'            =>
+                sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL)
+			);
+            $default_template = !empty($default_templates['DEFAULT_NEW_USER_' . str_replace('-', '_', strtoupper($vs))])?$default_templates['DEFAULT_NEW_USER_' . str_replace('-', '_', strtoupper($vs))]:'';
+            $text_body        = smsalert_get_option('multivendor_sms_body_' . $vs, 'smsalert_message', ( ( ! empty($default_template) ) ? $default_template : sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]') ));
 
             $templates[ $ks ]['title']          = 'When Vendor Account is ' . ucwords($order_status);
             $templates[ $ks ]['enabled']        = $current_val;
@@ -1113,8 +1136,16 @@ class WooCommerceCheckOutForm extends FormInterface
             $current_val      = smsalert_get_option('admin_notification_' . $vs, 'smsalert_general', 'on');
             $checkbox_name_id = 'smsalert_general[admin_notification_' . $vs . ']';
             $textarea_name_id = 'smsalert_message[admin_sms_body_' . $vs . ']';
-            $default_template = SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($vs)));
-            $text_body        = smsalert_get_option('admin_sms_body_' . $vs, 'smsalert_message', ( ( ! empty($default_template) ) ? $default_template : SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_STATUS_CHANGED') ));
+			$default_templates = array(
+			    'DEFAULT_ADMIN_SMS_CANCELLED'          => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is Cancelled.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]', PHP_EOL, PHP_EOL),
+                'DEFAULT_ADMIN_SMS_PENDING'            => sprintf(__('%1$s: Hello, %2$s is trying to place order %3$s value Rs. %4$s', 'sms-alert'), '[store_name]', '[billing_first_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_ON_HOLD'            => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is On Hold Now.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_COMPLETED'          => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is completed.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_PROCESSING'         => sprintf(__('%1$s: You have a new order %2$s for order value %3$s. Please check your admin dashboard for complete details.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]')
+			);
+			
+            $default_template           = !empty($default_templates['DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($vs))])?$default_templates['DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($vs))]:sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]');
+            $text_body        = smsalert_get_option('admin_sms_body_' . $vs, 'smsalert_message', ( ( ! empty($default_template) ) ? $default_template : sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]') ));
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($order_status);
             $templates[ $ks ]['enabled']        = $current_val;
@@ -1484,7 +1515,7 @@ class WooCommerceCheckOutForm extends FormInterface
 
         if (smsalert_get_option('buyer_notification_notes', 'smsalert_general') === 'on' ) {
             $order_id                   = $data['order_id'];
-            $buyer_sms_body             = smsalert_get_option('sms_body_new_note', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_BUYER_NOTE'));
+            $buyer_sms_body             = smsalert_get_option('sms_body_new_note', 'smsalert_message', sprintf(__('Hello %1$s, a new note has been added to your order %2$s on %3$s: %4$s%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]:', '[store_name]', '[note]', PHP_EOL, PHP_EOL));
             $buyer_sms_data             = array();
             $order       = wc_get_order($order_id );
 			if ( version_compare( WC_VERSION, '7.1', '<' ) ) {
@@ -1954,7 +1985,15 @@ class WooCommerceCheckOutForm extends FormInterface
         }
 
         if (in_array($new_status, $order_status_settings, true) && ( 0 === $order->get_parent_id() ) ) {
-            $default_buyer_sms = defined('SmsAlertMessages::DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($new_status))) ? constant('SmsAlertMessages::DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($new_status))) : SmsAlertMessages::showMessage('DEFAULT_BUYER_SMS_STATUS_CHANGED');
+            $default_templates = array(
+			    'DEFAULT_BUYER_SMS_PROCESSING'         => sprintf(__('Hello %1$s, thank you for placing your order %2$s with %3$s.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+                'DEFAULT_BUYER_SMS_COMPLETED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been dispatched and shall deliver to you shortly.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BUYER_SMS_ON_HOLD'            => sprintf(__('Hello %1$s, your order %2$s with %3$s has been put on hold, our team will contact you shortly with more details.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+                'DEFAULT_BUYER_SMS_CANCELLED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been cancelled due to some un-avoidable conditions. Sorry for the inconvenience caused.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+				'DEFAULT_BUYER_SMS_PENDING'            => sprintf(__('Hello %s, you are just one step away from placing your order, please complete your payment, to proceed.', 'sms-alert'), '[billing_first_name]')
+			);
+
+            $default_buyer_sms = !empty($default_templates['DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($new_status))])?$default_templates['DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($new_status))]:sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL);
 
             $buyer_sms_body             = smsalert_get_option('sms_body_' . $new_status, 'smsalert_message', $default_buyer_sms);
 			if ( version_compare( WC_VERSION, '7.1', '<' ) ) {
@@ -2003,10 +2042,18 @@ class WooCommerceCheckOutForm extends FormInterface
 
                 $admin_phone_number = str_replace('store_manager', $author_no, $admin_phone_number);
             }
+			
+			$default_templates = array(
+			    'DEFAULT_ADMIN_SMS_CANCELLED'          => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is Cancelled.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]', PHP_EOL, PHP_EOL),
+                'DEFAULT_ADMIN_SMS_PENDING'            => sprintf(__('%1$s: Hello, %2$s is trying to place order %3$s value Rs. %4$s', 'sms-alert'), '[store_name]', '[billing_first_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_ON_HOLD'            => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is On Hold Now.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_COMPLETED'          => sprintf(__('%1$s: Your order %2$s Rs. %3$s. is completed.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]'),
+                'DEFAULT_ADMIN_SMS_PROCESSING'         => sprintf(__('%1$s: You have a new order %2$s for order value %3$s. Please check your admin dashboard for complete details.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_amount]')
+			);
 
-            $default_template = SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($new_status)));
+			$default_template           = !empty($default_templates['DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($new_status))])?$default_templates['DEFAULT_ADMIN_SMS_' . str_replace('-', '_', strtoupper($new_status))]:sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]');
 
-            $default_admin_sms = ( ( ! empty($default_template) ) ? $default_template : SmsAlertMessages::showMessage('DEFAULT_ADMIN_SMS_STATUS_CHANGED') );
+            $default_admin_sms = ( ( ! empty($default_template) ) ? $default_template : sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]') );
 
             $admin_sms_body             = smsalert_get_option('admin_sms_body_' . $new_status, 'smsalert_message', $default_admin_sms);
             $admin_sms_data['number']   = $admin_phone_number;
@@ -2400,11 +2447,11 @@ class SA_CodTOPrepaid
 			$scheduler_data  = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '60',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_COD_PREPAID_CUSTOMER_MESSAGE'),  
+            'message'   => sprintf(__('Hey %1$s, if you wish to make pre-payment for your order %2$s please click - %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[order_pay_url]', PHP_EOL, PHP_EOL),  
             );
             $scheduler_data['cron'][] = array(
             'frequency' => '120',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_COD_PREPAID_CUSTOMER_MESSAGE'),
+            'message'   => sprintf(__('Hey %1$s, if you wish to make pre-payment for your order %2$s please click - %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[order_pay_url]', PHP_EOL, PHP_EOL),
             );            
         }
 

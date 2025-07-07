@@ -235,7 +235,7 @@ class SAVerify
             return;
         }
         if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field($_REQUEST['option']) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
             $_SESSION[ $this->formSessionVar ] = 'verification_failed';
@@ -261,7 +261,7 @@ class SAVerify
             return;
         }
         if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field($_REQUEST['option']) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
             $_SESSION[ $this->formSessionVar ] = 'validated';
@@ -293,7 +293,7 @@ class SAVerify
             array(
             'otp_time'                => $otp_resend_timer,
             'auto_validate'           => $auto_validate,
-            'valid_otp'                => SmsAlertMessages::showMessage('VALID_OTP'),
+            'valid_otp'                => __('OTP Validated Successfully.', 'sms-alert'),
             'show_countrycode'        => smsalert_get_option('checkout_show_country_code', 'smsalert_general', 'off'),
             'allow_otp_countries' => smsalert_get_option('allow_otp_country', 'smsalert_general'),
             'allow_otp_verification' => smsalert_get_option('allow_otp_verification', 'smsalert_general', 'off'),

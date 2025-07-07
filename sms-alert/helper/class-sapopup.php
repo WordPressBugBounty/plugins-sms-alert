@@ -58,7 +58,18 @@ class SAPopup
         add_action('elementor/document/before_save', array( $this, 'checkSmsalertShareCartWidget' ), 100, 2);
         add_action('elementor/document/before_save', array( $this, 'checkSmsalertNotifyMeWidget' ), 100, 2);
         $this->routeData();        
-        $name = 'sms-alert';
+        
+        add_action('init', array( $this, 'registerPostType'));        
+    }
+	
+	/**
+     * Register post type.
+     *
+     * @return void
+     */
+    function registerPostType()
+    {
+		$name = 'sms-alert';
         $args = array(
         'public'    => true,
         'show_in_menu'     => false,
@@ -71,13 +82,9 @@ class SAPopup
         'read_post' => 'read_sms_alert',
         ),
         );
-        add_action(
-            'init', function () use ($name,$args) {
-                register_post_type($name, $args);
-                flush_rewrite_rules();
-            }
-        );        
-    }
+		register_post_type($name, $args);
+        flush_rewrite_rules();
+	}
     
     /**
      * Add theme caps.
@@ -154,8 +161,8 @@ class SAPopup
                                                            "elType" => "widget", 
                                                            "settings" => [
                                                               "form_list" => $otp_template_style, 
-                                                              "sa_ele_f_mobile_lbl" => SmsAlertMessages::showMessage('OTP_SENT_PHONE'), 
-                                                              "sa_ele_f_mobile_botton" => SmsAlertMessages::showMessage('VALIDATE_OTP'),
+                                                              "sa_ele_f_mobile_lbl" => sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'), 
+                                                              "sa_ele_f_mobile_botton" => __('Validate OTP', 'sms-alert'),
                                                               "sa_ele_f_otp_resend"=> esc_html__('Didn\'t receive the code?', 'sms-alert'),
                                                               "sa_ele_f_resend_btn"=> esc_html__('Resend', 'sms-alert'),
                                                               "sa_otp_re_send_timer"=>    '15',
@@ -545,14 +552,15 @@ class SAPopup
             $close_class = 'back';
         }
         $otp_length             = esc_attr(SmsAlertUtility::get_otp_length());
-        $sa_label        = ( ! empty($callback['sa_label']) ) ? $callback['sa_label'] :SmsAlertMessages::showMessage('OTP_SENT_PHONE');
+        $sa_label        = ( ! empty($callback['sa_label']) ) ? $callback['sa_label'] :sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##');
         $placeholder     = ( ! empty($callback['placeholder']) ) ? $callback['placeholder'] : '';
         $edit_phone_label     = ( ! empty($callback['edit_phone_label']) ) ? $callback['edit_phone_label'] : esc_html__('Edit Number', 'sms-alert');
         $sa_mobile_meaasege     = ( ! empty($callback['sa_mobile_meaasege']) ) ? $callback['sa_mobile_meaasege'] : esc_html__('Please Enter Mobile Number To Send OTP', 'sms-alert');
+        $otp_range     = __('Only digits within range 4-8 are allowed.', 'sms-alert');
         $otp_template_style     = ( ! empty($callback['otp_template_style']) ) ? $callback['otp_template_style'] : 'popup-4';
         $digit_class = ($otp_template_style!='popup-1' && $otp_template_style!='popup-4') ?(($otp_template_style=='popup-3')?'digit-group popup-3':'digit-group'):'';
         $hide_class = (($otp_template_style=='popup-1') || ($otp_template_style=='popup-4'))?'hide':'';
-        $sa_button       = (! empty($callback['sa_button']) ) ? $callback['sa_button'] :SmsAlertMessages::showMessage('VALIDATE_OTP');
+        $sa_button       = (! empty($callback['sa_button']) ) ? $callback['sa_button'] :__('Validate OTP', 'sms-alert');
         $sa_resend_otp   = ( ! empty($callback['sa_resend_otp']) ) ? $callback['sa_resend_otp'] :'Didn t receive the code?';
         $sa_resend_btns  = ( ! empty($callback['sa_resend_btns']) ) ? $callback['sa_resend_btns'] :'Resend';
         if ($otp_template_style == 'popup-4') {  
@@ -570,7 +578,7 @@ class SAPopup
             $input.= '<input type="number" class="otp-number '.esc_attr($hide_class).'" id="digit-'.esc_attr($i + 1).'" name="digit-'.esc_attr($i + 1).'" oninput="saGroup(this)" onkeyup="tabChange('.esc_attr($i + 1).',this)" data-next="digit-'.esc_attr($i + 2).'" data-previous="digit-'.esc_attr($otp_length - $j--).'" data-max="1" autocomplete="off">';
         }
         $content.= $input;
-        $content.= '<input type="number" oninput="saGroup(this)" name="smsalert_customer_validation_otp_token" placeholder="'.esc_attr($placeholder).'" id="smsalert_customer_validation_otp_token" class="input-text otp_input" pattern="[0-9]{'.esc_attr($otp_length).'}" title="' . esc_attr(SmsAlertMessages::showMessage('OTP_RANGE')) . '" data-max="' . esc_attr($otp_length) . '">';
+        $content.= '<input type="number" oninput="saGroup(this)" name="smsalert_customer_validation_otp_token" placeholder="'.esc_attr($placeholder).'" id="smsalert_customer_validation_otp_token" class="input-text otp_input" pattern="[0-9]{'.esc_attr($otp_length).'}" title="' . esc_attr($otp_range) . '" data-max="' . esc_attr($otp_length) . '">';
         
         $content.= '<br><button type="button" name="smsalert_otp_validate_submit" style="color:grey; pointer-events:none;" id="sa_verify_otp" class="button smsalert_otp_validate_submit" value="Validate OTP">'.esc_attr($sa_button).'</button><br><a href="#" style="float:right" class="sa_resend_btn" onclick="saResendOTP(this)">'.esc_attr($sa_resend_btns).'</a><span class="sa_timer" style="min-width:80px; float:right"><span class="satimer">00:00:00</span> sec</span><span class="sa_forgot" style="float:right">'.esc_attr($sa_resend_otp).'</span><br></div></div></div>';    
         return $content;        

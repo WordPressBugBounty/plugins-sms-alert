@@ -88,7 +88,7 @@ class NewUserApprove
         $current_val      = smsalert_get_option('approved_notify', 'smsalert_nua_general', 'on');
         $checkbox_name_id = 'smsalert_nua_general[approved_notify]';
         $textarea_name_id = 'smsalert_nua_message[approved_notify]';
-        $text_body        = smsalert_get_option('approved_notify', 'smsalert_nua_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_APPROVED'));
+        $text_body        = smsalert_get_option('approved_notify', 'smsalert_nua_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
 
@@ -104,7 +104,7 @@ class NewUserApprove
         $current_val      = smsalert_get_option('denied_notify', 'smsalert_nua_general', 'on');
         $checkbox_name_id = 'smsalert_nua_general[denied_notify]';
         $textarea_name_id = 'smsalert_nua_message[denied_notify]';
-        $text_body        = smsalert_get_option('denied_notify', 'smsalert_nua_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REJECTED'));
+        $text_body        = smsalert_get_option('denied_notify', 'smsalert_nua_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates['deny']['title']          = 'When account is Deny';
         $templates['deny']['enabled']        = $current_val;

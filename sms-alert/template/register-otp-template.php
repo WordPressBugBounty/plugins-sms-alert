@@ -13,6 +13,8 @@
 if (! headers_sent() ) {
     header('Content-Type: text/html; charset=utf-8');
 }
+$otp_range = __('Only digits within range 4-8 are allowed.', 'sms-alert');
+$resend_otp     = __('Resend OTP', 'sms-alert');
         echo '<html>
 				<head>
 					<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -35,16 +37,16 @@ if (! SmsAlertUtility::isBlank($user_email) || ! SmsAlertUtility::isBlank($phone
     echo '								<div class="sa_customer_validation-login-container">
 												<form name="f" id="sa-form" method="post" action="">
 													<input type="hidden" name="option" value="smsalert-validate-otp-form" />
-													<input type="text" name="smsalert_customer_validation_otp_token"  autofocus="true" placeholder="" id="smsalert_customer_validation_otp_token" required="true" class="sa_customer_validation-textbox" autofocus="true" pattern="[0-9]{4,8}" title="' . esc_attr(SmsAlertMessages::showMessage('OTP_RANGE')) . '" />
+													<input type="text" name="smsalert_customer_validation_otp_token"  autofocus="true" placeholder="" id="smsalert_customer_validation_otp_token" required="true" class="sa_customer_validation-textbox" autofocus="true" pattern="[0-9]{4,8}" title="' . esc_attr($otp_range) . '" />
 													<br /><input type="submit" name="smsalert_otp_token_submit" id="smsalert_otp_token_submit" class="smsalert_otp_token_submit"  value="' . esc_html__('Validate OTP', 'sms-alert') . '" />
 													<input type="hidden" name="otp_type" value="' . esc_attr($otp_type) . '">';
     if (! $from_both ) {
         echo '											<input type="hidden" id="from_both" name="from_both" value="false" />
-														<a style="float:right" id="verify_otp" onclick="sa_otp_verification_resend();">' . esc_attr(SmsAlertMessages::showMessage('RESEND_OTP')) . '</a>
+														<a style="float:right" id="verify_otp" onclick="sa_otp_verification_resend();">' . esc_attr($resend_otp) . '</a>
 														<span id="timer" style="min-width:80px; float:right;margin-right: 5px;"><span id="stimer">00:00</span> ' . esc_html__('sec', 'sms-alert') . '</span>';
     } else {
         echo '											<input type="hidden" id="from_both" name="from_both" value="true" />
-														<a style="float:right" id="verify_otp" onclick="sa_select_goback();">' . esc_attr(SmsAlertMessages::showMessage('RESEND_OTP')) . '</a>
+														<a style="float:right" id="verify_otp" onclick="sa_select_goback();">' . esc_attr($resend_otp) . '</a>
 														<span id="timer" style="min-width:80px; float:right;margin-right: 5px;"><span id="stimer">00:00</span> ' . esc_html__('sec', 'sms-alert') . '</span>';
     }
 

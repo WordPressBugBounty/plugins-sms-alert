@@ -359,10 +359,16 @@ class BookingCalendar extends FormInterface
 
             $checkbox_name_id = 'smsalert_bc_general[customer_bc_notify_' . strtolower($vs) . ']';
             $textarea_name_id = 'smsalert_bc_message[customer_sms_bc_body_' . strtolower($vs) . ']';
+			
+			$default_templates = array(
+                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_PENDING' => sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to pending.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_APPROVED' => sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to confirmed.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL),
+                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_TRASH' => sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL)
+			);
+			
+            $default_template = !empty($default_templates['DEFAULT_BOOKING_CALENDAR_CUSTOMER_' . strtoupper($vs)])?$default_templates['DEFAULT_BOOKING_CALENDAR_CUSTOMER_' . strtoupper($vs)]:'';
 
-            $default_template = SmsAlertMessages::showMessage('DEFAULT_BOOKING_CALENDAR_CUSTOMER_' . strtoupper($vs));
-
-            $text_body = smsalert_get_option('customer_sms_bc_body_' . strtolower($vs), 'smsalert_bc_message', ( ( '' !== $default_template ) ? $default_template : SmsAlertMessages::showMessage('DEFAULT_BOOKING_CALENDAR_CUSTOMER') ));
+            $text_body = smsalert_get_option('customer_sms_bc_body_' . strtolower($vs), 'smsalert_bc_message', ( ( '' !== $default_template ) ? $default_template : sprintf(__('Congratulation %1$s, you have become an instructor with %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL) ));
 
             $templates[ $ks ]['title']          = 'When customer booking is ' . ucwords($vs);
             $templates[ $ks ]['enabled']        = $current_val;
@@ -668,7 +674,7 @@ class BookingCalendar extends FormInterface
             return;
         }
         if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
             $_SESSION[ $this->form_session_var ] = 'verification_failed';
@@ -694,7 +700,7 @@ class BookingCalendar extends FormInterface
             return;
         }
         if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
             $_SESSION[ $this->form_session_var ] = 'validated';

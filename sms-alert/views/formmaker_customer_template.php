@@ -38,7 +38,7 @@ if (! empty($formmarker_forms) ) {
         }
         ?>
                         </div>
-                        <textarea data-parent_id="smsalert_formmarker_general[formmarker_message_<?php echo esc_attr($ks); ?>]" name="smsalert_formmarker_message[formmarker_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_formmarker_message[formmarker_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('formmarker_order_status_' . esc_attr($ks), 'smsalert_formmarker_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('formmarker_sms_body_' . esc_attr($ks), 'smsalert_formmarker_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'))); ?></textarea>
+                        <textarea data-parent_id="smsalert_formmarker_general[formmarker_message_<?php echo esc_attr($ks); ?>]" name="smsalert_formmarker_message[formmarker_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_formmarker_message[formmarker_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('formmarker_order_status_' . esc_attr($ks), 'smsalert_formmarker_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('formmarker_sms_body_' . esc_attr($ks), 'smsalert_formmarker_message', sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'))); ?></textarea>
                         <div id="menu_formmarker_cust_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>

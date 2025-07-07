@@ -183,7 +183,7 @@ class Wpmember extends FormInterface
      */
     public function sendErrorMessageIfOTPVerificationNotStarted()
     {
-        wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('ENTER_PHONE_CODE'), SmsAlertConstants::ERROR_JSON_TYPE));
+        wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter the verification code sent to your phone.', 'sms-alert'), SmsAlertConstants::ERROR_JSON_TYPE));
     }
 
     /**
@@ -236,7 +236,7 @@ class Wpmember extends FormInterface
         global $wpmem_themsg;
         SmsAlertUtility::checkSession();
         if (array_key_exists($this->form_phone_ver, $_SESSION) && strcasecmp($_SESSION[ $this->form_phone_ver ], $fields[ $this->phone_field_key ]) !== 0 ) {
-            $wpmem_themsg = SmsAlertMessages::showMessage('INVALID_OTP');
+            $wpmem_themsg = __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert');
             return false;
         } else {
             return true;

@@ -127,7 +127,7 @@ class EasyRegistration extends FormInterface
 
         if (array_key_exists('user_phone', $getdata) && ! SmsAlertUtility::isBlank($getdata['user_phone']) ) {
             $_SESSION[ $this->form_session_var ] = trim($getdata['user_phone']);
-            $message                             = str_replace('##phone##', $getdata['user_phone'], SmsAlertMessages::showMessage('OTP_SENT_PHONE'));
+            $message                             = str_replace('##phone##', $getdata['user_phone'], sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'));
             smsalert_site_challenge_otp('test', null, null, trim($getdata['user_phone']), 'phone', null, null, true);
         } else {
             wp_send_json(SmsAlertUtility::_create_json_response('Enter a number in the following format : 9xxxxxxxxx', SmsAlertConstants::ERROR_JSON_TYPE));
@@ -187,7 +187,7 @@ class EasyRegistration extends FormInterface
             return;
         }
         if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
             $_SESSION[ $this->form_session_var ] = 'verification_failed';
@@ -213,7 +213,7 @@ class EasyRegistration extends FormInterface
             return;
         }
         if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
             $_SESSION[ $this->form_session_var ] = 'validated';

@@ -38,7 +38,7 @@ if (! empty($wsform_forms) ) {
         }
         ?>
                         </div>
-                        <textarea data-parent_id="smsalert_wsform_general[wsform_message_<?php echo esc_attr($ks); ?>]" name="smsalert_wsform_message[wsform_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_wsform_message[wsform_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('wsform_form_status_' . esc_attr($ks), 'smsalert_wsform_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('wsform_sms_body_' . esc_attr($ks), 'smsalert_wsform_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'))); ?></textarea>
+                        <textarea data-parent_id="smsalert_wsform_general[wsform_message_<?php echo esc_attr($ks); ?>]" name="smsalert_wsform_message[wsform_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_wsform_message[wsform_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('wsform_form_status_' . esc_attr($ks), 'smsalert_wsform_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('wsform_sms_body_' . esc_attr($ks), 'smsalert_wsform_message', sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'))); ?></textarea>
                         <div id="menu_wsform_cust_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>

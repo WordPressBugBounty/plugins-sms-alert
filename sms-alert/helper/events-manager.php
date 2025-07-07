@@ -117,7 +117,7 @@ class SmsAlertEMBooking
             $text_body = smsalert_get_option(
                 'embk_sms_body_' . $vs,
                 'smsalert_embk_message',
-                SmsAlertMessages::showMessage('DEFAULT_EM_CUSTOMER_MESSAGE')
+                sprintf(__('Hello %1$s, status of your booking %2$s%3$s with %4$s has been changed to %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[#_BOOKINGNAME]', '[#_BOOKINGID]', '[#_EVENTNAME]', '[store_name]', '[#_BOOKINGSTATUS]', PHP_EOL, PHP_EOL)
             );
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);
@@ -151,7 +151,7 @@ class SmsAlertEMBooking
             $text_body = smsalert_get_option(
                 'embk_admin_sms_body_' . $vs,
                 'smsalert_embk_message',
-                SmsAlertMessages::showMessage('DEFAULT_EM_ADMIN_MESSAGE')
+                sprintf(__('%1$s: status of booking %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[#_BOOKINGID]', '[#_BOOKINGSTATUS]', PHP_EOL, PHP_EOL)
             );
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);

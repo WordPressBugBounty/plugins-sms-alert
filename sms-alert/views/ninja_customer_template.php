@@ -44,7 +44,7 @@ if (! empty($ninja_forms) ) {
         }
         ?>
                         </div>
-                        <textarea data-parent_id="smsalert_ninja_general[ninja_message_<?php echo esc_attr($ks); ?>]" name="smsalert_ninja_message[ninja_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_ninja_message[ninja_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('ninja_order_status_' . esc_attr($ks), 'smsalert_ninja_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('ninja_sms_body_' . esc_attr($ks), 'smsalert_ninja_message', SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'))); ?></textarea>
+                        <textarea data-parent_id="smsalert_ninja_general[ninja_message_<?php echo esc_attr($ks); ?>]" name="smsalert_ninja_message[ninja_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_ninja_message[ninja_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('ninja_order_status_' . esc_attr($ks), 'smsalert_ninja_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('ninja_sms_body_' . esc_attr($ks), 'smsalert_ninja_message', sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'))); ?></textarea>
                         <div id="menu_ninja_cust_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>

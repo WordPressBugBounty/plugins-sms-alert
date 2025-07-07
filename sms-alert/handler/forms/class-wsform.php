@@ -136,7 +136,7 @@ class SA_Wsform extends FormInterface
             return;
         }
         if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
             $_SESSION[ $this->form_session_var ] = 'verification_failed';
@@ -162,7 +162,7 @@ class SA_Wsform extends FormInterface
             return;
         }
         if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
             $_SESSION[ $this->form_session_var ] = 'validated';

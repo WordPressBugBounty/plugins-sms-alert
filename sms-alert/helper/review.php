@@ -241,7 +241,7 @@ class WCReview
         $current_val                    = smsalert_get_option('customer_notify', 'smsalert_or_general', 'on');
         $checkbox_name_id               = 'smsalert_or_general[customer_notify]';
         $text_area_name_id              = 'smsalert_or_message[customer_notify]';
-        $text_body                      = smsalert_get_option('customer_notify', 'smsalert_or_message', SmsAlertMessages::showMessage('DEFAULT_CUSTOMER_REVIEW_MESSAGE'));
+        $text_body                      = smsalert_get_option('customer_notify', 'smsalert_or_message', sprintf(__('Hi %1$s, thank you for your recent order on %2$s. Can you take 1 minute to leave a review about your experience with us? %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[store_name]', 'https://www.google.com/search?q=[store_name]', PHP_EOL, PHP_EOL));
         $review_added_user_msg          = smsalert_get_option('review_added_user_msg', 'smsalert_review', 'on');
         $sms_body_review_added_user_msg = smsalert_get_option('sms_body_review_added_user_msg', 'smsalert_review', sprintf(__('Dear %1$s, Thank you for sharing your valuable feedback on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL));
 

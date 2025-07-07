@@ -250,11 +250,11 @@ class SA_Abandoned_Cart
             $scheduler_data  = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '60',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_AB_CART_CUSTOMER_MESSAGE'),
+            'message'   => sprintf(__('Hey %1$s, We noticed you could not complete your order. Click on the link below to place your order. Shop Now - %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[checkout_url]', PHP_EOL, PHP_EOL),
             );
             $scheduler_data['cron'][] = array(
             'frequency' => '120',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_AB_CART_CUSTOMER_MESSAGE'),
+            'message'   => sprintf(__('Hey %1$s, We noticed you could not complete your order. Click on the link below to place your order. Shop Now - %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[checkout_url]', PHP_EOL, PHP_EOL),
             );
         }
 

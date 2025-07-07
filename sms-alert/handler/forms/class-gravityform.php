@@ -163,7 +163,7 @@ class GF_SMS_Alert extends GFFeedAddOn
         'type'    => 'textarea',
         'name'    => 'smsalert_gForm_cstmer_text',
         'tooltip' => 'Enter your Customer SMS Content',
-        'default_value' => SmsAlertMessages::showMessage('DEFAULT_CONTACT_FORM_CUSTOMER_MESSAGE'),
+        'default_value' => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
         'class'   => 'medium merge-tag-support mt-position-right',
         ),                    
         ),
@@ -184,9 +184,7 @@ class GF_SMS_Alert extends GFFeedAddOn
          'type'          => 'textarea',
          'name'          => 'smsalert_gForm_admin_text',
          'tooltip'       => 'Enter your admin SMS Content',
-        'default_value' => SmsAlertMessages::showMessage(
-            'DEFAULT_CONTACT_FORM_ADMIN_MESSAGE'
-        ),
+        'default_value' => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
          'class'         => 'medium merge-tag-support mt-position-right',
                         
         ),
@@ -214,9 +212,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_cstmer_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Customer SMS Content',
-                'default_value' => SmsAlertMessages::showMessage(
-                    'DEFAULT_GRAVITY_NEW_USER'
-                ),
+                'default_value' => sprintf(__('Dear user, your account with %1$s has been %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'),  '[store_name]', '[user_status]', PHP_EOL, PHP_EOL),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
                 $admin_fields[] =  array(
@@ -236,9 +232,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_admin_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Admin SMS Content',
-                'default_value' => SmsAlertMessages::showMessage(
-                    'DEFAULT_GRAVITY_NEW_ADMIN'
-                ),
+                'default_value' => sprintf(__('Dear admin, your account with %1$s has been %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'),  '[store_name]', '[user_status]', PHP_EOL, PHP_EOL),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );                 
             }    
@@ -276,7 +270,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                'type'    => 'textarea',
                 'name'    => 'smsalert_gform_cstmer_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Customer SMS Content',
-                'default_value' => SmsAlertMessages::showMessage('DEFAULT_GRAVITY_CST_SMS_STATUS_CHANGED')
+                'default_value' => sprintf(__('Hello User, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '{entry_id}', '[store_name]', '{payment_status}', PHP_EOL, PHP_EOL)
                 ,
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
@@ -298,9 +292,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_admin_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Admin SMS Content',
-                'default_value' => SmsAlertMessages::showMessage(
-                    'DEFAULT_GRAVITY_ADMIN_SMS_STATUS_CHANGED'
-                ),
+                'default_value' => sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#{entry_id}', '{payment_status}'),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
                 
@@ -336,7 +328,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_cstmer_booking_'. strtolower($vss) .'_text',
                 'tooltip' => 'Enter your Customer SMS Content',
-                'default_value' => SmsAlertMessages::showMessage('DEFAULT_GRAVITY_CUSTOMER_MESSAGE')
+                'default_value' => sprintf(__('Hello user, status of your booking %1$s with %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '#{entry_id}', '[store_name]', '{booking_status}', PHP_EOL, PHP_EOL)
                 ,
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
@@ -358,9 +350,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_admin_booking_'. strtolower($vss) .'_text',
                 'tooltip' => 'Enter your Admin SMS Content',
-                'default_value' => SmsAlertMessages::showMessage(
-                    'DEFAULT_GRAVITY_ADMIN_MESSAGE'
-                ),
+                'default_value' => sprintf(__('%1$s: status of booking %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#{entry_id}', '{booking_status}', PHP_EOL, PHP_EOL),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
                 
@@ -1094,9 +1084,7 @@ class GF_Smsalert_Form extends FormInterface
         ) {
             wp_send_json(
                 SmsAlertUtility::_create_json_response(
-                    SmsAlertMessages::showMessage(
-                        'INVALID_OTP'
-                    ), 'error'
+                    __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'
                 )
             );
             exit();

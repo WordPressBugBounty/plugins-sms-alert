@@ -256,7 +256,7 @@ class SmsAlertcURLOTP
         $username = smsalert_get_option('smsalert_name', 'smsalert_gateway');
         $password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
         $senderid = smsalert_get_option('smsalert_api', 'smsalert_gateway');
-        $template = smsalert_get_option('sms_otp_send', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_BUYER_OTP'));
+        $template = smsalert_get_option('sms_otp_send', 'smsalert_message', sprintf(__('Your verification code for mobile verification is %1$s %2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[otp]', PHP_EOL, PHP_EOL));
         $template = str_replace(array('[store_name]','[shop_url]'), array(get_bloginfo(),get_site_url()), $template);
 
         if ($phone === false ) {

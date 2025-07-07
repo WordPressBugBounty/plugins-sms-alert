@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.8
-Stable tag: 3.8.4
+Stable tag: 3.8.5
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -239,6 +239,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= 3.8.5 =
+* Bugfix: When a user signs up with a mobile number, an invalid number is displayed on the checkout page. 
+* Bugfix: The translation warning message is showing in the latest version of WordPress.
+* compatibility check for latest woocommerce version
+
 = 3.8.4 =
 * Bugfix: magnificPopup warning message in console
 * Bugfix: The login popup on the checkout page is not functioning correctly when using the Elessi theme

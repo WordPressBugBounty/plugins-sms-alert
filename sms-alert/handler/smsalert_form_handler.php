@@ -246,7 +246,7 @@ function _handle_mo_ajax_form_validate_action()
         if ('validated' === $_SESSION[ FormSessionVars::WC_SOCIAL_LOGIN ] ) {
             wp_send_json(SmsAlertUtility::_create_json_response('successfully validated', 'success'));
         } else {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         }
     }
 }

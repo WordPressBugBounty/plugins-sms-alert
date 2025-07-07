@@ -343,10 +343,10 @@ class WCSignupWithOTp
         $role                = ( ! empty($user->roles[0]) ) ? $user->roles[0] : '';
         $role_display_name   = ( ! empty($role) ) ? self::get_user_roles($role) : '';
         $smsalert_reg_notify = smsalert_get_option('wc_user_roles_' . $role, 'smsalert_signup_general', 'off');
-        $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REGISTER'));
+        $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
 
         $smsalert_reg_admin_notify = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'off');
-        $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_NEW_USER_REGISTER'));
+        $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
         $admin_phone_number        = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
 
         $store_name = trim(get_bloginfo());

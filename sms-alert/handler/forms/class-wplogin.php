@@ -241,7 +241,7 @@ class WPLogin extends FormInterface
                 SmsAlertUtility::initialize_transaction($this->form_session_var3);
                 smsalert_site_challenge_otp(null, null, null, $billing_phone, 'phone', null, SmsAlertUtility::currentPageUrl(), true);
             } else {
-                wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('PHONE_NOT_FOUND'), 'error'));
+                wp_send_json(__('Sorry, but you do not have a registered phone number, please logged in your account and update this number.', 'sms-alert'), 'error');
             }
         }
     }
@@ -614,7 +614,7 @@ class WPLogin extends FormInterface
             return;
         }
         if (! $this->checkWpLoginRegisterPhone() ) {
-            smsalert_site_otp_validation_form(null, null, null, SmsAlertMessages::showMessage('PHONE_NOT_FOUND'), null, null);
+            smsalert_site_otp_validation_form(null, null, null, __('Sorry, but you do not have a registered phone number, please logged in your account and update this number.', 'sms-alert'), null, null);
         } else {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
             smsalert_external_phone_validation_form(SmsAlertUtility::currentPageUrl(), $user->data->user_login, __('A new security system has been enabled for you. Please register your phone to continue.', 'sms-alert'), $key, array( 'user_login' => $username ));
@@ -677,7 +677,7 @@ class WPLogin extends FormInterface
         }
 
         if (strcmp($_SESSION['phone_number_mo'], $data['billing_phone']) && isset($data['billing_phone']) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('PHONE_MISMATCH'), 'error'));
+            wp_send_json(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error');
         } else {
             do_action('smsalert_validate_otp', 'phone');
         }
@@ -701,13 +701,13 @@ class WPLogin extends FormInterface
 
         if (isset($_SESSION[ $this->form_session_var ]) ) {
             $_SESSION[ $this->form_session_var ] = 'verification_failed';
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         }
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
-            smsalert_site_otp_validation_form($user_login, $user_email, $phone_number, SmsAlertMessages::showMessage('INVALID_OTP'), 'phone', false);
+            smsalert_site_otp_validation_form($user_login, $user_email, $phone_number, __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'phone', false);
         }
         if (isset($_SESSION[ $this->form_session_var3 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('INVALID_OTP'), 'error'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
         }
     }
 
@@ -736,7 +736,7 @@ class WPLogin extends FormInterface
             wp_send_json(SmsAlertUtility::_create_json_response('successfully validated', 'success'));
         } elseif (isset($_SESSION[ $this->form_session_var3 ]) ) {
             $_SESSION['login_otp_success'] = true;
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         } else {
             $_SESSION['sa_login_mobile_verified'] = true;
         }

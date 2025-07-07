@@ -277,7 +277,7 @@ class SmsAlertWcBooking
             $scheduler_data = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '1',
-            'message'   => SmsAlertMessages::showMessage('DEFAULT_WCBK_REMINDER_MESSAGE'),
+            'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '#[booking_id]', '[store_name]', '[booking_start]', PHP_EOL, PHP_EOL),
             );
         }
         foreach ( $scheduler_data['cron'] as $key => $data ) {

@@ -97,10 +97,10 @@ class WPResetPassword extends FormInterface
         $confirm_password = ! empty($post_data['smsalert_user_cnfpwd']) ? $post_data['smsalert_user_cnfpwd'] : '';
 
         if (empty($new_password) ) {
-            $error = SmsAlertMessages::showMessage('ENTER_PWD');
+            $error = __('Please enter your password.', 'sms-alert');
         }
         if ($new_password !== $confirm_password ) {
-            $error = SmsAlertMessages::showMessage('PWD_MISMATCH');
+            $error = __('Passwords do not match.', 'sms-alert');
         }
         if (! empty($error) ) {
             smsalertAskForResetPassword(
@@ -188,7 +188,7 @@ class WPResetPassword extends FormInterface
 
         if (isset($_SESSION[ $this->form_session_var ]) ) {
             $_SESSION[ $this->form_session_var ] = 'verification_failed';
-            smsalert_site_otp_validation_form($user_login, $user_email, $phone_number, SmsAlertMessages::showMessage('INVALID_OTP'), 'phone', false);
+            smsalert_site_otp_validation_form($user_login, $user_email, $phone_number, __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'phone', false);
         }
     }
 
@@ -213,7 +213,7 @@ class WPResetPassword extends FormInterface
         smsalertAskForResetPassword(
             sanitize_text_field($_SESSION['user_login']),
             sanitize_text_field($_SESSION['phone_number_mo']),
-            SmsAlertMessages::showMessage('CHANGE_PWD'),
+            __('Please change Your password', 'sms-alert'),
             'phone',
             false
         );

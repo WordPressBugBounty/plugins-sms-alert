@@ -11,7 +11,7 @@
  * Plugin Name: SMSAlert - WooCommerce
  * Plugin URI: https://wordpress.org/plugins/sms-alert/
  * Description: This is a WooCommerce add-on. By Using this plugin admin and buyer can get notification after placing order via sms using SMS Alert.
- * Version: 3.8.4
+ * Version: 3.8.5
  * Author: Cozy Vision Technologies Pvt. Ltd.
  * Author URI: https://www.smsalert.co.in
  * WC requires at least: 4.6
@@ -325,10 +325,10 @@ class smsalert_WC_Order_SMS
         $role                = ( ! empty($user->roles[0]) ) ? $user->roles[0] : '';
         $role_display_name   = ( ! empty($role) ) ? self::get_user_roles($role) : '';
         $smsalert_reg_notify = smsalert_get_option('wc_user_roles_' . $role, 'smsalert_signup_general', 'off');
-        $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REGISTER'));
+        $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
 
         $smsalert_reg_admin_notify = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'off');
-        $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_NEW_USER_REGISTER'));
+        $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
         $admin_phone_number        = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
 
         $store_name = trim(get_bloginfo());
@@ -446,7 +446,7 @@ class smsalert_WC_Order_SMS
 
             $checkbox_name_id = 'smsalert_signup_general[wc_user_roles_' . $role_key . ']';
             $textarea_name_id = 'smsalert_signup_message[signup_sms_body_' . $role_key . ']';
-            $text_body        = smsalert_get_option('signup_sms_body_' . $role_key, 'smsalert_signup_message', SmsAlertMessages::showMessage('DEFAULT_NEW_USER_REGISTER'));
+            $text_body        = smsalert_get_option('signup_sms_body_' . $role_key, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
 
             $templates[ $role_key ]['title']          = 'When ' . ucwords($role['name']) . ' is registered';
             $templates[ $role_key ]['enabled']        = $current_val;
@@ -467,7 +467,7 @@ class smsalert_WC_Order_SMS
     public static function getNewUserRegisterTemplates()
     {
         $smsalert_notification_reg_admin_msg = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'on');
-        $sms_body_registration_admin_msg     = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_NEW_USER_REGISTER'));
+        $sms_body_registration_admin_msg     = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
 
@@ -500,7 +500,7 @@ class smsalert_WC_Order_SMS
      */
     public static function addDefaultSetting( $defaults = array() )
     {
-        $sms_body_registration_admin_msg = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', SmsAlertMessages::showMessage('DEFAULT_ADMIN_NEW_USER_REGISTER'));
+        $sms_body_registration_admin_msg = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $wc_user_roles = self::get_user_roles();
         foreach ( $wc_user_roles as $role_key => $role ) {
@@ -556,7 +556,6 @@ class smsalert_WC_Order_SMS
         include_once 'helper/sessionVars.php';
         include_once 'helper/utility.php';
         include_once 'helper/constants.php';
-        include_once 'helper/messages.php';
         include_once 'helper/curl.php';
 
         if (stripos($class, 'smsalert_') !== false ) {

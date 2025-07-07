@@ -72,9 +72,9 @@ class Smsalert_Delivery_Drivers_Woocommerce
         }
         
 
-        $code_message = str_replace('##phone##', $phone_number, SmsAlertMessages::showMessage('OTP_SENT_PHONE'));
+        $code_message = str_replace('##phone##', $phone_number, sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'));
 
-        $invalid_message = SmsAlertMessages::showMessage('INVALID_OTP');
+        $invalid_message = __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert');
         if ('out-for-delivery' === $order_status && '0' === $verify_code_status && ! empty($delivery_code) ) {
             $inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery(document).ready(function(){
 					var button = jQuery("input[name=ordercompleted]");					jQuery("input[name=ordercompleted]").attr("type","hidden");			jQuery("input[name=ordercompleted]").after(button.clone()).addClass("sa-otp-btn-init").html();
@@ -188,7 +188,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
         $text_body = smsalert_get_option(
             'driver_notify',
             'smsalert_driver_message',
-            SmsAlertMessages::showMessage('DEFAULT_DELIVERY_DRIVER_MESSAGE')
+            sprintf(__('%1$s: Hello %2$s, you have been assigned a new delivery for %3$s%4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[first_name]', '[item_name]', '[item_name_qty]', PHP_EOL, PHP_EOL)
         );
 
         $templates = array();

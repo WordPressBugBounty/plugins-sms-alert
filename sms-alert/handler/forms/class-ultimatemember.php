@@ -275,10 +275,10 @@ class UltimateMemberRegistrationForm extends FormInterface
         $confirm_password = ! empty($post_data['smsalert_user_cnfpwd']) ? $post_data['smsalert_user_cnfpwd'] : '';
 
         if (empty($new_password) ) {
-            $error = SmsAlertMessages::showMessage('ENTER_PWD');
+            $error = __('Please enter your password.', 'sms-alert');
         }
         if ($new_password !== $confirm_password ) {
-            $error = SmsAlertMessages::showMessage('PWD_MISMATCH');
+            $error = __('Passwords do not match.', 'sms-alert');
         }
         if (! empty($error) ) {
             smsalertAskForResetPassword($_SESSION['user_login'], $_SESSION['phone_number_mo'], $error, 'phone', false);
@@ -489,11 +489,11 @@ class UltimateMemberRegistrationForm extends FormInterface
         }
         $_SESSION['sa_um_mobile_verified'] = true;
         if (isset($_SESSION[ $this->form_session_var3 ]) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(SmsAlertMessages::showMessage('VALID_OTP'), 'success'));
+            wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
 
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
-            smsalertAskForResetPassword($_SESSION['user_login'], $_SESSION['phone_number_mo'], SmsAlertMessages::showMessage('CHANGE_PWD'), 'phone', false, 'smsalert-um-reset-pwd-action');
+            smsalertAskForResetPassword($_SESSION['user_login'], $_SESSION['phone_number_mo'], __('Please change Your password', 'sms-alert'), 'phone', false, 'smsalert-um-reset-pwd-action');
         } 
     }
 
