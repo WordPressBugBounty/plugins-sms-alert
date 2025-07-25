@@ -154,29 +154,38 @@ class SmsCampaign
      */
     public function processCampaign()
     {
-        if (isset($_POST['order_statuses']) && isset($_POST['searchdata'])) {
-            $datas = self::getOrdersPhone($_POST['order_statuses']);
+		$order_statuses = isset($_POST['order_statuses']) ? sanitize_text_field($_POST['order_statuses']) : '';
+		$searchdata = isset($_POST['searchdata']) ? sanitize_text_field($_POST['searchdata']) : '';
+		$senderid = isset($_POST['senderid']) ? sanitize_text_field($_POST['senderid']) : '';
+		$route = isset($_POST['route']) ? sanitize_text_field($_POST['route']) : '';
+		$message = isset($_POST['message']) ? sanitize_text_field($_POST['message']) : '';
+		$phone = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
+		$type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : '';
+		$post_ids = isset($_POST['post_ids']) ? sanitize_text_field($_POST['post_ids']) : '';
+		
+		
+        if (!empty($order_statuses) && !empty($searchdata)) {
+            $datas = self::getOrdersPhone($order_statuses);
             echo count($datas);
             die();
         } 
 
-        if (isset($_POST['senderid']) && isset($_POST['route']) && isset($_POST['message']) && isset($_POST['order_statuses']) || isset($_POST['phone'])) {
-            ;
+        if (!empty($senderid) && !empty($route) && !empty($message) && !empty($order_statuses) || !empty($phone)) {
             $datas = array();
-            $phone = trim($_POST['phone']);
+            $phone = trim($phone);
             if (empty($phone)) {
-                $phones = self::getOrdersPhone($_POST['order_statuses']);
+                $phones = self::getOrdersPhone($order_statuses);
             } else {
                 $phones = explode(",", $phone);
             }
-            $post_ids = !empty($_POST['post_ids'])?explode(",", $_POST['post_ids']):'';
+            $post_ids = !empty($post_ids)?explode(",", $post_ids):'';
             foreach ($phones as $key=>$data) {
                 $phone = is_array($data)?$data['phone']:$data;
                 $post_id = !empty($post_ids)?$post_ids[$key]:$data['order_id'];
-                $message = apply_filters('before_sa_campaign_send', $_POST['message'], $_POST['type'], $post_id);
+                $message = apply_filters('before_sa_campaign_send', $message, $type, $post_id);
                 $datas[] = array('number' => $phone, 'sms_body' => $message);
             }          
-            $resp    = SmsAlertcURLOTP::sendSmsXml($datas, $_POST['senderid'], $_POST['route']);
+            $resp    = SmsAlertcURLOTP::sendSmsXml($datas, $senderid, $route);
             $response_arr = json_decode($resp, true);
             if ('success' === $response_arr['status'] ) {
                 echo '1';

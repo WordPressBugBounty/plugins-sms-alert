@@ -491,9 +491,16 @@ class SA_Cart_Admin
         if ('abandoned_data' === $type) {
             global $wpdb;
             $table_name     = $wpdb->prefix . SA_CART_TABLE_NAME;
-            $data=$wpdb->get_row("SELECT * FROM $table_name WHERE id = $post_id ", ARRAY_A);
-            $data['checkout_url'] = $this->create_cart_url($data['email'], $data['session_id'], $data['id']);
-            $message = $this->parseSmsBody($data, $message);
+			
+			$post_id = absint($post_id);
+			$data = $wpdb->get_row(
+				$wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $post_id),
+				ARRAY_A
+			);
+			if ($data) {
+				$data['checkout_url'] = $this->create_cart_url($data['email'], $data['session_id'], $data['id']);
+				$message = $this->parseSmsBody($data, $message);
+			}
         }
         return $message;
     }

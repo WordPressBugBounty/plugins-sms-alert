@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.8
-Stable tag: 3.8.5
+Stable tag: 3.8.6
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -239,6 +239,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= 3.8.6 = 
+* Bugfix: When the country code is enabled, phone numbers starting with 91 causes issue.
+* Enhancement:  Security fixes for message campaigns using abandoned cart lists.
+* compatibility check for latest woocommerce version
+
 = 3.8.5 =
 * Bugfix: When a user signs up with a mobile number, an invalid number is displayed on the checkout page. 
 * Bugfix: The translation warning message is showing in the latest version of WordPress.

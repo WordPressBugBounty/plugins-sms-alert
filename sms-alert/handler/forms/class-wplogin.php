@@ -241,7 +241,7 @@ class WPLogin extends FormInterface
                 SmsAlertUtility::initialize_transaction($this->form_session_var3);
                 smsalert_site_challenge_otp(null, null, null, $billing_phone, 'phone', null, SmsAlertUtility::currentPageUrl(), true);
             } else {
-                wp_send_json(__('Sorry, but you do not have a registered phone number, please logged in your account and update this number.', 'sms-alert'), 'error');
+                wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, but you do not have a registered phone number, please logged in your account and update this number.', 'sms-alert'), 'error'));
             }
         }
     }
@@ -677,7 +677,7 @@ class WPLogin extends FormInterface
         }
 
         if (strcmp($_SESSION['phone_number_mo'], $data['billing_phone']) && isset($data['billing_phone']) ) {
-            wp_send_json(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error');
+            wp_send_json(SmsAlertUtility::_create_json_response(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error'));
         } else {
             do_action('smsalert_validate_otp', 'phone');
         }

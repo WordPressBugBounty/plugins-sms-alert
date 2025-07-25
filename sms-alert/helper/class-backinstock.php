@@ -80,11 +80,21 @@ class Sa_Backinstock
     {
         if ('subscribe_data' === $type) {
             global $wpdb;
-            $post_data = $wpdb->get_row("SELECT ID , post_title, post_author FROM {$wpdb->prefix}posts WHERE post_status = 'smsalert_subscribed' and ID = '$post_id'", ARRAY_A);
-
-            $post_user_id = $post_data['post_author'];
-            $product_id   = get_post_meta($post_id, 'smsalert_instock_pid', true);
-            $message = $this->parseBody($post_user_id, $product_id, $message);
+			
+			$post_id = absint($post_id); 
+			$post_data = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT ID, post_title, post_author FROM {$wpdb->prefix}posts WHERE post_status = %s AND ID = %d",
+					'smsalert_subscribed',
+					$post_id
+				),
+				ARRAY_A
+			);
+			if ($post_data) {
+				$post_user_id = $post_data['post_author'];
+				$product_id   = get_post_meta($post_id, 'smsalert_instock_pid', true);
+				$message = $this->parseBody($post_user_id, $product_id, $message);
+			}
         }
         return $message;
     }
@@ -381,9 +391,9 @@ class Sa_Backinstock
 				),
 				ARRAY_A
 			);
-            $post_user_id             = $post_data[0]['post_author'];
             $smsalert_bis_cust_notify = smsalert_get_option('customer_bis_notify', 'smsalert_bis_general', 'on');
             if (! empty($post_data) && 'instock' === $product_status && 'on' === $smsalert_bis_cust_notify ) {
+				$post_user_id             = $post_data[0]['post_author'];
                 $posts[ $dkey ]['post_id'] = $post_data[0]['ID'];
                 $backinstock_message       = smsalert_get_option('customer_bis_notify', 'smsalert_bis_message', '');
                 $obj[ $dkey ]['number']    = $post_data[0]['post_title'];

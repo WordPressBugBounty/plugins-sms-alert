@@ -321,7 +321,7 @@ class WooCommerceRegistrationForm extends FormInterface
         }
 
         if (strcmp($_SESSION['phone_number_mo'], $data['billing_phone']) ) {
-            wp_send_json(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error');
+            wp_send_json(SmsAlertUtility::_create_json_response(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error'));
         } else {
             do_action('smsalert_validate_otp', 'phone');
         }
