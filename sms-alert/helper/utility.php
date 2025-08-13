@@ -148,7 +148,10 @@ class SmsAlertUtility
             $session_enabled = ( session_id() === '' ) ? false : true;
         }
         if (! $session_enabled ) {
-            session_start();
+            if (!session_start()) {
+				session_save_path(sys_get_temp_dir());
+				session_start();
+			}
         }
 
         /*
