@@ -391,7 +391,10 @@ class WooCommerceCheckOutForm extends FormInterface
 	{		
 	  addShortcode();
 	}
-	} 
+	}
+	setTimeout(function(){
+    smsalert(); 
+	},500);	
 	jQuery(document).on("updated_checkout",function() {
     jQuery("#order_verify_field,#smsalert_otp_token_submit").addClass("sa-default-btn-hide");
     smsalert();

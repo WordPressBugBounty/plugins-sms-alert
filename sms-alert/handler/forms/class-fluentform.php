@@ -99,6 +99,13 @@ class SaFluentForm extends FormInterface
 					}
                     jQuery("#sa_conv_form").find("input[name='.$phone_field.']").addClass("sa-conv-phone");					
 			    });
+				setTimeout(function() {
+					if (jQuery(".modal.smsalertModal").length==0)    
+					{            
+					var popup = \''.str_replace(array("\n","\r","\r\n"), "", (get_smsalert_template("template/otp-popup.php", array(), true))).'\';
+					jQuery("body").append(popup);
+					}
+				}, 200);
 			    });
 			';                
             wp_add_inline_script("sa-handle-footer", $conversational_fluent_js);                

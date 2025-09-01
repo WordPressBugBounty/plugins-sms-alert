@@ -11,7 +11,7 @@
  * Plugin Name: SMSAlert - WooCommerce
  * Plugin URI: https://wordpress.org/plugins/sms-alert/
  * Description: This is a WooCommerce add-on. By Using this plugin admin and buyer can get notification after placing order via sms using SMS Alert.
- * Version: 3.8.7
+ * Version: 3.8.8
  * Author: Cozy Vision Technologies Pvt. Ltd.
  * Author URI: https://www.smsalert.co.in
  * WC requires at least: 4.6
@@ -722,7 +722,7 @@ class smsalert_WC_Order_SMS
     {
         $trans_credit = array();
         $credits      = json_decode(SmsAlertcURLOTP::getCredits(), true);
-        if (is_array($credits['description']) && array_key_exists('routes', $credits['description']) ) {
+        if (!empty($credits['description']['routes'])) {
             foreach ( $credits['description']['routes'] as $credit ) {
                  $trans_credit[] = $credit['credits'];
             }
