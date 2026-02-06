@@ -127,7 +127,7 @@ class SA_Abandoned_Cart
 
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueueStyles');
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueueScripts');
-        $this->loader->add_action('woocommerce_before_checkout_form', $plugin_public, 'addAdditionalScriptsOnCheckout'); // Adds additional functionality only to Checkout page
+        $this->loader->add_action('woocommerce_after_checkout_form', $plugin_public, 'addAdditionalScriptsOnCheckout'); // Adds additional functionality only to Checkout page
         $this->loader->add_action('wp_ajax_nopriv_save_data', $plugin_public, 'saveUserData'); // Handles data saving using Ajax after any changes made by the user on the Phone field in Checkout form
         $this->loader->add_action('wp_ajax_save_data', $plugin_public, 'saveUserData'); // Handles data saving using Ajax after any changes made by the user on the Mobile field for Logged in users
         $this->loader->add_action('woocommerce_add_to_cart', $plugin_public, 'saveLoggedInUserData', 200); // Handles data saving if an item is added to shopping cart, 200 = priority set to run the function last after all other functions are finished

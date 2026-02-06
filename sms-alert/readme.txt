@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
 Requires at least: 4.6
 Tested up to: 6.8
-Stable tag: 3.8.8
+Stable tag: 3.9.0
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -239,6 +239,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= 3.9.0 =
+* Bugfix: The Forminator form was not submitted after OTP validation.
+* Bugfix: Abandoned carts were not captured in block-based checkout.
+* compatibility check for latest woocommerce version
+
+= 3.8.9 = 
+* Enhancement:  Security fixes for process campaigns.
+* compatibility check for latest woocommerce version
+
 = 3.8.8 = 
 Bugfix: OTP modal was not appearing in conversational fluent form.
 Bugfix: Resolved interval variable conflict in the JavaScript file.

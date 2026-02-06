@@ -206,7 +206,7 @@ class smsalert_Setting_Options
 		<div class="notice notice-warning is-dismissible">
 		<div class="e-notice__content">
 		<h3>Expand Your Messaging Capabilities with WhatsApp!</h3>
-		<p>As a valued SMS Alert customer, you already know the power of seamless communication. Now, take it a step further with our new WhatsApp messaging service—FREE for 30 days! Connect with your customers on the platform they prefer and enhance your outreach effortlessly.</p>
+		<p>As a valued SMS Alert customer, you already know the power of seamless communication. Now, take it a step further with our new WhatsApp messaging service—FREE for 7 days! Connect with your customers on the platform they prefer and enhance your outreach effortlessly.</p>
         <p>Get started today and enjoy the same trusted service you rely on, now with WhatsApp. <a href="https://www.chatondesk.com/request-demo/?utm_source=wordpress&utm_medium=sms_alert_plugin&utm_campaign=free_trial&utm_content=top_banner&utm_keyword=<?php echo smsalert_get_option('smsalert_name', 'smsalert_gateway'); ?>&email=<?php echo $current_user->user_email; ?>&phone=&cname=<?php echo $current_user->user_firstname . ' ' . $current_user->user_lastname; ?>" class="button button-primary" target="_blank"><span>Get Started with Free Trial</span></a><a style="margin-left:20px;text-decoration: none" href="javascript:void(0)" id="smsalert-remind-later">Don't show it again</a></p>
 			</div>
 		</div>		

@@ -61,19 +61,13 @@ $url = add_query_arg(
                         </th>
                         <td>
                             <select name="smsalert_review[review_status]" id="smsalert_review[review_status]" data-parent_id="smsalert_or_general[customer_notify]" style="width:100%">
-                                <option value="completed" selected>
-                                <?php
-                                echo esc_html(smsalert_get_option('review_status', 'smsalert_review', __('Completed', 'sms-alert')));
-                                ?>
-                                </option>
                                 <?php
                                 $order_statuses = is_plugin_active('woocommerce/woocommerce.php') ? wc_get_order_statuses() : array();
                                 foreach ( $order_statuses as $status ) {
                                     ?>
-                                <option value="<?php echo esc_attr(strtr(strtolower($status), ' ', '-')); ?>"><?php echo esc_attr($status); ?></option>
+                                <option value="<?php echo esc_attr(strtr(strtolower($status), ' ', '-')); ?>" <?php echo ( smsalert_get_option('review_status', 'smsalert_review') === strtolower($status) ) ? 'selected="selected"' : ''; ?>><?php echo esc_attr($status); ?></option>
                                 <?php } ?>
                             </select>
-                            <span class="tooltip" data-title="Select Order Status"><span class="dashicons dashicons-info"></span></span>
                         </td>
                     </tr>
                     <tr valign="top">

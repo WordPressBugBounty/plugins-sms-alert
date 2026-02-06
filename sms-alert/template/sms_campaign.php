@@ -110,6 +110,9 @@ if (! empty($post_ids) ) {
               <button type="button" onclick="search_data()" id="btn">SearchData</button>
         </p>
         </div>
+		<?php
+		echo wp_nonce_field('sacampaign_wp_nonce', 'sacampaign_nonce', true, false);
+		?>
         <!-- SEARCH DATA -->
         <div id="send_section" style="<?php echo $send_hide; ?>">
             <div style="display:flex">
@@ -210,11 +213,12 @@ if (! empty($post_ids) ) {
                 
                 function search_data(){
                     var order_statuses = $('#order_statuses').val();
+                    var sacampaign_nonce = $('#sacampaign_nonce').val();
                     $('#btn').html('Please Wait..');
                     jQuery.ajax({
                         url: "<?php echo admin_url('admin-ajax.php'); ?>",
                         type:'POST',
-                        data:'action=process_campaign&order_statuses='+order_statuses+'&searchdata=',
+                        data:'action=process_campaign&order_statuses='+order_statuses+'&sacampaign_nonce='+sacampaign_nonce+'&searchdata=',
                           
                          success : function(response) {
                             $('#btn').html('SearchData');
@@ -238,6 +242,7 @@ if (! empty($post_ids) ) {
 
                 function sendsms(){
                     var senderid = $('#senderid').val();
+                    var sacampaign_nonce = $('#sacampaign_nonce').val();
                     var route = ($('#route').val() != undefined)?$('#route').val():'';
                     var template = $('#template').val();
                     var message = $('#sa_message').val();
@@ -247,7 +252,7 @@ if (! empty($post_ids) ) {
                     jQuery.ajax({
                         url: "<?php echo admin_url('admin-ajax.php'); ?>",
                         type:'POST',
-                        data:'action=process_campaign&senderid='+senderid+'&route='+route+'&message='+message+'&phone='+phone+'&type='+type+'&post_ids='+post_ids+'&order_statuses='+order_statuses,
+                        data:'action=process_campaign&senderid='+senderid+'&route='+route+'&message='+message+'&phone='+phone+'&type='+type+'&post_ids='+post_ids+'&order_statuses='+order_statuses+'&sacampaign_nonce='+sacampaign_nonce,
                          success : function(response){
                             $('#send_sms').css('disabled',false).html('Send SMS');
                              if(response==1)

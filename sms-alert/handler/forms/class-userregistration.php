@@ -65,12 +65,11 @@ class UserRegistrationForm extends FormInterface
      */
     public static function myPredefinedFields( $args, $form_id )
     {
-        echo do_shortcode('[sa_verify phone_selector="#billing_phone" submit_selector= ".ur-submit-button"]');
+        //echo do_shortcode('[sa_verify phone_selector="#billing_phone" submit_selector= ".ur-submit-button"]');
         
         $otp_resend_timer = !empty(SmsAlertUtility::get_elementor_data("sa_otp_re_send_timer"))?SmsAlertUtility::get_elementor_data("sa_otp_re_send_timer"):smsalert_get_option('otp_resend_timer', 'smsalert_general', '15'); 
         
         $ug_js = '
-		document.addEventListener("DOMContentLoaded", function() {
 			var ur_form_submitted = {};
 			var current_form;
 			jQuery(document).ready(function(){
@@ -132,8 +131,7 @@ class UserRegistrationForm extends FormInterface
 						}
 					}
 				}
-			);
-		});';
+			);';
         wp_add_inline_script("sa-handle-footer", $ug_js);
         
     }
