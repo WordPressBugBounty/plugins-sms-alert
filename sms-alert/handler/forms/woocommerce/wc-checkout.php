@@ -1488,21 +1488,24 @@ class WooCommerceCheckOutForm extends FormInterface
      */
     public function sendCustomSms( $data )
     {
-        $order_id = empty($_POST['order_id']) ? '' : sanitize_text_field(wp_unslash($_POST['order_id']));
-        $sms_body = empty($_POST['sms_body']) ? '' : sanitize_textarea_field(wp_unslash($_POST['sms_body']));
+		if(current_user_can('manage_options') && wp_verify_nonce( $_POST['sa_custom_nonce'], 'sacustom_wp_nonce' ))
+        {
+			$order_id = empty($_POST['order_id']) ? '' : sanitize_text_field(wp_unslash($_POST['order_id']));
+			$sms_body = empty($_POST['sms_body']) ? '' : sanitize_textarea_field(wp_unslash($_POST['sms_body']));
 
-        $buyer_sms_data             = array();
-		if ( version_compare( WC_VERSION, '7.1', '<' ) ) {
-          $buyer_sms_data['number']   = get_post_meta( $order_id, '_billing_phone', true );
-		} else {
-		  $order       = wc_get_order($order_id);
-          $buyer_sms_data['number']   = !empty($order->get_billing_phone())?$order->get_billing_phone():$order->get_shipping_phone();
+			$buyer_sms_data             = array();
+			if ( version_compare( WC_VERSION, '7.1', '<' ) ) {
+			  $buyer_sms_data['number']   = get_post_meta( $order_id, '_billing_phone', true );
+			} else {
+			  $order       = wc_get_order($order_id);
+			  $buyer_sms_data['number']   = !empty($order->get_billing_phone())?$order->get_billing_phone():$order->get_shipping_phone();
+			}
+			
+			$buyer_sms_data['sms_body'] = $sms_body;
+			$buyer_sms_data             = apply_filters('sa_wc_order_sms_customer_before_send', $buyer_sms_data, $order_id);
+			wp_send_json(SmsAlertcURLOTP::sendsms($buyer_sms_data));
+			exit();
 		}
-        
-        $buyer_sms_data['sms_body'] = $sms_body;
-        $buyer_sms_data             = apply_filters('sa_wc_order_sms_customer_before_send', $buyer_sms_data, $order_id);
-        wp_send_json(SmsAlertcURLOTP::sendsms($buyer_sms_data));
-        exit();
     }
 
     /**
@@ -1554,7 +1557,14 @@ class WooCommerceCheckOutForm extends FormInterface
      */
     public function addSendSmsMetaBox()
     {
-		$screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()? wc_get_page_screen_id( 'shop-order' ): 'shop_order';
+		$container = wc_get_container();
+		$screen = (
+			$container &&
+			$container->has( CustomOrdersTableController::class ) &&
+			$container->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+		)
+			? wc_get_page_screen_id( 'shop-order' )
+			: 'shop_order';
         add_meta_box(
             'wc_sms_alert_send_sms_meta_box',
             'SMS Alert (Custom SMS)',
@@ -1619,6 +1629,9 @@ class WooCommerceCheckOutForm extends FormInterface
                         <p><textarea type="text" name="wc_sms_alert_sms_order_message" id="wc_sms_alert_sms_order_message" class="input-text token-area" style="width: 100%;margin-top: 15px;" rows="4" value=""></textarea></p>
                         <div id="menu_custom" class="sa-menu-token" role="listbox"></div>
                         <input type="hidden" class="wc_sms_alert_order_id" id="wc_sms_alert_order_id" value="<?php echo esc_attr($order_id); ?>" >
+						<?php
+						echo wp_nonce_field('sacustom_wp_nonce', 'sacustom_wp_nonce', true, false);
+						?>
                         <p><a class="button tips" id="wc_sms_alert_sms_order_send_message" data-tip="<?php esc_html_e('Send an SMS to the billing phone number for this order.', 'sms-alert'); ?>"><?php esc_html_e('Send SMS', 'sms-alert'); ?></a>
                         <span id="wc_sms_alert_sms_order_message_char_count" style="color: green; float: right; font-size: 16px;">0</span></p>
                         <div id="custom_token_list" style="display:none"></div>
