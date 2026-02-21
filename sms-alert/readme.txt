@@ -1,53 +1,177 @@
-﻿=== SMS Alert Order Notifications - WooCommerce ===
+﻿=== SMS Alert – SMS & OTP for WooCommerce, Order Notifications & Abandoned Cart Recovery ===
 
 Contributors: cozyvision1
-Tags: order notification, order SMS, woocommerce sms integration, sms plugin, mobile verification
+Tags: woocommerce sms, woocommerce sms plugin, sms notification, woocommerce otp, otp verification, cod verification, abandoned cart sms, order sms, sms gateway, login with otp, transactional sms, woocommerce notifications
 Requires at least: 4.6
 Tested up to: 6.9
-Stable tag: 3.9.1
+Stable tag: 3.9.2
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A plugin for sending SMS notification after placing orders using WooCommerce
+Send WooCommerce SMS notifications, OTP verification, abandoned cart recovery alerts, and real-time order updates to customers and admins.
 
 == Description ==
 
-This is a WooCommerce add-on. By Using this plugin admin and buyer can get notification about their order via sms using SMS Alert.
+SMS Alert is a WooCommerce SMS plugin that enables OTP verification, order notifications, abandoned cart recovery, stock alerts, login with OTP, and transactional SMS automation.
 
-The WooCommerce Order SMS Notification plugin for WordPress is very useful, when you want to get notified via SMS after placing an order. Buyer and seller both can get SMS notification after an order is placed. SMS notification options can be customized in the admin panel very easily.
+Built specifically for WooCommerce workflows, this plugin helps store owners reduce fake COD orders, recover lost sales, and improve customer communication through real-time SMS alerts.
 
-PS: This plugin requires an account(paid/demo) with [www.smsalert.co.in](https://www.smsalert.co.in) service to send SMS. Demo account comes with some free credits to let you test it out.
+This plugin requires an account (demo or paid) with https://www.smsalert.co.in to send SMS messages. Demo accounts include free test credits.
 
+🎥 Setup Video:
 https://youtu.be/nSoXZBWEG5k
 
-= SMSAlert - WooCommerce (Key Features) =
+== Why Use WooCommerce SMS Notifications? ==
 
-> + OTP for order confirmation(with option to enable OTP only for COD orders)
-> + OTP verification for registration
-> + Login with OTP
-> + Reset password with OTP
-> + OTP verification for login(option to enable OTP only for selected roles)
-> + SMS to Customer and Admin on new user registration/signup
-> + Admin/Post Author can get Order SMS notifications
-> + Buyer can get order sms notifications supports custom template
-> + Sending order Details ( order no, order status, order items and order amount ) in SMS text
-> + Different SMS template corresponding to different Order Status
-> + Directly contact with buyer via SMS through order notes, and custom sms available on order detail page
-> + All order status supported(Pending, On Hold, Completed, Cancelled)
-> + Block multiple user registration with same mobile number
-> + Supports wordpress multisite
-> + Custom Low balance alert
-> + Option to disable sending OTP to a particular after n resends
-> + Daily SMS balance on Email
-> + Sync Customers to Group on [www.smsalert.co.in](https://www.smsalert.co.in)
-> + Auto Shorten URL
-> + Low Stock Alert to admin
-> + Out of Stock Alert to admin
-> + Back in Stock notifier
-> + Abandoned Cart Reminder
+Email open rates are declining. SMS messages have significantly higher open and response rates.
 
-= Compatibility =
+Unlike generic SMS gateway plugins, SMS Alert is purpose-built for WooCommerce workflows including OTP verification, COD validation, abandoned cart recovery, multivendor notifications, booking reminders, and CRM-triggered SMS automation.
+
+With WooCommerce SMS Alert, you can:
+
+✔ Improve order confirmation reliability  
+✔ Reduce fake orders using OTP verification  
+✔ Recover abandoned carts via automated SMS  
+✔ Send low stock and back-in-stock alerts  
+✔ Enable login and registration with OTP  
+✔ Notify admins instantly about new orders
+
+= Perfect For =
+• eCommerce stores
+• Multivendor marketplaces
+• Booking websites
+• LMS websites
+• Membership sites
+• Indian WooCommerce stores requiring DLT compliant SMS
+
+= Popular Use Cases =
+
+• WooCommerce OTP verification for COD orders  
+• Login with OTP for WordPress  
+• SMS alerts for WooCommerce order status changes  
+• Abandoned cart SMS recovery automation  
+• DLT compliant SMS plugin for Indian businesses  
+• SMS notifications for multivendor WooCommerce stores  
+• Booking confirmation SMS for WordPress websites
+
+== Core Features ==
+
+= 📦 WooCommerce Order SMS Notifications =
+• SMS to customer when order is placed  
+• SMS to admin on new order  
+• SMS for all order statuses (Pending, Processing, Completed, Cancelled, Refunded, etc.)  
+• Custom SMS templates per order status  
+• Include dynamic order variables (order ID, items, amount, status)
+
+= 🔐 OTP Verification (One Time Password) =
+• OTP for order confirmation  
+• OTP only for COD orders (optional)  
+• Login with OTP  
+• Registration with OTP  
+• Reset password with OTP  
+• Role-based OTP verification  
+• Limit resend attempts  
+• Country-based OTP restriction  
+
+= 🛒 Abandoned Cart Recovery =
+• Automatically capture abandoned carts  
+• Send reminder SMS to recover lost sales  
+• Track abandoned cart performance  
+• Block-based checkout compatible  
+
+= 📢 Stock & Inventory Alerts =
+• Low stock alert to admin  
+• Out of stock alert  
+• Back in stock notifier for customers  
+
+= 📊 Campaign & Customer Sync =
+• Sync customers to groups in SMS Alert dashboard  
+• Send promotional SMS campaigns  
+• Daily SMS balance report  
+• Low balance alert  
+
+= 🧩 Developer Friendly =
+Hooks available to:
+• Send SMS programmatically  
+• Modify SMS content before sending  
+• Capture SMS API responses  
+• Extend WooCommerce SMS triggers  
+
+== Integrations ==
+
+Compatible with 50+ popular WordPress plugins including form builders, booking plugins, membership systems, CRM tools, multivendor marketplaces, and WooCommerce extensions.
+
+= Form Builders =
+👨 [Contact Form 7](https://wordpress.org/plugins/contact-form-7/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Ninja Forms](https://wordpress.org/plugins/ninja-forms/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [WPForms](https://wordpress.org/plugins/wpforms-lite/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Fluent Forms](https://wordpress.org/plugins/fluentform/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Gravity Forms](https://www.gravityforms.com/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Elementor Website Builder](https://wordpress.org/plugins/elementor/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Formidable Form Builder](https://wordpress.org/plugins/formidable/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Forminator Contact form](https://wordpress.org/plugins/forminator/) to send notification to customer and admins, and verify mobile number through OTP
+👨 [Metform Elementor Contact Form Builder](https://wordpress.org/plugins/metform/) to send notification to customer and admins
+👨 [Jetform](https://wordpress.org/plugins/jetformbuilder/) to send notification to customer and admins
+👨 [Everest Forms](https://wordpress.org/plugins/everest-forms/) to send notification to customer and admins
+👨 [Form Maker Plugin](https://wordpress.org/plugins/form-maker/)
+👨 [WS Form](https://wordpress.org/plugins/ws-form/)
+
+= Membership, LMS & User Management =
+👨 [UsersWP – User Registration & User Profile](https://wordpress.org/plugins/userswp/)
+👨 [LearnPress – WordPress LMS Plugin](https://wordpress.org/plugins/learnpress/) to send notifications to student and admin
+👨 [ARMember](https://wordpress.org/plugins/armember-membership/)
+👨 [Membership pro](https://wordpress.org/plugins/paid-memberships-pro/)
+👨 [New User Approve](https://wordpress.org/plugins/new-user-approve)
+
+= Booking Integrations =
+👨 [WooCommerce Bookings](https://woocommerce.com/products/woocommerce-bookings/) to send booking confirmation to customers and admin
+👨 [Booking Calendar](https://wordpress.org/plugins/booking/) to send booking confirmation to customers and admin
+👨 [Bookit Calendar](https://wordpress.org/plugins/bookit/)
+👨 [Easy Appointments](https://wordpress.org/plugins/easy-appointments/)
+👨 [Amelia Booking Plugin](https://wordpress.org/plugins/ameliabooking/)
+👨 [Simply Schedule Appointments Booking Plugin](https://wordpress.org/plugins/simply-schedule-appointments/)
+👨 [Quick Restaurant Reservation](https://wordpress.org/plugins/quick-restaurant-reservations/)
+👨 [Five Star Restaurant Reservations](https://wordpress.org/plugins/restaurant-reservations/)
+👨 [gAppointments](https://gappointments.com/)
+👨 [salon booking system](https://wordpress.org/plugins/salon-booking-system/)
+👨 [Booknetic](https://www.booknetic.com/)
+
+= CRM & Marketing =
+👨 [Fluent CRM](https://wordpress.org/plugins/fluent-crm/) 
+👨 [WP ERP](https://wordpress.org/plugins/erp/)
+👨 [Jetpack CRM](https://wordpress.org/plugins/zero-bs-crm/)
+👨 [Uncanny Automator](https://wordpress.org/plugins/uncanny-automator/)
+👨 [Groundhogg](https://wordpress.org/plugins/groundhogg/)
+👨 [Wp Fusion plugin](https://wordpress.org/plugins/wp-fusion-lite/)
+
+= Marketplace, Affiliates & Community =
+👨 [Affiliates Manager](https://wordpress.org/plugins/affiliates-manager/) to send notification to Affiliates and admin
+👨 [WP adverts](https://wordpress.org/plugins/wpadverts/)
+👨 [WPCafe plugin](https://wordpress.org/plugins/wp-cafe/)
+
+= WooCommerce Extensions =
+👨 [Product Vendors](https://woocommerce.com/products/product-vendors/)
+👨 [Returns and Warranty Requests](https://woocommerce.com/products/warranty-requests/) to send RMA status update to customer
+👨 [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/)
+👨 [Delivery Drivers for WooCommerce](https://wordpress.org/plugins/delivery-drivers-for-woocommerce/)
+👨 [Woocommerce Simple Auctions](https://codecanyon.net/item/woocommerce-simple-auctions-wordpress-auctions/6811382)
+👨 [WP Loyalty](https://wployalty.net/)
+👨 [TeraWallet – For WooCommerce](https://wordpress.org/plugins/woo-wallet/)
+
+= Support & Helpdesk =
+👨 [awesome support](https://wordpress.org/plugins/awesome-support/)
+
+= Digital Store Integrations =
+👨 [Easy Digital Downloads](https://wordpress.org/plugins/easy-digital-downloads/) to send notification to customer
+
+= Events & Travel Integrations =
+👨 [Events Manager](https://wordpress.org/plugins/events-manager/) to send event booking confirmation to customer and admin
+👨 [WP Travel Engine](https://wordpress.org/plugins/wp-travel-engine/)
+
+And many more.
+
+== Compatibility ==
 
 👉 [Sequential Order Numbers Pro](https://woocommerce.com/products/sequential-order-numbers-pro/)
 👉 [WooCommerce Order Status Manager](https://woocommerce.com/products/woocommerce-order-status-manager/)
@@ -75,57 +199,15 @@ https://youtu.be/nSoXZBWEG5k
 👉 [Local Pickup Plus](https://woocommerce.com/products/local-pickup-plus/)
 👉 [Raffle ticket generator](https://wordpress.org/plugins/raffle-ticket-generator/)
 
-= Integrations =
+== How It Works ==
 
-👨 [Contact Form 7](https://wordpress.org/plugins/contact-form-7/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Ninja Forms](https://wordpress.org/plugins/ninja-forms/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [WPForms](https://wordpress.org/plugins/wpforms-lite/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Fluent Forms](https://wordpress.org/plugins/fluentform/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Gravity Forms](https://www.gravityforms.com/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Elementor Website Builder](https://wordpress.org/plugins/elementor/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Formidable Form Builder](https://wordpress.org/plugins/formidable/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Forminator Contact form](https://wordpress.org/plugins/forminator/) to send notification to customer and admins, and verify mobile number through OTP
-👨 [Metform Elementor Contact Form Builder](https://wordpress.org/plugins/metform/) to send notification to customer and admins
-👨 [Jetform](https://wordpress.org/plugins/jetformbuilder/) to send notification to customer and admins
-👨 [Everest Forms](https://wordpress.org/plugins/everest-forms/) to send notification to customer and admins
-👨 [UsersWP – User Registration & User Profile](https://wordpress.org/plugins/userswp/)
-👨 [Returns and Warranty Requests](https://woocommerce.com/products/warranty-requests/) to send RMA status update to customer
-👨 [Easy Digital Downloads](https://wordpress.org/plugins/easy-digital-downloads/) to send notification to customer
-👨 [Affiliates Manager](https://wordpress.org/plugins/affiliates-manager/) to send notification to Affiliates and admin
-👨 [WooCommerce Bookings](https://woocommerce.com/products/woocommerce-bookings/) to send booking confirmation to customers and admin
-👨 [Booking Calendar](https://wordpress.org/plugins/booking/) to send booking confirmation to customers and admin
-👨 [Bookit Calendar](https://wordpress.org/plugins/bookit/)
-👨 [Easy Appointments](https://wordpress.org/plugins/easy-appointments/)
-👨 [Amelia Booking Plugin](https://wordpress.org/plugins/ameliabooking/)
-👨 [Simply Schedule Appointments Booking Plugin](https://wordpress.org/plugins/simply-schedule-appointments/)
-👨 [Product Vendors](https://woocommerce.com/products/product-vendors/)
-👨 [LearnPress – WordPress LMS Plugin](https://wordpress.org/plugins/learnpress/) to send notifications to student and admin
-👨 [Events Manager](https://wordpress.org/plugins/events-manager/) to send event booking confirmation to customer and admin
-👨 [Delivery Drivers for WooCommerce](https://wordpress.org/plugins/delivery-drivers-for-woocommerce/)
-👨 [New User Approve](https://wordpress.org/plugins/new-user-approve)
-👨 [Woocommerce Simple Auctions](https://codecanyon.net/item/woocommerce-simple-auctions-wordpress-auctions/6811382)
-👨 [WooCommerce Subscriptions](https://woocommerce.com/products/woocommerce-subscriptions/)
-👨 [WP Loyalty](https://wployalty.net/)
-👨 [TeraWallet – For WooCommerce](https://wordpress.org/plugins/woo-wallet/)
-👨 [Five Star Restaurant Reservations](https://wordpress.org/plugins/restaurant-reservations/)
-👨 [Jetpack CRM](https://wordpress.org/plugins/zero-bs-crm/)
-👨 [Groundhogg](https://wordpress.org/plugins/groundhogg/)
-👨 [ARMember](https://wordpress.org/plugins/armember-membership/)
-👨 [Fluent CRM](https://wordpress.org/plugins/fluent-crm/) 
-👨 [WP ERP](https://wordpress.org/plugins/erp/)
-👨 [Quick Restaurant Reservation](https://wordpress.org/plugins/quick-restaurant-reservations/)
-👨 [Membership pro](https://wordpress.org/plugins/paid-memberships-pro/)
-👨 [WP adverts](https://wordpress.org/plugins/wpadverts/)
-👨 [WPCafe plugin](https://wordpress.org/plugins/wp-cafe/)
-👨 [Form Maker Plugin](https://wordpress.org/plugins/form-maker/)
-👨 [Wp Fusion plugin](https://wordpress.org/plugins/wp-fusion-lite/)
-👨 [gAppointments](https://gappointments.com/)
-👨 [salon booking system](https://wordpress.org/plugins/salon-booking-system/)
-👨 [awesome support](https://wordpress.org/plugins/awesome-support/)
-👨 [Uncanny Automator](https://wordpress.org/plugins/uncanny-automator/)
-👨 [WP Travel Engine](https://wordpress.org/plugins/wp-travel-engine/)
-👨 [WS Form](https://wordpress.org/plugins/ws-form/)
-👨 [Booknetic](https://www.booknetic.com/)
+1. Install and activate the plugin.
+2. Create or login to your account at https://www.smsalert.co.in
+3. Enter API credentials in plugin settings.
+4. Configure SMS templates.
+5. Enable OTP and notification rules.
+
+Start sending WooCommerce SMS notifications instantly.
 
 == Frequently Asked Questions ==
 
@@ -144,6 +226,15 @@ Sender id is only available for transactional account.
 As per TRAI Guidelines promotional sms can be sent only from 9 am to 9 pm, please test during this period only, also check if your number is not registered in NDNC registry.
 
 If still you face any issues, please [contact](https://wordpress.org/support/plugin/sms-alert) our support team.
+
+= Does this plugin support WooCommerce OTP verification for COD orders? =
+Yes, you can enable OTP only for Cash on Delivery (COD) orders to reduce fake orders.
+
+= Can I use this as a WordPress SMS plugin without WooCommerce? =
+Yes, SMS Alert works with multiple form builders, booking plugins, and membership systems.
+
+= Is this plugin DLT compliant for Indian SMS regulations? =
+Yes, SMS Alert supports DLT compliant transactional SMS delivery for Indian businesses.
 
 = What will happen when my demo credits are over? =
 
@@ -239,6 +330,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= 3.9.2 = 
+* Enhancement: Compatbility fixes for block checkout
+
 = 3.9.1 = 
 * Enhancement:  Security fixes
 * compatibility check for latest woocommerce version

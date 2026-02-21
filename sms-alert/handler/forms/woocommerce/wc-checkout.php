@@ -392,9 +392,6 @@ class WooCommerceCheckOutForm extends FormInterface
 	  addShortcode();
 	}
 	}
-	setTimeout(function(){
-    smsalert(); 
-	},500);	
 	jQuery(document).on("updated_checkout",function() {
     jQuery("#order_verify_field,#smsalert_otp_token_submit").addClass("sa-default-btn-hide");
     smsalert();
@@ -410,7 +407,7 @@ class WooCommerceCheckOutForm extends FormInterface
 		const config = { attributes: true, childList: true, subtree: true };
 		const callback = (mutationList, observer) => {
 		  for (const mutation of mutationList) {
-			  if (mutation.type === "childList" &&  mutation.addedNodes.length>0 && mutation.addedNodes[0].classList != undefined && (mutation.addedNodes[0].classList.contains("wp-block-woocommerce-checkout-actions-block") || mutation.addedNodes[0].classList.contains("wc-block-checkout__payment-method"))) {  
+			  if (mutation.type === "childList" &&  ((mutation.addedNodes.length>0 && mutation.addedNodes[0].classList != undefined && (mutation.addedNodes[0].classList.contains("wp-block-woocommerce-checkout-actions-block") || mutation.addedNodes[0].classList.contains("wc-block-checkout__payment-method"))) || (mutation.target.classList != undefined && mutation.target.classList.contains("wc-block-components-checkout-step__content")))) {  
 				smsalert();
 				var phone_selector = (jQuery("#billing-phone").length != 0)?"#billing-phone":"#shipping-phone";
 				jQuery(phone_selector).addClass("phone-valid");
