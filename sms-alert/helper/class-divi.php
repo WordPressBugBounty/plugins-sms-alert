@@ -1,6 +1,6 @@
 <?php
 /**
- * This is dive Helper
+ * This is divi Helper
  *
  * PHP version 5
  *
@@ -75,7 +75,14 @@ class SMSAlertDivi
      */
     public function hooks()
     {
-        
+        add_action(
+    'divi_module_library_modules_dependency_tree',
+    [ $this, 'registerModernModule' ]
+);
+add_action(
+    'divi_visual_builder_assets_before_enqueue_scripts',
+    [$this,'builderScriptsDivi']
+);
         add_action('et_builder_ready', [ $this, 'registerModule' ]);
         add_action('wp_enqueue_scripts', [ $this, 'frontendStyles' ], 12);
 
@@ -89,6 +96,39 @@ class SMSAlertDivi
         }
 
     }
+	
+	/**
+     * Register mod
+     *
+     * @return bool
+     */
+	public function registerModernModule($dependency_tree)
+	{
+		if (!$this->is_divi_5_or_higher()) {
+			return;
+		}
+
+		include_once plugin_dir_path(__FILE__) . 'class-divi5module.php';
+		$module = new SMSAlertSelectorModern();
+		$dependency_tree->add_dependency($module);
+	}
+	
+	/**
+	 * Check if Divi 5 or higher is active.
+	 *
+	 * @since 1.9.9
+	 *
+	 * @return bool
+	 * @noinspection PhpUndefinedConstantInspection
+	 */
+	protected function is_divi_5_or_higher(): bool {
+
+		if ( ! defined( 'ET_BUILDER_VERSION' ) ) {
+			return false;
+		}
+
+		return version_compare( ET_BUILDER_VERSION, '5.0.0', '>=' );
+	}
 
     /**
      * Check is div
@@ -149,6 +189,32 @@ class SMSAlertDivi
         }
     
     }
+	
+	/**
+     * Load scripts
+     *
+     * @return bool
+     */
+	public function builderScriptsDivi()
+	{
+		wp_enqueue_script(
+			'smsalert-divi5',
+			SA_MOV_URL . 'js/divi5.js',
+			['react','react-dom','divi-module-library','wp-hooks'],
+			'1.0',
+			true
+		);
+		wp_localize_script(
+				'smsalert-divi5',
+				'smsalert_divi_builder',
+				[
+				'ajax_url'          => admin_url('admin-ajax.php'),
+				'nonce'             => wp_create_nonce('smsalert_divi_builder'),
+				'placeholder'       => '',
+				'placeholder_title' => esc_html__('SMSAlert', 'sms-alert'),
+				]
+			);
+	}
 
     /**
      * Load scripts
@@ -178,9 +244,12 @@ class SMSAlertDivi
      */
     public function registerModule()
     {
-        if (! class_exists('ET_Builder_Module') ) {
-            return;
-        }
+		if ( ! class_exists( 'ET_Builder_Module' ) ||
+			$this->is_divi_5_or_higher()
+		) {
+			return;
+		}
+		
         include_once plugin_dir_path(__FILE__)."class-divimodule.php";
         new SMSAlertSelector();
 
