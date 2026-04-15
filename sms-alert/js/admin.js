@@ -311,7 +311,7 @@ function custom_sms_token(obj) {
 	if(id != ''){
 		$sa.ajax({
 			url         : "?option=fetch-order-variable",
-			data        : {order_id:id},
+			data        : {order_id:id,sa_var_wp_nonce:$sa("#order-table #sa_var_wp_nonce").val()},
 			dataType	: 'json',
 			success: function(data)
 			{

@@ -2251,8 +2251,7 @@ class sa_all_order_variable
         $order_id = isset($_REQUEST['order_id']) ? sanitize_text_field(wp_unslash($_REQUEST['order_id'])) : '';
         $option   = isset($_REQUEST['option']) ? sanitize_text_field(wp_unslash($_REQUEST['option'])) : '';
 		
-
-        if (! empty($option) && ( 'fetch-order-variable' === sanitize_text_field($option) ) && ! empty($order_id) ) {
+        if (! empty($option) && ( 'fetch-order-variable' === sanitize_text_field($option) ) && ! empty($order_id) && current_user_can('manage_options') && wp_verify_nonce( $_REQUEST['sa_var_wp_nonce'], 'sa_var_wp_nonce' ) ) {
             $tokens = array();
 
             global $woocommerce, $post;
@@ -2791,7 +2790,10 @@ function all_order_variable_page_handler()
     <h2 class="title">Order List</h2>
     <form id="order-table" method="GET">
         <input type="hidden" name="page" value="<?php echo empty($_REQUEST['page']) ? '' : esc_attr($_REQUEST['page']); ?>"/>
-    <?php $table_data->display(); ?>
+    <?php 
+	echo wp_nonce_field('sa_var_wp_nonce', 'sa_var_wp_nonce', true, false);
+	$table_data->display(); 
+	?>
     </form>
     <div id="sa_order_variable" class="sa_variables" style="display:none">
         <h3 class="h3-background">Select your variable <span id="order_id" class="alignright"></span></h3>
@@ -2810,7 +2812,7 @@ jQuery(document).ready(function(){
         if (id != ''){
             jQuery.ajax({
                 url         : "<?php echo esc_url(admin_url()); ?>?option=fetch-order-variable",
-                data        : {order_id:id},
+                data        : {order_id:id,sa_var_wp_nonce:jQuery("#order-table #sa_var_wp_nonce").val()},
                 dataType    : 'json',
                 success: function(data)
                 {

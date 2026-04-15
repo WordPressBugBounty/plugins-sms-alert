@@ -126,9 +126,8 @@ jQuery(window).on(
 						}						
                         var fullnumber =  jQuery(this).intlTelInput("getNumber");
                         var field_name = jQuery(this).attr('name');
-                        jQuery(this).parents("form").find('[name="'+field_name+'"]:hidden').val(fullnumber);
-            
-                        if (jQuery(this).intlTelInput('isValidNumber')) {
+                        if (jQuery(this).intlTelInput('isValidNumber') && typeof(fullnumber)!='object' && fullnumber!='') {
+							jQuery(this).parents("form").find('[name="'+field_name+'"]:hidden').val(fullnumber);
                             jQuery(this).intlTelInput("setNumber",fullnumber);
                             reset(this);
                             jQuery(this).parents("form").find("button, input[type=submit], input[type=button]").attr("disabled",false);
