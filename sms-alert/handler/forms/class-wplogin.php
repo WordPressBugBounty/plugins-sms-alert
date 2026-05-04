@@ -464,7 +464,7 @@ class WPLogin extends FormInterface
     {
         SmsAlertUtility::checkSession();
         $login_with_otp_enabled = ( smsalert_get_option('login_with_otp', 'smsalert_general') === 'on' ) ? true : false;
-        $password='';
+        $password='';$phone_number='';
         if (empty($password) ) {
             if (! empty($_REQUEST['username']) ) {
                 $phone_number = ! empty($_REQUEST['username']) ? sanitize_text_field(wp_unslash($_REQUEST['username'])) : '';
@@ -472,13 +472,15 @@ class WPLogin extends FormInterface
                 $user_login   = ( $user_info ) ? $user_info->data->user_login : '';
             }
         }
-        if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) ) {
+		$phone_number  = SmsAlertcURLOTP::checkPhoneNos($phone_number);
+		if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) && ! empty($_SESSION['sa_login_mobile']) && strpos($_SESSION['sa_login_mobile'], $phone_number) !== false) {
             if (! empty($_POST['redirect']) ) {
                 $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));
             } elseif ( function_exists('wc_get_raw_referer') ) {
                 $redirect = wc_get_raw_referer();
             }
             unset($_SESSION['login_otp_success']);
+            unset($_SESSION['sa_login_mobile']);
             $this->loginWpUser($user_login, $redirect);
         }
     }
@@ -503,8 +505,8 @@ class WPLogin extends FormInterface
                 $user_login   = ( $user_info ) ? $user_info->data->user_login : '';
             }
         }
-
-        if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) ) {
+        $phone_number  = SmsAlertcURLOTP::checkPhoneNos($phone_number);
+        if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) && ! empty($_SESSION['sa_login_mobile']) && strpos($_SESSION['sa_login_mobile'], $phone_number) !== false ) {
             if (! empty($_POST['redirect']) ) {
                 $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));
             } elseif ( function_exists('wc_get_raw_referer') ) {
@@ -513,6 +515,7 @@ class WPLogin extends FormInterface
                 $redirect = wc_get_page_permalink('myaccount');
             }
             unset($_SESSION['login_otp_success']);
+            unset($_SESSION['sa_login_mobile']);
             $this->loginWpUser($user_login, $redirect);
         }
 
@@ -732,13 +735,16 @@ class WPLogin extends FormInterface
 
         if (isset($_SESSION[ $this->form_session_var ]) ) {
             $_SESSION['sa_login_mobile_verified'] = true;
+            $_SESSION['sa_login_mobile'] = $phone_number;
             $_SESSION[ $this->form_session_var ]  = 'validated';
             wp_send_json(SmsAlertUtility::_create_json_response('successfully validated', 'success'));
         } elseif (isset($_SESSION[ $this->form_session_var3 ]) ) {
             $_SESSION['login_otp_success'] = true;
+			$_SESSION['sa_login_mobile'] = $phone_number;
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         } else {
             $_SESSION['sa_login_mobile_verified'] = true;
+			$_SESSION['sa_login_mobile'] = $phone_number;
         }
     }
 

@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: woocommerce sms, woocommerce sms plugin, sms notification, woocommerce otp, otp verification, cod verification, abandoned cart sms, order sms, sms gateway, login with otp, transactional sms, woocommerce notifications
 Requires at least: 4.6
 Tested up to: 6.9
-Stable tag: 3.9.4
+Stable tag: 3.9.5
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -330,6 +330,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 
 == Changelog ==
+= 3.9.5 = 
+* Enhancement:  Security fixes for handling the login process.
+* compatibility check for latest woocommerce version
+* compatibility check for latest wordpress version
+
 = 3.9.4 = 
 * Enhancement:  Security fixes for get variables.
 * compatibility check for latest woocommerce version
