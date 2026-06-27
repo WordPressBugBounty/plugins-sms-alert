@@ -65,7 +65,8 @@ class WPResetPassword extends FormInterface
      */
     public function routeData()
     {
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-change-password-form' ) {
+		SmsAlertUtility::checkSession();
+		if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-change-password-form') && isset($_SESSION[ $this->form_session_var ]) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 ) {
             $this->handleSmsalertChangedPwd($_POST);
         }
     }
@@ -210,6 +211,7 @@ class WPResetPassword extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
+		$_SESSION[ $this->form_session_var ] = 'validated';
         smsalertAskForResetPassword(
             sanitize_text_field($_SESSION['user_login']),
             sanitize_text_field($_SESSION['phone_number_mo']),

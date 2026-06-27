@@ -169,7 +169,7 @@ class SmsAlertcURLOTP
             return $response;
         }
 
-        $url    = 'http://www.smsalert.co.in/api/push.json';
+        $url    = 'https://www.smsalert.co.in/api/push.json';
         $fields = array(
         'user'     => $username,
         'pwd'      => $password,
@@ -272,7 +272,7 @@ class SmsAlertcURLOTP
             $data['description']['desc'] = __('Wrong SMSAlert credentials', 'sms-alert');
             return json_encode($data);
         }
-        $url = 'http://www.smsalert.co.in/api/mverify.json';
+        $url = 'https://www.smsalert.co.in/api/mverify.json';
 
         $fields       = array(
         'user'     => $username,
@@ -333,7 +333,7 @@ class SmsAlertcURLOTP
         if (empty($username) || empty($password) || empty($senderid) ) {
             return $response;
         }
-        $url = 'http://www.smsalert.co.in/api/mverify.json';
+        $url = 'https://www.smsalert.co.in/api/mverify.json';
 
         $fields = array(
         'user'     => $username,
@@ -369,7 +369,7 @@ class SmsAlertcURLOTP
             return '';
         }
 
-        $url = 'http://www.smsalert.co.in/api/senderlist.json';
+        $url = 'https://www.smsalert.co.in/api/senderlist.json';
 
         $fields = array(
         'user' => $username,
@@ -393,7 +393,7 @@ class SmsAlertcURLOTP
         if (empty($username) || empty($password) ) {
             return '';
         }
-        $url = 'http://www.smsalert.co.in/api/templatelist.json';
+        $url = 'https://www.smsalert.co.in/api/templatelist.json';
 
         $fields = array(
         'user'  => $username,
@@ -423,7 +423,7 @@ class SmsAlertcURLOTP
             return $response;
         }
 
-        $url = 'http://www.smsalert.co.in/api/creditstatus.json';
+        $url = 'https://www.smsalert.co.in/api/creditstatus.json';
 
         $fields   = array(
         'user' => $username,
@@ -447,7 +447,7 @@ class SmsAlertcURLOTP
             return '';
         }
 
-        $url = 'http://www.smsalert.co.in/api/grouplist.json';
+        $url = 'https://www.smsalert.co.in/api/grouplist.json';
 
         $fields = array(
         'user' => $username,
@@ -468,7 +468,7 @@ class SmsAlertcURLOTP
 		if (SmsAlertUtility::isPlayground()) {			
 			return	true;			
 		}
-        $url      = 'http://www.smsalert.co.in/api/countrylist.json';
+        $url      = 'https://www.smsalert.co.in/api/countrylist.json';
         $response = self::callAPI($url, null, null);
         return $response;
     } 
@@ -487,7 +487,7 @@ class SmsAlertcURLOTP
             return '';
         }
 
-        $url = 'http://www.smsalert.co.in/api/creategroup.json';
+        $url = 'https://www.smsalert.co.in/api/creategroup.json';
 
         $fields = array(
         'user' => $username,
@@ -630,7 +630,7 @@ XML;
         }
 
         $xmldata = $msg->asXML();
-        $url     = 'http://www.smsalert.co.in/api/xmlpush.json?';
+        $url     = 'https://www.smsalert.co.in/api/xmlpush.json?';
         $fields  = array( 'data' => $xmldata );
         if ($cnt > 0 ) {
             $response = self::callAPI($url, $fields, null);

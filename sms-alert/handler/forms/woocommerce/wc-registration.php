@@ -292,15 +292,17 @@ class WooCommerceRegistrationForm extends FormInterface
             $user_info  = WPLogin::getUserFromPhoneNumber($billing_phone, 'billing_phone');
             $user_login = ( $user_info ) ? $user_info->data->user_login : '';
             $user = get_user_by('login', $user_login);
-            $password='';
             //added for new user approve plugin
-            $user = apply_filters('wp_authenticate_user', $user, $password);
-            if (is_wp_error($user) ) {
-                $msg   = SmsAlertUtility::_create_json_response(current($user->errors), 'error');
-                wp_send_json($msg);
-                exit();
-            }  
+			if (is_plugin_active('new-user-approve/new-user-approve.php') ) {
+				$password='';
+				$user = apply_filters('wp_authenticate_user', $user, $password);
+			}
             //-added for new user approve plugin
+			if (is_wp_error($user) ) {
+				$msg   = SmsAlertUtility::_create_json_response(current($user->errors), 'error');
+				wp_send_json($msg);
+				exit();
+			}
             SmsAlertUtility::initialize_transaction($this->form_session_var3);
             smsalert_site_challenge_otp(null, null, null, $billing_phone, 'phone', null, SmsAlertUtility::currentPageUrl(), true);
         }
@@ -344,7 +346,7 @@ class WooCommerceRegistrationForm extends FormInterface
 				}		
 			});			
 		</script>';
-        echo do_shortcode('[sa_verify phone_selector="#reg_billing_phone" submit_selector= ".'.$unique_class.'.register .woocommerce-Button"]');
+        echo do_shortcode('[sa_verify phone_selector="#reg_billing_phone" submit_selector= ".'.$unique_class.'.register .woocommerce-Button,.'.$unique_class.'.register :is(.woocommerce-Button, .btn.submit-btn)"]');
     }
      
     

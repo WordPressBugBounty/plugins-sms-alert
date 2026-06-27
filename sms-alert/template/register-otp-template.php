@@ -91,7 +91,7 @@ if (! $from_both ) {
 					input[type="text"].sa_customer_validation-textbox {background: #FBFBFB none repeat scroll 0% 0%;font-family: "Open Sans",sans-serif;font-size: 24px;width: 100%;border: 1px solid #DDD;padding: 3px;margin: 2px 6px 16px 0px;}
 					</style>
 					<script>
-					document.addEventListener("DOMContentLoaded", function() {
+					//document.addEventListener("DOMContentLoaded", function() {
 					jQuery("#sa-form").on("submit", function () {
 						jQuery("#smsalert_otp_token_submit").attr("disabled", "disabled");
 					});
@@ -129,7 +129,7 @@ if (! $from_both ) {
 								document.getElementById("verify_otp").style.cssText = cssString;
 							}
 						}, 1000);
-					});
+					//});
 					</script>
 				</body>
 		    </html>';

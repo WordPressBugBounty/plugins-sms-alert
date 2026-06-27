@@ -84,8 +84,8 @@ class UltimateMemberRegistrationForm extends FormInterface
         add_action('um_after_form', array( $this, 'umFormAddShortcode' ), 10, 1);
         
         add_action('um_after_form_fields', array( $this, 'addCountryCode' ), 10, 1);
-
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-um-reset-pwd-action' ) {
+        SmsAlertUtility::checkSession(); 
+        if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-um-reset-pwd-action') && isset($_SESSION[ $this->form_session_var2 ]) && strcasecmp($_SESSION[ $this->form_session_var2 ], 'validated') === 0 ) {
             $this->handleSmsalertChangedPwd($_POST);
             wp_enqueue_style('wpv_sa_common_style', SA_MOV_CSS_URL, array(), SmsAlertConstants::SA_VERSION, false);
         }
@@ -493,6 +493,7 @@ class UltimateMemberRegistrationForm extends FormInterface
         }
 
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
+			$_SESSION[ $this->form_session_var2 ] = 'validated';
             smsalertAskForResetPassword($_SESSION['user_login'], $_SESSION['phone_number_mo'], __('Please change Your password', 'sms-alert'), 'phone', false, 'smsalert-um-reset-pwd-action');
         } 
     }

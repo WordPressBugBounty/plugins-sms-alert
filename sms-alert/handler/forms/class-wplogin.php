@@ -171,13 +171,15 @@ class WPLogin extends FormInterface
             $user = wp_authenticate($username, $password);
         }
         //added for new user approve plugin
-        $user = apply_filters('wp_authenticate_user', $user, $password);
-        if (is_wp_error($user) ) {
-            $msg   = SmsAlertUtility::_create_json_response(current($user->errors), 'error');
-            wp_send_json($msg);
-            exit();
-        }  
+		if (is_plugin_active('new-user-approve/new-user-approve.php') ) {
+			$user = apply_filters('wp_authenticate_user', $user, $password);
+		}			
         //-added for new user approve plugin
+		if (is_wp_error($user) ) {
+			$msg   = SmsAlertUtility::_create_json_response(current($user->errors), 'error');
+			wp_send_json($msg);
+			exit();
+		}
         $user_meta    = get_userdata($user->data->ID);
         $user_role    = $user_meta->roles;
         $phone_number = get_user_meta($user->data->ID, $this->phone_number_key, true);
@@ -227,15 +229,18 @@ class WPLogin extends FormInterface
             $user_info  = $this->getUserFromPhoneNumber($billing_phone, $this->phone_number_key);
             $user_login = ( $user_info ) ? $user_info->data->user_login : '';
             $user = get_user_by('login', $user_login);
-            $password='';
             //added for new user approve plugin
-            $user = apply_filters('wp_authenticate_user', $user, $password);
-            if (is_wp_error($user) ) {
-                $msg   = SmsAlertUtility::_create_json_response(current($user->errors), 'error');
-                wp_send_json($msg);
-                exit();
-            }  
+			if (is_plugin_active('new-user-approve/new-user-approve.php') ) {
+				$password='';
+                $user = apply_filters('wp_authenticate_user', $user, $password);
+			}
             //-added for new user approve plugin
+			
+			if (is_wp_error($user) ) {
+				$msg   = SmsAlertUtility::_create_json_response(current($user->errors), 'error');
+				wp_send_json($msg);
+				exit();
+			}
 
             if (! empty($user_login) ) {
                 SmsAlertUtility::initialize_transaction($this->form_session_var3);
@@ -333,7 +338,7 @@ class WPLogin extends FormInterface
 					}		
 				});
 		    </script>';
-            echo do_shortcode('[sa_verify user_selector="#username" pwd_selector="#password" submit_selector=".'.$unique_class.'.login :submit:not(.show-password-input)"]');
+            echo do_shortcode('[sa_verify user_selector="#username" pwd_selector="#password" submit_selector=".'.$unique_class.'.login :submit:not(.show-password-input,.btn-line)"]');
         }
     }
     /**
@@ -498,6 +503,7 @@ class WPLogin extends FormInterface
     {
         SmsAlertUtility::checkSession();
         $login_with_otp_enabled = ( smsalert_get_option('login_with_otp', 'smsalert_general') === 'on' ) ? true : false;
+		$phone_number = '';
         if (empty($password) ) {
             if (! empty($_REQUEST['username']) ) {
                 $phone_number = ! empty($_REQUEST['username']) ? sanitize_text_field(wp_unslash($_REQUEST['username'])) : '';
