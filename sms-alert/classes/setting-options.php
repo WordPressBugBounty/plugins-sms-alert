@@ -171,7 +171,8 @@ class smsalert_Setting_Options
      */
     private static function resetOTPModalStyle()
     {
-        if (!empty($_GET['action']) && $_GET['action']=='reset_style') {            
+		$current_user_is_admin = current_user_can('manage_options');
+        if (!empty($_GET['action']) && $_GET['action']=='reset_style' && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'smsalert-nonce' ) ) {           
             $post_name = trim(sanitize_text_field(wp_unslash($_GET['postname'])));            
             $page = get_page_by_title($post_name, OBJECT, 'sms-alert');
             

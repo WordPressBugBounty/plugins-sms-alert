@@ -89,11 +89,12 @@ class Smsalert_Delivery_Drivers_Woocommerce
 					jQuery(".sa_resend_btn, .sa_timer").hide();					jQuery("#sa_verify_otp").click(function(){
 						var code = jQuery("#smsalert_customer_validation_otp_token").val();
 						var order_id = "' . ( ! empty($_GET['orderid']) ? esc_attr(sanitize_text_field(wp_unslash($_GET['orderid']))) : '' ) . '";
+						var sa_nonce = "' . wp_create_nonce('sa-dr-nonce') . '";
 						var invalid_message = "' . esc_attr($invalid_message) . '";
 						if(code != " "){
 							jQuery.ajax({
 								url         : "' . esc_attr(site_url()) . '/?option=sa_verify_delivery_code",
-								data        : {verify_code:code,order_id:order_id},
+								data        : {verify_code:code,order_id:order_id,nonce:sa_nonce},
 								dataType	: "json",
 								type: "post",
 								success: function(data)
@@ -127,7 +128,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
      */
     public function verifyDeliveryCode()
     {
-        if (! empty($_REQUEST['option']) && 'sa_verify_delivery_code' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($_REQUEST['option']) && 'sa_verify_delivery_code' === sanitize_text_field(wp_unslash($_REQUEST['option'])) && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'sa-dr-nonce' ) ) {
 
             $order_id      = ( ! empty($_REQUEST['order_id']) ) ? sanitize_text_field(wp_unslash($_REQUEST['order_id'])) : '';
             if (version_compare(WC_VERSION, '7.1', '<') ) {

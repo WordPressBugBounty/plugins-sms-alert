@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: woocommerce sms plugin, sms notification, otp verification, cod verification, login with otp
 Requires at least: 4.6
 Tested up to: 7.0
-Stable tag: 3.9.6
+Stable tag: 3.9.7
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -383,6 +383,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 You are now ready to Start sending WooCommerce SMS notifications.
 
 == Changelog ==
+
+= 3.9.7 = 
+* Enhancement:  Security fixes for handling the admin settings update.
+* compatibility check for latest woocommerce version
+* compatibility check for latest wordpress version
 
 = 3.9.6 = 
 * Enhancement:  Security fixes for handling the reset password process.

@@ -120,7 +120,12 @@ class ContactForm7 extends FormInterface
         $invalid_fields = $result->get_invalid_fields();        
         if (!empty($invalid_fields)) {
             return $result;
-        } 
+        }
+
+        $verify = check_ajax_referer('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', false);
+        if (!$verify) {
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
+        }		
         
         $id = $_POST['_wpcf7'];
         $options         = get_option('smsalert_sms_c7_' . $id);
@@ -175,7 +180,7 @@ class ContactForm7 extends FormInterface
         }
         if (!empty($_REQUEST['post'])) {
             $options         = get_option('smsalert_sms_c7_' .$_REQUEST['post']);
-            if (((!empty($options['visitor_notification']) && 'on' === $options['visitor_notification']) || (!empty($options['auto_sync']) && 'on' === $options['auto_sync'])) && (empty($options['visitorNumber']) || (!empty($options['visitorNumber']) && '[billing_phone]' !== $options['visitorNumber']))) {
+            if (((!empty($options['visitor_notification']) && 'on' === $options['visitor_notification']) || (!empty($options['auto_sync']) && 'on' === $options['auto_sync'])) && (empty($options['visitorNumber']) || (!empty($options['visitorNumber']) && strpos('[billing_phone', $options['visitorNumber']) !== false))) {
                 echo sprintf(
                     '<div id="message" class="notice notice-warning"><p>%s</p></div>',
                     esc_html__("Please choose SMS Alert phone field in SMS Alert tab", 'sms-alert')
@@ -279,7 +284,7 @@ class ContactForm7 extends FormInterface
         );
 
         if ($tag->has_option('otp_enabled_popup') ) {
-            $html .= do_shortcode("[sa_verify phone_selector='.wpcf7-billing_phone' submit_selector='#" . $unit_tag . " .wpcf7-submit' placeholder='" . $placeholder . "']");
+            $html .= do_shortcode("[sa_verify phone_selector='.wpcf7-billing_phone' submit_selector='#" . $unit_tag . " .wpcf7-submit' placeholder='" . $placeholder . "']").wp_nonce_field('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', true, false);
         } elseif ($tag->has_option('otp_enabled') ) {
             $html .= '<div style="margin-bottom:3%">
 			<input class="smsalert_cf7_otp_btn" type="button" class="button alt" style="width:100%" title="Please Enter a phone number to enable this." value="Click here to verify your Phone"><div id="salert_message" style="background-color: #f7f6f7;padding: 1em 2em 1em 3.5em;display:none;"></div>

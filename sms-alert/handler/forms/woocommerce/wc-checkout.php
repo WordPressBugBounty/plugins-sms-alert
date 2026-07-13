@@ -874,18 +874,32 @@ class WooCommerceCheckOutForm extends FormInterface
             exit();
         } elseif (isset($_SESSION[ $this->form_session_var3 ]) ) {
             $order_id = ! empty($_REQUEST['o_id']) ? sanitize_text_field(wp_unslash($_REQUEST['o_id'])) : '';
+			$output = 0;
 			if ( version_compare( WC_VERSION, '8.2', '<' ) ) {
-			  $output   = update_post_meta($order_id, '_smsalert_post_order_verification', 1);
+			  $order_phone   = get_post_meta( $order_id, '_billing_phone', true );
+              if(strpos($phone_number, $order_phone) !== false)
+			  {				  
+			    $output   = update_post_meta($order_id, '_smsalert_post_order_verification', 1);
+			  }
 			} else {
 				$order = wc_get_order( $order_id );
-				$order->update_meta_data( '_smsalert_post_order_verification', 1 );
-				$output = $order->save();
+				$order_phone   = !empty($order->get_billing_phone())?$order->get_billing_phone():$order->get_shipping_phone();
+				if(strpos($phone_number, $order_phone) !== false)
+			    {	
+				  $order->update_meta_data( '_smsalert_post_order_verification', 1 );
+				  $output = $order->save();
+				}
 			}
             if ($output > 0 ) {
                 wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
                 $this->unsetOTPSessionVariables();
                 exit();
             } 
+			else
+			{
+				wp_send_json(SmsAlertUtility::_create_json_response(__('Your mobile number is not matched with order phone. Please check your mobile number.', 'sms-alert'), 'error'));
+                exit();
+			}
         } else {
             $this->unsetOTPSessionVariables();
         }
@@ -1593,12 +1607,18 @@ class WooCommerceCheckOutForm extends FormInterface
         $templates = (array)json_decode($result, true);
         $post_type = get_post_type($data);
         wp_enqueue_script('admin-smsalert-scripts', SA_MOV_URL . 'js/admin.js', array( 'jquery' ), SmsAlertConstants::SA_VERSION, true);
-
+        $user_authorize = new smsalert_Setting_Options();
         wp_localize_script(
             'admin-smsalert-scripts',
             'smsalert',
             array(
             'ajaxurl' => admin_url('admin-ajax.php'),
+            'whitelist_countries' => smsalert_get_option('whitelist_country', 'smsalert_general'),
+            'allow_otp_countries' => smsalert_get_option('allow_otp_country', 'smsalert_general'),
+            'sa_default_countrycode' => smsalert_get_option('default_country_code', 'smsalert_general'),
+            'islogged' => $user_authorize->is_user_authorised(),
+            'pattern' => SmsAlertConstants::PATTERN_PHONE,
+			'nonce' => wp_create_nonce('smsalert-nonce')
             )
         );
 
@@ -2251,7 +2271,7 @@ class sa_all_order_variable
         $order_id = isset($_REQUEST['order_id']) ? sanitize_text_field(wp_unslash($_REQUEST['order_id'])) : '';
         $option   = isset($_REQUEST['option']) ? sanitize_text_field(wp_unslash($_REQUEST['option'])) : '';
 		
-        if (! empty($option) && ( 'fetch-order-variable' === sanitize_text_field($option) ) && ! empty($order_id) && current_user_can('manage_options') && wp_verify_nonce( $_REQUEST['sa_var_wp_nonce'], 'sa_var_wp_nonce' ) ) {
+        if (! empty($option) && ( 'fetch-order-variable' === sanitize_text_field($option) ) && ! empty($order_id) && current_user_can('manage_options') && !empty($_REQUEST['sa_var_wp_nonce']) && wp_verify_nonce( $_REQUEST['sa_var_wp_nonce'], 'sa_var_wp_nonce' ) ) {
             $tokens = array();
 
             global $woocommerce, $post;

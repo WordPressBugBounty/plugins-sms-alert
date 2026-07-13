@@ -202,20 +202,20 @@ if (empty($wpcf7->id()) ) {
     </section>                                
     </div>
     </div>
-    <style>
-    .top-border {border-top: 1px dashed #b4b9be;}
-    #smsalert_settings select{max-width: 200px;}
-    </style>
-<script>
-var adminnumber = "<?php echo esc_attr($data['phoneno']); ?>";
+<?php 
+$inline_script = 'var adminnumber = "'.esc_attr($data['phoneno']).'";
 var tagInput1     = new TagsInput({
-    selector: 'wpcf7smsalert-settings[phoneno]',
+    selector: "wpcf7smsalert-settings[phoneno]",
     duplicate : false,
     max : 10,
 });
-var number = (adminnumber!='') ? adminnumber.split(",") : [];
+var number = (adminnumber!="") ? adminnumber.split(",") : [];
 if(number.length > 0){
     tagInput1.addData(number);
-}    
-</script>
-<?php } ?>
+}';
+if (! wp_script_is('sainlinescript-handle-footer', 'enqueued') ) {
+	wp_register_script('sainlinescript-handle-footer', '', [], '', true);
+	wp_enqueue_script('sainlinescript-handle-footer');
+}        
+wp_add_inline_script("sainlinescript-handle-footer", $inline_script); 
+} ?>

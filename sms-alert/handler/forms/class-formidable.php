@@ -176,7 +176,7 @@ class Formidable extends FormInterface
 
             if (( '1' === $smsalert_enable_message || '1' === $enable_otp ) && $visitor_phone!='') {
                 $field_table_name = $wpdb->prefix . 'frm_fields';
-                $results = $wpdb->get_results("SELECT * FROM $field_table_name where `id`=$visitor_phone and `form_id`=$form_id");
+                $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $field_table_name where `id`= %d and `form_id`= %d", $visitor_phone, $form_id));
 
                 if (!empty($results) && '1' === $enable_otp ) {
                     $frm_settings = new FrmSettings();
@@ -239,7 +239,7 @@ class Formidable extends FormInterface
     {
         global $wpdb;
         $form_table_name     = $wpdb->prefix . 'frm_forms';
-        $data                 = $wpdb->get_results("SELECT * FROM $form_table_name where `id`=$form_id");
+        $data                 = $wpdb->get_results($wpdb->prepare("SELECT * FROM $form_table_name where `id`= %d", $form_id));
         $datas                 = maybe_unserialize($data[0]->options);
         return $datas;
     }
@@ -255,7 +255,7 @@ class Formidable extends FormInterface
     {
         global $wpdb;
         $table_name = $wpdb->prefix . 'frm_fields';
-        $results     = $wpdb->get_results("SELECT * FROM $table_name where `form_id`=$form_id");
+        $results     = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name where `form_id`= %d", $form_id));
         return $results;
     }
 

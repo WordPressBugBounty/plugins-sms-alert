@@ -277,6 +277,9 @@ class WooCommerceRegistrationForm extends FormInterface
         if (isset($_SESSION['sa_mobile_verified']) ) {
             unset($_SESSION['sa_mobile_verified']);
         }
+		if (isset($_SESSION['sa_mobile']) ) {
+            unset($_SESSION['sa_mobile']);
+        }
         if (isset($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option']) === 'smsalert-registration-with-mobile') ) {
             $phone_no = ! empty($_REQUEST['billing_phone']) ? sanitize_text_field(wp_unslash($_REQUEST['billing_phone'])) : '';
 
@@ -600,6 +603,7 @@ class WooCommerceRegistrationForm extends FormInterface
             return;
         }
         $_SESSION['sa_mobile_verified'] = true;
+        $_SESSION['sa_mobile'] = $phone_number;
         if (isset($_SESSION[ $this->form_session_var2 ]) || isset($_SESSION[ $this->form_session_var3 ]) ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
@@ -676,8 +680,19 @@ class WooCommerceRegistrationForm extends FormInterface
 
             $error = '';
             $page  = 2;
-
+            
             $m  = isset($_REQUEST['billing_phone']) ? sanitize_text_field(wp_unslash($_REQUEST['billing_phone'])) : '';
+			$m  = SmsAlertcURLOTP::checkPhoneNos($m);
+			if(! empty($_SESSION['sa_mobile']) && strpos($_SESSION['sa_mobile'], $m) === false)
+			{
+				wp_send_json(
+                    SmsAlertUtility::_create_json_response(
+                        'Please try again',
+                        'success'
+                    )
+                );
+                exit();
+			}
             //number already exists then auto login
             $user_info  = WPLogin::getUserFromPhoneNumber($m, 'billing_phone');
             if ($user_info) {
