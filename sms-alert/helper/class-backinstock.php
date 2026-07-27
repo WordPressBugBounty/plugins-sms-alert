@@ -808,19 +808,37 @@ class All_Subscriber_List extends WP_List_Table
 			'sainstocknotifier',
 			'smsalert_instock_pid'
 		);
-
-        if (! empty($_REQUEST['orderby']) ) {
-            $sql .= ' ORDER BY ' . sanitize_text_field(wp_unslash($_REQUEST['orderby']));
-            $sql .= ! empty($_REQUEST['order']) ? ' ' . sanitize_text_field(wp_unslash($_REQUEST['order'])) : ' DESC';
-        } else {
-            $sql .= ' ORDER BY post_date desc';
-        }
-
-        $sql .= " LIMIT $per_page";
-        $sql .= ' OFFSET ' . ( $page_number - 1 ) * $per_page;
-
+        
+        $allowed_orderby = array(
+			'post_title',
+			'post_date',
+			'post_status',
+			'meta_value',
+			'post_author',
+			'ID'
+		);		
+        $orderby = 'post_date';
+		if ( isset($_REQUEST['orderby']) 
+			&& in_array($_REQUEST['orderby'], $allowed_orderby, true) ) {
+			$orderby = $_REQUEST['orderby'];
+		}
+		$order = 'DESC';
+		if ( isset($_REQUEST['order']) ) {
+			$request_order = strtoupper(wp_unslash($_REQUEST['order']));
+			if ( in_array($request_order, array('ASC', 'DESC'), true) ) {
+				$order = $request_order;
+			}
+		}
+		$sql .= " ORDER BY P." . $orderby . " " . $order;
+		$per_page = absint($per_page);
+        $page_number = absint($page_number);
+		$offset = ($page_number - 1) * $per_page;
+		$sql .= $wpdb->prepare(
+			" LIMIT %d OFFSET %d",
+			$per_page,
+			$offset
+		);
         $result = $wpdb->get_results($sql, 'ARRAY_A');
-
         return $result;
     }
 

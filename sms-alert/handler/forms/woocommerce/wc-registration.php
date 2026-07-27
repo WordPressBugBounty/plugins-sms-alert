@@ -674,7 +674,7 @@ class WooCommerceRegistrationForm extends FormInterface
         $tname = '';
         $phone = '';
         SmsAlertUtility::checkSession();
-        if (isset($_POST['smsalert_name']) && $_POST['smsalert_name']!='' && isset($_SESSION['sa_mobile_verified'])) {
+        if (isset($_POST['smsalert_name']) && $_POST['smsalert_name']!='' && isset($_SESSION['sa_mobile_verified']) && isset($_SESSION['sa_mobile'])) {
 
             $mail = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
 
@@ -682,8 +682,8 @@ class WooCommerceRegistrationForm extends FormInterface
             $page  = 2;
             
             $m  = isset($_REQUEST['billing_phone']) ? sanitize_text_field(wp_unslash($_REQUEST['billing_phone'])) : '';
-			$m  = SmsAlertcURLOTP::checkPhoneNos($m);
-			if(! empty($_SESSION['sa_mobile']) && strpos($_SESSION['sa_mobile'], $m) === false)
+			$m_normalized  = SmsAlertcURLOTP::checkPhoneNos($m);
+			if($m_normalized !== $_SESSION['sa_mobile'])
 			{
 				wp_send_json(
                     SmsAlertUtility::_create_json_response(
@@ -695,6 +695,7 @@ class WooCommerceRegistrationForm extends FormInterface
 			}
             //number already exists then auto login
             $user_info  = WPLogin::getUserFromPhoneNumber($m, 'billing_phone');
+			$redirect = '';
             if ($user_info) {
                 $user_login  = $user_info->data->user_login;
                 if (! empty($_POST['redirect']) ) {
@@ -705,6 +706,12 @@ class WooCommerceRegistrationForm extends FormInterface
                 $user = get_user_by('login', $user_login);
                 wp_set_auth_cookie($user->data->ID);
                 $redirect        = apply_filters('woocommerce_login_redirect', $redirect, $user);
+				if (isset($_SESSION['sa_mobile_verified']) ) {
+					unset($_SESSION['sa_mobile_verified']);
+				}
+				if (isset($_SESSION['sa_mobile']) ) {
+					unset($_SESSION['sa_mobile']);
+				}
                 wp_redirect($redirect);
                 exit();
             }
@@ -788,6 +795,12 @@ class WooCommerceRegistrationForm extends FormInterface
 
                 $msg             = SmsAlertUtility::_create_json_response('Register successful', 'success');
                 $redirect        = apply_filters('sa_woocommerce_regwithmob_redirect', $redirect, $new_customer);
+				if (isset($_SESSION['sa_mobile_verified']) ) {
+					unset($_SESSION['sa_mobile_verified']);
+				}
+				if (isset($_SESSION['sa_mobile']) ) {
+					unset($_SESSION['sa_mobile']);
+				}
                 wp_redirect($redirect);
                 exit();
             } else {

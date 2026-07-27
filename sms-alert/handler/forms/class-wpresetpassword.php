@@ -128,7 +128,7 @@ class WPResetPassword extends FormInterface
      *
      * @return object
      */
-    public function startSmsalertResetPasswordProcess( $errors, $user_data )
+    public function startSmsalertResetPasswordProcess( $errors, $user_data = array() )
     {
         SmsAlertUtility::checkSession();
         $user_login = '';
