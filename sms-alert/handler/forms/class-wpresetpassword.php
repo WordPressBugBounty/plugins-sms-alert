@@ -69,6 +69,7 @@ class WPResetPassword extends FormInterface
 		if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-change-password-form') && isset($_SESSION[ $this->form_session_var ]) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 ) {
             $this->handleSmsalertChangedPwd($_POST);
         }
+		session_write_close();
     }
 
     /**
