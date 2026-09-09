@@ -51,9 +51,10 @@ class Sa_Backinstock
         if ('on' === $smsalert_bis_subscribed_notify ) {
             add_action('woocommerce_after_variations_form', array( $this, 'saDisplayInNoVariationProduct' ));
             add_filter('woocommerce_available_variation', array( $this, 'saDisplayInVariation' ), 100, 3);
-            add_action('blocksy:woocommerce:product-single:add_to_cart:before', array( $this, 'saDisplayInBlocksy' ), 100);
-			if ( !has_filter('blocksy:woocommerce:product-single:add_to_cart:before') ) {
-             add_action('woocommerce_simple_add_to_cart', array( $this, 'displayInSimpleProduct' ), 63);
+            if ( 'blocksy' === get_template() ) {
+				add_action('blocksy:woocommerce:product-single:add_to_cart:before',array( $this, 'saDisplayInBlocksy' ),100);
+			} else {
+				add_action('woocommerce_simple_add_to_cart',array( $this, 'displayInSimpleProduct' ),63);
 			}
             $this->handleSubcribeRequest($_REQUEST);
         }

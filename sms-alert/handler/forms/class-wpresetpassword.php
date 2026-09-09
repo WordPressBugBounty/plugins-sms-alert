@@ -139,8 +139,18 @@ class WPResetPassword extends FormInterface
             if (! $billing_phone ) {
                 return false;
             }
-            $user_info  = WPLogin::getUserFromPhoneNumber($billing_phone, $this->phone_number_key);
-            $user_login = ( $user_info ) ? $user_info->data->user_login : '';
+            $results  = WPLogin::getUserFromPhoneNumber($billing_phone, $this->phone_number_key);
+            if (empty($results)) {
+				return false;
+			}
+			if(sizeof($results) > 1)
+			{
+			   $errors->add('error', __( 'Multiple accounts are associated with this mobile number. Please contact the site administrator.', 'sms-alert' ));
+			   return false;	
+			}
+			$user_id = ( ! empty($results) ) ? $results[0]->user_id : 0;
+			$user_info = get_userdata($user_id);
+			$user_login = $user_info->data->user_login;
         }
         $user         = ($user_data)?$user_data:get_user_by('login', $user_login);
         $phone_number = get_user_meta($user->data->ID, $this->phone_number_key, true);
