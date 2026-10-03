@@ -161,6 +161,10 @@ function _handle_validation_form_action( $requestVariable = 'smsalert_customer_v
     $user_email      = ! SmsAlertUtility::isBlank($_SESSION['user_email']) ? sanitize_email(wp_unslash($_SESSION['user_email'])) : null;
     $phone_number    = ( array_key_exists('billing_phone', $_REQUEST) && ! empty($_REQUEST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_REQUEST['billing_phone'])) : null;
     $phone_number    = array_key_exists('phone_number_mo', $_SESSION) && ! SmsAlertUtility::isBlank($_SESSION['phone_number_mo']) ? sanitize_text_field($_SESSION['phone_number_mo']) : $phone_number;
+	if(SmsAlertUtility::isBlank($phone_number))
+	{
+		_handle_error_validated($user_login, $user_email, $phone_number);
+	}
     $password        = ! SmsAlertUtility::isBlank($_SESSION['user_password']) ? sanitize_text_field($_SESSION['user_password']) : null;
     $extra_data      = ! SmsAlertUtility::isBlank($_SESSION['extra_data']) ? smsalert_sanitize_array($_SESSION['extra_data']) : null;
     $requestVariable = ( array_key_exists('phone', $_REQUEST) && ! array_key_exists('smsalert_customer_validation_otp_token', $_REQUEST) ) ? sanitize_text_field(wp_unslash($_REQUEST['phone'])) : 'smsalert_customer_validation_otp_token';
@@ -225,7 +229,7 @@ function _handle_mo_ajax_phone_validate( $getdata )
         sanitize_text_field($_SESSION['user_login']),
         null,
         null,
-        trim(sanitize_text_field($data['billing_phone'])),
+        trim(sanitize_text_field($getdata['billing_phone'])),
         'phone',
         sanitize_text_field($_SESSION['user_password']),
         null,

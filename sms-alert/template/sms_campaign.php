@@ -32,6 +32,9 @@ if ($type == 'order_status_data') {
 if (! empty($post_ids) ) {
     foreach ( $post_ids as $key => $post_id ) {
 		$post_id = absint($post_id);
+		if (! $post_id || ! current_user_can('edit_user', $post_id)) {
+			continue;
+		}
         if ($type == 'orders_data') {
             $tokens = WooCommerceCheckOutForm::getOrderVariables();
             if (version_compare(WC_VERSION, '7.1', '<') ) {

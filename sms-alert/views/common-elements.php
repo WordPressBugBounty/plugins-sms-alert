@@ -44,7 +44,7 @@ function sa_extra_post_data( $data = null )
     ) {
         show_hidden_fields($data);
     } elseif (( isset($_SESSION[ FormSessionVars::TML_REG ])
-        || isset($_SESSION[ FormSessionVars::WP_DEFAULT_REG ]) || isset($_SESSION[ FormSessionVars::BUDDYPRESS_REG ]) )
+        || isset($_SESSION[ FormSessionVars::WP_DEFAULT_REG ]) || isset($_SESSION[ FormSessionVars::BUDDYPRESS_DEFAULT_REG ]) )
         && ! SmsAlertUtility::isBlank($_POST)
     ) {
         show_hidden_fields($_POST);

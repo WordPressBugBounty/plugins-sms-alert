@@ -465,6 +465,39 @@ class WPLogin extends FormInterface
         wp_redirect($redirect);
         exit;
     }
+	
+	/**
+	 * Verify that the phone number validated by OTP belongs to the user
+	 * that is about to be logged in.
+	 *
+	 * @param object $user User object.
+	 *
+	 * @return bool
+	 */
+	private function isVerifiedPhoneForUser($user)
+	{
+		if (!$user || empty($user->ID) || empty($_SESSION['sa_login_mobile'])) {
+			return false;
+		}
+
+		$verified_phone = SmsAlertcURLOTP::checkPhoneNos(
+			sanitize_text_field($_SESSION['sa_login_mobile'])
+		);
+
+		$account_phone = get_user_meta(
+			$user->ID,
+			$this->phone_number_key,
+			true
+		);
+
+		$account_phone = SmsAlertcURLOTP::checkPhoneNos($account_phone);
+
+		if (empty($verified_phone) || empty($account_phone)) {
+			return false;
+		}
+
+		return $verified_phone === $account_phone;
+	}
 
     /**
      * Process login with otp.
@@ -487,6 +520,10 @@ class WPLogin extends FormInterface
         $user_login   = ( $user_info ) ? $user_info->data->user_login : '';
 
 		if (($login_with_otp_enabled || $login_with_admin_otp_enabled) && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) && ! empty($_SESSION['sa_login_mobile']) && ($_SESSION['sa_login_mobile'] === $phone_number)) {
+			if (! $this->isVerifiedPhoneForUser($user_info)) {
+				$this->unsetOTPSessionVariables();
+				return;
+			}			
             if (! empty($_POST['redirect']) ) {
                 $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));
             } elseif ( function_exists('wc_get_raw_referer') ) {
@@ -516,6 +553,10 @@ class WPLogin extends FormInterface
 		$user_info    = !empty($_SESSION['sa_login_user_id'])?get_user_by('ID', $_SESSION['sa_login_user_id']):'';
         $user_login   = ( $user_info ) ? $user_info->data->user_login : '';
         if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) && ! empty($_SESSION['sa_login_mobile']) && ($_SESSION['sa_login_mobile'] === $phone_number) ) {
+			if (! $this->isVerifiedPhoneForUser($user_info)) {
+				$this->unsetOTPSessionVariables();
+				return;
+			}
             if (! empty($_POST['redirect']) ) {
                 $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));
             } elseif ( function_exists('wc_get_raw_referer') ) {

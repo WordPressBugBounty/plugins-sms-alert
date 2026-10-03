@@ -1047,13 +1047,22 @@ class All_Subscriber_List extends WP_List_Table
         if ($verify) {
             if ('delete' === $this->current_action() ) {
                 $ids = isset($_REQUEST['ID']) ? smsalert_sanitize_array($_REQUEST['ID']) : array();
-                if (is_array($ids) ) {
-                    $ids = implode(',', $ids);
-                }
+				
+				if (is_array($ids)) {
+					$ids = array_map('absint', $ids);
+					$ids = array_filter($ids);
+					$ids = implode(',', $ids);
+				}
 
-                if (! empty($ids) ) {
-                    $wpdb->query("DELETE P, PM FROM {$wpdb->prefix}posts P inner join {$wpdb->prefix}postmeta PM on P.ID = PM.post_id WHERE ID IN($ids) AND P.post_type = 'sainstocknotifier'");
-                }
+				if (! empty($ids)) {
+					$wpdb->query(
+						"DELETE P, PM
+						FROM {$wpdb->prefix}posts P
+						INNER JOIN {$wpdb->prefix}postmeta PM ON P.ID = PM.post_id
+						WHERE P.ID IN($ids)
+						AND P.post_type = 'sainstocknotifier'"
+					);
+				}
             }
             
             if ('sa_sub_sendsms' === $this->current_action() ) {

@@ -121,24 +121,36 @@ class ContactForm7 extends FormInterface
         if (!empty($invalid_fields)) {
             return $result;
         }
-		$tag = reset(array_filter($tags, function ($tag) {
-			return $tag->type === 'billing_phone';
-		}));
-		if (!$tag->has_option('otp_enabled_popup') ) {
+		$filtered_tags = array_filter($tags, function ($tag) {
+			return strpos($tag->type, 'billing_phone') === 0;
+		});
+		$tag = reset($filtered_tags);
+		if (!$tag || !$tag->has_option('otp_enabled_popup')) {
 			return $result;
 		}
-		$verify = check_ajax_referer('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', false);
-        if (!$verify) {
-           wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
-        }		
         
         $id = $_POST['_wpcf7'];
         $options         = get_option('smsalert_sms_c7_' . $id);
         $visitor_number = !empty($options['visitorNumber'])?$this->getCf7TagSToString($options['visitorNumber'], $_POST):'';
         if (isset($_REQUEST['option']) && 'smsalert_wpcf7_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
+			$verify = check_ajax_referer('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', false);
+			if (!$verify) {
+			   wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
+			}
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         } else {
-            return $result;
+            SmsAlertUtility::checkSession();
+            $form_id = !empty($_POST['_wpcf7'])?$_POST['_wpcf7']:'';
+			if(isset($_SESSION['sa_cf7_form_verified'.$form_id]))
+			{
+				unset($_SESSION['sa_cf7_form_verified'.$form_id]);
+				return $result;
+			}
+			else
+			{
+				$result->invalidate( $tag, __('Your mobile number is not verified yet. Please verify your mobile number.', 'sms-alert') );
+				return $result;
+			}
         }        
            
         if (isset($visitor_number) && SmsAlertUtility::isBlank($visitor_number)) {            
@@ -146,7 +158,7 @@ class ContactForm7 extends FormInterface
             exit();
         }
 
-        return $this->processFormFields($visitor_number);         
+        return $this->processFormFields($visitor_number,$_POST);         
     }
 
     /**
@@ -156,7 +168,7 @@ class ContactForm7 extends FormInterface
      *
      * @return bool
      */
-    public function processFormFields( $visitor_number )
+    public function processFormFields( $visitor_number, $data )
     {
         global $phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $visitor_number);
@@ -166,7 +178,7 @@ class ContactForm7 extends FormInterface
             exit();
         }
         
-        smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, null, 'ajax');
+        smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, $data, 'ajax');
     }    
     
     /**
@@ -650,6 +662,10 @@ class ContactForm7 extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
+		if(!empty($extra_data['_wpcf7']))
+		{
+          $_SESSION['sa_cf7_form_verified'.$extra_data['_wpcf7']] = true;
+		}
         if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();

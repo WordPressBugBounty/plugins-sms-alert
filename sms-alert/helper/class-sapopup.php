@@ -83,7 +83,11 @@ class SAPopup
         ),
         );
 		register_post_type($name, $args);
-        flush_rewrite_rules();
+		if ( get_option('smsalert_rewrite_flushed') !== SmsAlertConstants::SA_VERSION ) 
+		{
+			flush_rewrite_rules();    
+			update_option('smsalert_rewrite_flushed', SmsAlertConstants::SA_VERSION, false);
+		}
 	}
     
     /**

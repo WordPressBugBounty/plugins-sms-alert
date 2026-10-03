@@ -71,7 +71,7 @@ if (! SmsAlertUtility::isBlank($user_email) ) {
 									} else {
 										var e = jQuery("input[name=sa_phone_number]").val();
 									}
-							        jQuery("#salert_message").empty(), jQuery("#salert_message").append("' . wp_kses_post($img) . '"), jQuery("#salert_message").show(), jQuery.ajax({
+							        jQuery("#salert_message").empty(), jQuery("#salert_message").append(' . wp_json_encode($img) . '), jQuery("#salert_message").show(), jQuery.ajax({
 							            url: "' . esc_attr(site_url()) . '/?option=smsalert-ajax-otp-generate",
 							            type: "POST",
 							            data: {billing_phone:e},
@@ -100,7 +100,7 @@ if (! SmsAlertUtility::isBlank($user_email) ) {
 										var f = jQuery("input[name=sa_phone_number]").val();
 									}
 							        var r = jQuery("input[name=redirect_to]").val();
-							        jQuery("#salert_message").empty(), jQuery("#salert_message").append("' . wp_kses_post($img) . '"), jQuery("#salert_message").show(), jQuery.ajax({
+							        jQuery("#salert_message").empty(), jQuery("#salert_message").append(' . wp_json_encode($img) . '), jQuery("#salert_message").show(), jQuery.ajax({
 							            url: "' . esc_attr(site_url()) . '/?option=smsalert-ajax-otp-validate",
 							            type: "POST",
 							            data: {smsalert_customer_validation_otp_token: e,billing_phone:f,redirect_to:r},

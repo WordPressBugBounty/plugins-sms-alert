@@ -123,10 +123,29 @@ class WpForm extends FormInterface
      */
     public function validateFields($fields, $entry, $form_data)
     {
+		$is_otp_enable    = !empty($form_data['settings']['smsalert']['otp_enable'])?$form_data['settings']['smsalert']['otp_enable']:''; 
+		if(!$is_otp_enable)
+		{
+			return;
+		}
         if (isset($_REQUEST['option']) && 'smsalert_wpforms_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         } else {
-            return;
+			$form_id = !empty($entry['id'])?$entry['id']:'';
+            if(isset($_SESSION['sa_wf_form_verified'.$form_id]))
+			{
+				unset($_SESSION['sa_wf_form_verified'.$form_id]);
+				return;
+			}
+			else
+			{
+				$process = wpforms()->obj( 'process' );
+				$process->errors[ $form_id ]['header'] = esc_html__(
+					'Your mobile number is not verified yet. Please verify your mobile number.',
+					'sms-alert'
+				);
+				return;
+			}
         }        
         $phone_field     = !empty($form_data['settings']['smsalert']['visitor_phone'])?$form_data['settings']['smsalert']['visitor_phone']:'';        
         $phone_field_id  = preg_replace('/[^0-9]/', '', $phone_field);
@@ -145,7 +164,7 @@ class WpForm extends FormInterface
             exit();
         }
 
-        return $this->processFormFields($phone);
+        return $this->processFormFields($phone,$entry);
             
     }
     
@@ -156,7 +175,7 @@ class WpForm extends FormInterface
      *
      * @return bool
      */
-    public function processFormFields( $phone )
+    public function processFormFields( $phone, $data )
     {
         global $phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $phone);
@@ -166,7 +185,7 @@ class WpForm extends FormInterface
             exit();
         }
         
-        smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, null, 'ajax');
+        smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, $data, 'ajax');
     }
     
 
@@ -481,6 +500,10 @@ class WpForm extends FormInterface
             return;
         }
         $_SESSION['sa_wf_mobile_verified'] = true;
+		if(!empty($extra_data['id']))
+		{
+          $_SESSION['sa_wf_form_verified'.$extra_data['id']] = true;
+		}
         if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();

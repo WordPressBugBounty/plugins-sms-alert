@@ -115,6 +115,31 @@ class WPResetPassword extends FormInterface
         }
 
         $user = get_user_by('login', $_SESSION['user_login']);
+
+		if (! $user ) {
+			$this->unsetOTPSessionVariables();
+			return;
+		}
+
+		$verified_phone = isset($_SESSION['phone_number_mo'])
+			? SmsAlertcURLOTP::checkPhoneNos(sanitize_text_field($_SESSION['phone_number_mo']))
+			: '';
+
+		$account_phone = get_user_meta($user->ID, $this->phone_number_key, true);
+		$account_phone = SmsAlertcURLOTP::checkPhoneNos($account_phone);
+
+		if (empty($verified_phone) || empty($account_phone) || $verified_phone !== $account_phone) {
+			$this->unsetOTPSessionVariables();
+
+			smsalertAskForResetPassword(
+				sanitize_text_field($_SESSION['user_login']),
+				sanitize_text_field($_SESSION['phone_number_mo']),
+				__('Phone number verification failed. Please try again.', 'sms-alert'),
+				'phone',
+				false
+			);
+			return;
+		}
         reset_password($user, $new_password);
         $this->unsetOTPSessionVariables();
         wp_redirect(add_query_arg('password-reset', 'true', wc_get_page_permalink('myaccount')));

@@ -690,6 +690,25 @@ class WooCommerceRegistrationForm extends FormInterface
             $user_info    = !empty($_SESSION['sa_login_user_id'])?get_user_by('ID', $_SESSION['sa_login_user_id']):'';
 			$redirect = '';
             if ($user_info) {
+				$account_phone = get_user_meta($user_info->ID, 'billing_phone', true);
+				$account_phone = SmsAlertcURLOTP::checkPhoneNos($account_phone);
+
+				if (SmsAlertUtility::isBlank($account_phone)
+					|| $account_phone !== $_SESSION['sa_mobile']
+				) {
+					unset($_SESSION['sa_mobile_verified']);
+					unset($_SESSION['sa_mobile']);
+					unset($_SESSION['sa_login_user_id']);
+
+					wp_send_json(
+						SmsAlertUtility::_create_json_response(
+							'Please try again',
+							'error'
+						)
+					);
+					exit();
+				}
+
                 $user_login  = $user_info->data->user_login;
                 if (! empty($_POST['redirect']) ) {
                     $redirect = wp_sanitize_redirect(wp_unslash($_POST['redirect']));

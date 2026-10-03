@@ -102,25 +102,40 @@ class SAElementor extends FormInterface
         if (!$ajax_handler->is_success) {
             return;
         }
-        if (isset($_REQUEST['option']) && 'smsalert_elementor_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
-            SmsAlertUtility::initialize_transaction($this->form_session_var);
-        } else {
-            return;
-        }
-
-        $fields = $record->get_field(
+		$otp_verification_enable  = $record->get_form_settings('otp_verification_enable');
+		if('true' !== $otp_verification_enable) 
+		{
+			return;
+		}
+		$fields = $record->get_field(
             [
             'type' => 'sa_billing_phone',
              ] 
         );
         $field = current($fields);
-        $user_phone = $field['value'];
+        $user_phone = $field['value'];		
+        if (isset($_REQUEST['option']) && 'smsalert_elementor_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
+            SmsAlertUtility::initialize_transaction($this->form_session_var);
+        } else {
+			SmsAlertUtility::checkSession();
+            $form_id = !empty($_POST['form_id'])?$_POST['form_id']:'';
+			if(isset($_SESSION['sa_el_form_verified'.$form_id]))
+			{
+				unset($_SESSION['sa_el_form_verified'.$form_id]);
+				return;
+			}
+			else
+			{
+				$ajax_handler->add_error( $field['id'], __('Your mobile number is not verified yet. Please verify your mobile number.', 'sms-alert'));
+				return;
+			}
+        }
+		
         if (isset($user_phone) && SmsAlertUtility::isBlank($user_phone) ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter phone number.', 'sms-alert'), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
         }
-
-        return $this->processFormFields($user_phone);
+        return $this->processFormFields($user_phone,$_POST);
     }
 
     /**
@@ -130,7 +145,7 @@ class SAElementor extends FormInterface
      *
      * @return bool
      */
-    public function processFormFields( $user_phone )
+    public function processFormFields( $user_phone, $data )
     {
         global $phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $user_phone);
@@ -140,7 +155,7 @@ class SAElementor extends FormInterface
             exit();
         }
         
-        smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, null, 'ajax');
+        smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, $data, 'ajax');
     }
     
     /**
@@ -194,6 +209,10 @@ class SAElementor extends FormInterface
             return;
         }
         $_SESSION['sa_el_mobile_verified'] = true;
+		if(!empty($extra_data['form_id']))
+		{
+          $_SESSION['sa_el_form_verified'.$extra_data['form_id']] = true;
+		}
         if (isset($_SESSION[ $this->form_session_var ]) ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
