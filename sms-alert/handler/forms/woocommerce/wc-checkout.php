@@ -260,11 +260,19 @@ class WooCommerceCheckOutForm extends FormInterface
 		}
 		$otp_enabled = (($this->guest_check_out_only && is_user_logged_in()) || ( smsalert_get_option('post_order_verification', 'smsalert_general') === 'on' )) ? false : ((smsalert_get_option('buyer_checkout_otp', 'smsalert_general') === 'on' ) ? true : false);
 		$payment_method = !empty($data['payment_method'])?$data['payment_method']:(!empty($data['radio-control-wc-payment-method-options'])?$data['radio-control-wc-payment-method-options']:'');
-		if(!$otp_enabled)
+		$register_otp = (smsalert_get_option('buyer_signup_otp', 'smsalert_general') === 'on' )?true:false;
+		$signup_checkout = get_option('woocommerce_enable_signup_and_login_from_checkout');
+		$guest_checkout = get_option('woocommerce_enable_guest_checkout');
+		$register_otp_enabled = false;
+		if ((($signup_checkout == "yes" && $guest_checkout != "yes") || (isset($_POST['createaccount']) && $_POST['createaccount'])) && $register_otp && !is_user_logged_in())
+	    {
+			$register_otp_enabled = true;
+		}
+		if(!$otp_enabled && !$register_otp_enabled)
 		{
 			return $errors;
 		}
-		if(!($this->otp_for_selected_gateways && in_array($payment_method, $this->payment_methods)))
+		if (!$register_otp_enabled && $this->otp_for_selected_gateways && !empty($this->payment_methods) && !in_array($payment_method, $this->payment_methods)) 
 		{
 			return $errors;
 		}
@@ -279,30 +287,13 @@ class WooCommerceCheckOutForm extends FormInterface
         }
         if (! SmsAlertUtility::isBlank(array_filter($errors->errors)) ) {
             return $errors;
-        }
-        if (isset($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option']) === 'smsalert-woocommerce-checkout-process') ) {
-            SmsAlertUtility::initialize_transaction($this->form_session_var2);
-        }
-        elseif(smsalert_get_option('checkout_show_otp_button', 'smsalert_general') !== 'on')
-		{
-			if(isset($_SESSION['sa_checkout_verified']))
-			{
-				unset($_SESSION['sa_checkout_verified']);
-				return $errors;
-			}
-			else
-			{
-				$errors->add('registration-error-invalid-phone', __('Your mobile number is not verified yet. sPlease verify your mobile number.', 'sms-alert'));
-				return $errors;
-			}
-		}			
+        }		
         if (SmsAlertUtility::isBlank($user_phone)) {
             $errors->add('registration-error-invalid-phone', __('Please enter phone number.', 'sms-alert'));
         } else if (! isset($user_phone) || ! SmsAlertUtility::validatePhoneNumber($user_phone) ) {
             global $phoneLogic;
             $errors->add('registration-error-invalid-phone', str_replace('##phone##', $user_phone, $phoneLogic->_get_otp_invalid_format_message()));
         } 
-		$guest_checkout = get_option('woocommerce_enable_guest_checkout');
         if ((isset($_POST['createaccount']) && $_POST['createaccount']) || $guest_checkout !== 'yes' && !is_user_logged_in()) {
             $username = isset($_POST['account_username'])?$_POST['account_username']:$data['billing_email'];
             $error = false;
@@ -326,6 +317,22 @@ class WooCommerceCheckOutForm extends FormInterface
         if ($errors->get_error_code() ) {
             throw new Exception($errors->get_error_message());
         }
+		if (isset($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option']) === 'smsalert-woocommerce-checkout-process') ) {
+            SmsAlertUtility::initialize_transaction($this->form_session_var2);
+        }
+        elseif(smsalert_get_option('checkout_show_otp_button', 'smsalert_general') !== 'on')
+		{
+			if(isset($_SESSION['sa_checkout_verified']))
+			{
+				unset($_SESSION['sa_checkout_verified']);
+				return $errors;
+			}
+			else
+			{
+				$errors->add('registration-error-invalid-phone', __('Your mobile number is not verified yet. Please verify your mobile number.', 'sms-alert'));
+				return $errors;
+			}
+		}	
         if (isset($_REQUEST['checkout'])) {
             return $this->processFormFields($errors);
         } else if (isset($_REQUEST['order_verify'])) {

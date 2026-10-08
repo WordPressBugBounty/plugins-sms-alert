@@ -132,6 +132,9 @@ class ContactForm7 extends FormInterface
         $id = $_POST['_wpcf7'];
         $options         = get_option('smsalert_sms_c7_' . $id);
         $visitor_number = !empty($options['visitorNumber'])?$this->getCf7TagSToString($options['visitorNumber'], $_POST):'';
+		if (! SmsAlertcURLOTP::validateCountryCode($visitor_number)) {        
+            return $result;
+        }
         if (isset($_REQUEST['option']) && 'smsalert_wpcf7_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
 			$verify = check_ajax_referer('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', false);
 			if (!$verify) {

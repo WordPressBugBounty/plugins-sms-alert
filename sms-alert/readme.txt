@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: woocommerce sms, otp verification, login with otp, cod verification, abandoned cart
 Requires at least: 4.6
 Tested up to: 7.1
-Stable tag: 4.0.1
+Stable tag: 4.0.2
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html

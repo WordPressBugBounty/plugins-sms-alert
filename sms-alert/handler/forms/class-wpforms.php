@@ -128,6 +128,22 @@ class WpForm extends FormInterface
 		{
 			return;
 		}
+		$phone_field     = !empty($form_data['settings']['smsalert']['visitor_phone'])?$form_data['settings']['smsalert']['visitor_phone']:'';        
+        $phone_field_id  = preg_replace('/[^0-9]/', '', $phone_field);
+        $phone = '';
+        if (! empty($phone_field_id) ) {
+            $datas = array();
+            foreach ( $fields as $key => $field ) {
+                $datas[ '{field_id="' . $key . '"}' ] = $field['value'];
+                if ($phone_field_id == $key ) {
+                    $phone = $field['value'];   
+                }
+            }
+        }
+		
+		if (! SmsAlertcURLOTP::validateCountryCode($phone)) {        
+            return;
+        }
         if (isset($_REQUEST['option']) && 'smsalert_wpforms_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         } else {
@@ -147,18 +163,7 @@ class WpForm extends FormInterface
 				return;
 			}
         }        
-        $phone_field     = !empty($form_data['settings']['smsalert']['visitor_phone'])?$form_data['settings']['smsalert']['visitor_phone']:'';        
-        $phone_field_id  = preg_replace('/[^0-9]/', '', $phone_field);
-        $phone = '';
-        if (! empty($phone_field_id) ) {
-            $datas = array();
-            foreach ( $fields as $key => $field ) {
-                $datas[ '{field_id="' . $key . '"}' ] = $field['value'];
-                if ($phone_field_id == $key ) {
-                    $phone = $field['value'];   
-                }
-            }
-        }
+        
         if (isset($phone) && SmsAlertUtility::isBlank($phone)) {            
             wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter phone number.', 'sms-alert'), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();

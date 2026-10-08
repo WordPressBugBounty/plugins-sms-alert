@@ -113,7 +113,10 @@ class SAElementor extends FormInterface
              ] 
         );
         $field = current($fields);
-        $user_phone = $field['value'];		
+        $user_phone = $field['value'];
+        if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {        
+            return;
+        }		
         if (isset($_REQUEST['option']) && 'smsalert_elementor_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         } else {
