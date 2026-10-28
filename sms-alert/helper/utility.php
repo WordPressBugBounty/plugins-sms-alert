@@ -204,6 +204,9 @@ class SmsAlertUtility
         unset($_SESSION['sa_login_mobile']);
         unset($_SESSION['sa_mobile']);
         unset($_SESSION['sa_login_user_id']);
+        unset($_SESSION['phone_number_mo']);
+        unset($_SESSION['user_login']);
+        unset($_SESSION['sa_rp_user_id']);
         $_SESSION[ $form ] = $sessionValue;
     }
 

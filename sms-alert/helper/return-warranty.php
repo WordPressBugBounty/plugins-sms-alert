@@ -44,7 +44,7 @@ class Sa_Return_Warranty
         add_action('wc_warranty_settings_tabs', __CLASS__ . '::smsalertWarrantyTab');
         add_action('wc_warranty_settings_panels', __CLASS__ . '::smsalertWarrantySettingsPanels');
         add_action('admin_post_wc_warranty_settings_update', array( $this, 'updateWcWarrantySettings' ), 5);
-        add_action('wp_ajax_warranty_update_request_fragment', array( $this, 'onRmaStatusUpdate' ), 0);
+        add_action('wc_warranty_status_updated', array( $this, 'onRmaStatusUpdate' ), 10, 3);
         add_action('wc_warranty_created', array( $this, 'onNewRmaRequest' ), 5);
     }
 
@@ -188,12 +188,9 @@ class Sa_Return_Warranty
      *
      * @return void
      */
-    public function onRmaStatusUpdate()
+    public function onRmaStatusUpdate($warranty_id, $new_status, $prev_status)
     {
-        $request_id = isset($_POST['request_id']) ? sanitize_text_field(wp_unslash($_POST['request_id'])) : '';
-        $status     = isset($_POST['status']) ? sanitize_text_field(wp_unslash($_POST['status'])) : '';
-
-        $this->sendRmaStatusSms($request_id, $status);
+        $this->sendRmaStatusSms($warranty_id, $new_status);
     }
 
     /**

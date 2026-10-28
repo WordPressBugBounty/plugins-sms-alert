@@ -223,6 +223,10 @@ function _handle_error_validated( $user_login, $user_email, $phone_number )
      */
 function _handle_mo_ajax_phone_validate( $getdata )
 {
+	$verify = check_ajax_referer('smsalert_wp_login_nonce', 'smsalert_login_nonce', false);
+	if (!$verify) {
+		wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
+	}
     SmsAlertUtility::checkSession();
     $_SESSION[ FormSessionVars::AJAX_FORM ] = trim($getdata['billing_phone']);
     smsalert_site_challenge_otp(

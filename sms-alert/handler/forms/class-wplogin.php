@@ -184,7 +184,7 @@ class WPLogin extends FormInterface
         $user_role    = $user_meta->roles;
         $phone_number = get_user_meta($user->data->ID, $this->phone_number_key, true);
         if (! SmsAlertcURLOTP::validateCountryCode($phone_number)) {        
-            return $data;
+            return $user;
         }
         if (empty($phone_number) ) {
             return $user;
@@ -593,7 +593,7 @@ class WPLogin extends FormInterface
         $user_meta    = get_userdata($user->data->ID);
         $user_role    = $user_meta->roles;
         $phone_number = get_user_meta($user->data->ID, $this->phone_number_key, true);
-        if (! SmsAlertcURLOTP::validateCountryCode($phone_number)) {                     
+        if (!empty($phone_number) && !SmsAlertcURLOTP::validateCountryCode($phone_number)) {                     
             return $user;
         }
         if ($this->byPassLogin($user_role) ) {
@@ -711,6 +711,10 @@ class WPLogin extends FormInterface
      */
     public function handleWpLoginAjaxSendOtp( $data )
     {
+		$verify = check_ajax_referer('smsalert_wp_login_nonce', 'smsalert_login_nonce', false);
+		if (!$verify) {
+			wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
+		}
         SmsAlertUtility::checkSession();
 		$users = $this->getUserFromPhoneNumber(
 			$data['billing_phone'],

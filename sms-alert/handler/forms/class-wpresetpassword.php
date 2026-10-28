@@ -113,19 +113,25 @@ class WPResetPassword extends FormInterface
                 false
             );
         }
-
-        $user = get_user_by('login', $_SESSION['user_login']);
-
+		if (empty($_SESSION['sa_rp_user_id'])) {
+			return;
+		}
+        $user    = get_user_by('ID', $_SESSION['sa_rp_user_id']);
 		if (! $user ) {
 			$this->unsetOTPSessionVariables();
 			return;
 		}
 
-		$verified_phone = isset($_SESSION['phone_number_mo'])
-			? SmsAlertcURLOTP::checkPhoneNos(sanitize_text_field($_SESSION['phone_number_mo']))
+		$verified_phone = isset($_SESSION['sa_rp_mobile'])
+			? SmsAlertcURLOTP::checkPhoneNos(sanitize_text_field($_SESSION['sa_rp_mobile']))
 			: '';
 
-		$account_phone = get_user_meta($user->ID, $this->phone_number_key, true);
+		$account_phone = get_user_meta(
+			$user->ID,
+			$this->phone_number_key,
+			true
+		);
+
 		$account_phone = SmsAlertcURLOTP::checkPhoneNos($account_phone);
 
 		if (empty($verified_phone) || empty($account_phone) || $verified_phone !== $account_phone) {
@@ -140,8 +146,8 @@ class WPResetPassword extends FormInterface
 			);
 			return;
 		}
-        reset_password($user, $new_password);
         $this->unsetOTPSessionVariables();
+        reset_password($user, $new_password);
         wp_redirect(add_query_arg('password-reset', 'true', wc_get_page_permalink('myaccount')));
         exit;
     }
@@ -179,10 +185,10 @@ class WPResetPassword extends FormInterface
         }
         $user         = ($user_data)?$user_data:get_user_by('login', $user_login);
         $phone_number = get_user_meta($user->data->ID, $this->phone_number_key, true);
+		SmsAlertUtility::initialize_transaction($this->form_session_var);
         if (isset($_REQUEST['wc_reset_password']) ) {
-            SmsAlertUtility::initialize_transaction($this->form_session_var);
             if (! empty($phone_number) ) {
-                $this->fetchPhoneAndStartVerification($user->data->user_login, $this->phone_number_key, null, null, $phone_number);
+                $this->fetchPhoneAndStartVerification($user, $this->phone_number_key, null, null, $phone_number);
             }
         }
         return $user;
@@ -204,7 +210,8 @@ class WPResetPassword extends FormInterface
         if (( array_key_exists($this->form_session_var, $_SESSION) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 ) ) {
             return;
         }
-        smsalert_site_challenge_otp($user, $username, null, $phone_number, 'phone', $password, SmsAlertUtility::currentPageUrl(), false);
+		$_SESSION['sa_rp_user_id'] = absint($user->data->ID);
+        smsalert_site_challenge_otp($user->data->user_login, $username, null, $phone_number, 'phone', $password, SmsAlertUtility::currentPageUrl(), false);
     }
 
     /**
@@ -248,6 +255,7 @@ class WPResetPassword extends FormInterface
             return;
         }
 		$_SESSION[ $this->form_session_var ] = 'validated';
+		$_SESSION['sa_rp_mobile'] = $phone_number;
         smsalertAskForResetPassword(
             sanitize_text_field($_SESSION['user_login']),
             sanitize_text_field($_SESSION['phone_number_mo']),
@@ -265,6 +273,8 @@ class WPResetPassword extends FormInterface
     public function unsetOTPSessionVariables()
     {
         unset($_SESSION[ $this->form_session_var ]);
+        unset($_SESSION['sa_rp_mobile']);
+        unset($_SESSION['sa_rp_user_id']);
     }
 
     /**

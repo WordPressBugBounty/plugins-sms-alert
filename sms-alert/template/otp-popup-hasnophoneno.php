@@ -54,6 +54,7 @@ if (! SmsAlertUtility::isBlank($user_email) ) {
 														<input type="button" id="send_otp" class="smsalert_otp_token_submit" 
 															value="' . esc_attr($send_otp) . '" />';
     sa_extra_post_data($usermeta);
+	echo wp_nonce_field('smsalert_wp_login_nonce', 'smsalert_login_nonce', true, false);
     echo '										</form>
 												</div>';
 }
@@ -74,7 +75,7 @@ if (! SmsAlertUtility::isBlank($user_email) ) {
 							        jQuery("#salert_message").empty(), jQuery("#salert_message").append(' . wp_json_encode($img) . '), jQuery("#salert_message").show(), jQuery.ajax({
 							            url: "' . esc_attr(site_url()) . '/?option=smsalert-ajax-otp-generate",
 							            type: "POST",
-							            data: {billing_phone:e},
+							            data: {billing_phone:e,smsalert_login_nonce:jQuery("#smsalert_login_nonce").val()},
 							            crossDomain: !0,
 							            dataType: "json",
 							            success: function(o) {

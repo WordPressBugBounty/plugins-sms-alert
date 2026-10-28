@@ -4,7 +4,7 @@ Contributors: cozyvision1
 Tags: woocommerce sms, otp verification, login with otp, cod verification, abandoned cart
 Requires at least: 4.6
 Tested up to: 7.1
-Stable tag: 4.0.2
+Stable tag: 4.0.3
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -297,6 +297,11 @@ Report security bugs through the [Patchstack Vulnerability Disclosure Program](h
 == Changelog ==
 
 For earlier versions, see changelog.txt.
+
+= 4.0.3 =
+* Enhancement: Security fixes.
+* Bugfix: Prevented OTP validation from failing when the URL contains a query string and the TranslatePress multilingual plugin is active.
+* Tested with the latest WordPress and WooCommerce versions.
 
 = 4.0.1 =
 * Enhancement: Security fixes.
