@@ -9,6 +9,10 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
     //if ( $has_woocommerce || $has_w_p_members || $has_ultimate || $has_w_p_a_m || $has_learn_press ) 
     { ?>
 <div class="cvt-accordion">
@@ -21,13 +25,13 @@
             <table class="form-table">
             <?php
             if ($has_woocommerce || $has_ultimate || $has_w_p_a_m ) {
-                $post_order_verification = smsalert_get_option('post_order_verification', 'smsalert_general', 'off');
-                $pre_order_verification  = smsalert_get_option('pre_order_verification', 'smsalert_general', 'on');
+                $smsalert_post_order_verification = smsalert_get_option('post_order_verification', 'smsalert_general', 'off');
+                $smsalert_pre_order_verification  = smsalert_get_option('pre_order_verification', 'smsalert_general', 'on');
                 ?>
             <tr valign="top">
                 <td scope="row" class="td-heading" colspan="2">
                     <!--Post Order Verification-->
-                    <input type="checkbox" name="smsalert_general[post_order_verification]" data-parent_id="smsalert_general[buyer_checkout_otp]" id="smsalert_general[post_order_verification]" class="notify_box" <?php echo ( ( 'on' === $post_order_verification ) ? "checked='checked'" : '' ); ?> data-name="checkout_otp"/><label for="smsalert_general[post_order_verification]"><?php esc_html_e('Post Order Verification ', 'sms-alert'); ?></label> <small>(<?php esc_html_e('disable pre-order verification', 'sms-alert'); ?>)</small>
+                    <input type="checkbox" name="smsalert_general[post_order_verification]" data-parent_id="smsalert_general[buyer_checkout_otp]" id="smsalert_general[post_order_verification]" class="notify_box" <?php echo ( ( 'on' === $smsalert_post_order_verification ) ? "checked='checked'" : '' ); ?> data-name="checkout_otp"/><label for="smsalert_general[post_order_verification]"><?php esc_html_e('Post Order Verification ', 'sms-alert'); ?></label> <small>(<?php esc_html_e('disable pre-order verification', 'sms-alert'); ?>)</small>
                     <!--/-Post Order Verification-->
                 </td>
             </tr>
@@ -46,13 +50,13 @@
                     ?>
                     <select multiple size="5" name="smsalert_general[checkout_payment_plans][]" id="checkout_payment_plans" class="multiselect chosen-select" data-parent_id="smsalert_general[otp_for_selected_gateways]" data-placeholder="Select Payment Gateways">
                     <?php
-                    $payment_plans = WC()->payment_gateways->payment_gateways();
-                    foreach ( $payment_plans as $payment_plan ) {
+                    $smsalert_payment_plans = WC()->payment_gateways->payment_gateways();
+                    foreach ( $smsalert_payment_plans as $smsalert_payment_plan ) {
                          echo '<option ';
-                        if (in_array($payment_plan->id, $checkout_payment_plans, true) ) {
+                        if (in_array($smsalert_payment_plan->id, $checkout_payment_plans, true) ) {
                             echo( 'selected' );
                         }
-                         echo( ' value="' . esc_attr($payment_plan->id) . '">' . esc_attr($payment_plan->title) . '</option>' );
+                         echo( ' value="' . esc_attr($smsalert_payment_plan->id) . '">' . esc_attr($smsalert_payment_plan->title) . '</option>' );
                     }
                     ?>
                     </select>
@@ -123,8 +127,8 @@
                 ?>
                 <tr valign="top">
                     <td scope="row" class="login-width td-heading">
-                <?php $class = ( $off_excl_role ) ? 'notify_box nopointer disabled' : 'notify_box'; ?>
-                        <input type="checkbox" name="smsalert_general[otp_for_roles]" id="smsalert_general[otp_for_roles]" class="<?php echo esc_attr($class); ?>" data-parent_id="smsalert_general[buyer_login_otp]"  <?php echo ( ( 'on' === $otp_for_roles ) ? "checked='checked'" : '' ); ?>/>
+                <?php $smsalert_class = ( $off_excl_role ) ? 'notify_box nopointer disabled' : 'notify_box'; ?>
+                        <input type="checkbox" name="smsalert_general[otp_for_roles]" id="smsalert_general[otp_for_roles]" class="<?php echo esc_attr($smsalert_class); ?>" data-parent_id="smsalert_general[buyer_login_otp]"  <?php echo ( ( 'on' === $otp_for_roles ) ? "checked='checked'" : '' ); ?>/>
 
                         <label for="smsalert_general[otp_for_roles]"><?php esc_html_e('Exclude Role from LOGIN OTP', 'sms-alert'); ?></label>
                         <span class="tooltip" data-title="Exclude Role from LOGIN OTP"><span class="dashicons dashicons-info"></span></span><br /><br />
@@ -133,25 +137,25 @@
                 <?php
 
                 global $wp_roles;
-                $roles = $wp_roles->roles;
+                $smsalert_roles = $wp_roles->roles;
 
-                if (! is_array($admin_bypass_otp_login) && 'on' === $admin_bypass_otp_login ) {
-                    $admin_bypass_otp_login = array( 'administrator' );
+                if (! is_array($smsalert_admin_bypass_otp_login) && 'on' === $smsalert_admin_bypass_otp_login ) {
+                    $smsalert_admin_bypass_otp_login = array( 'administrator' );
                 }
                 ?>
                         <select multiple size="5" name="smsalert_general[admin_bypass_otp_login][]" id="admin_bypass_otp_login" <?php echo ( ( $off_excl_role ) ? 'disabled' : 'data-parent_id="smsalert_general[otp_for_roles]"' ); ?> class="multiselect chosen-select" data-placeholder="Select Roles OTP For login">
                 <?php
-                foreach ( $roles as $role_key => $role ) {
+                foreach ( $smsalert_roles as $smsalert_role_key => $role ) {
                     ?>
                         <option
                     <?php
-                    if (in_array($role_key, $admin_bypass_otp_login, true) ) {
+                    if (in_array($smsalert_role_key, $smsalert_admin_bypass_otp_login, true) ) {
                         ?>
                             selected
                         <?php
                     }
                     ?>
-                        value="<?php echo esc_attr($role_key); ?>"><?php echo esc_attr($role['name']); ?></option>
+                        value="<?php echo esc_attr($smsalert_role_key); ?>"><?php echo esc_attr($role['name']); ?></option>
                     <?php
                 }
                 ?>
@@ -222,9 +226,9 @@
         <!--signup with mobile-->
         <div class="cvt-accordion-body-title" data-href="#accordion_12"> 
         
-        <?php $signup_with_mobile = smsalert_get_option('signup_with_mobile', 'smsalert_general', 'off'); ?>
+        <?php $smsalert_signup_with_mobile = smsalert_get_option('signup_with_mobile', 'smsalert_general', 'off'); ?>
         
-        <input type="checkbox" name="smsalert_general[signup_with_mobile]" id="smsalert_general[signup_with_mobile]" class="notify_box" <?php echo ( ( 'on' === $signup_with_mobile ) ? "checked='checked'" : '' ); ?>> <label for="smsalert_general[signup_with_mobile]"><?php esc_html_e('Signup With Mobile', 'sms-alert'); ?></label>
+        <input type="checkbox" name="smsalert_general[signup_with_mobile]" id="smsalert_general[signup_with_mobile]" class="notify_box" <?php echo ( ( 'on' === $smsalert_signup_with_mobile ) ? "checked='checked'" : '' ); ?>> <label for="smsalert_general[signup_with_mobile]"><?php esc_html_e('Signup With Mobile', 'sms-alert'); ?></label>
         
         
         <span class="expand_btn"></span>
@@ -248,14 +252,14 @@
                             <td>
                                 <select name="smsalert_defaultuserrole" id="smsalert_defaultuserrole" data-parent_id="smsalert_general[signup_with_mobile]">
                                     <?php
-                                    foreach ( wp_roles()->roles as $rkey => $rvalue ) {
+                                    foreach ( wp_roles()->roles as $smsalert_rkey => $smsalert_rvalue ) {
 
-                                        if ($rkey === $smsalert_defaultuserrole ) {
-                                            $sel = 'selected=selected';
+                                        if ($smsalert_rkey === $smsalert_defaultuserrole ) {
+                                            $smsalert_sel = 'selected=selected';
                                         } else {
-                                            $sel = '';
+                                            $smsalert_sel = '';
                                         }
-                                        echo '<option value="' . esc_attr($rkey) . '" ' . esc_attr($sel) . '>' . esc_attr($rvalue['name']) . '</option>';
+                                        echo '<option value="' . esc_attr($smsalert_rkey) . '" ' . esc_attr($smsalert_sel) . '>' . esc_attr($smsalert_rvalue['name']) . '</option>';
                                     }
                                     ?>
                                 </select>
@@ -287,8 +291,8 @@
             </td>
             <td scope="row"  class="td-heading">
                 <!--OTP FOR User Profile Update-->
-            <?php  $enable_otp_user_update = get_option('smsalert_otp_user_update', 'on');?>
-                <input type="checkbox" name="smsalert_otp_user_update" id="smsalert_otp_user_update" class="notify_box" <?php echo (($enable_otp_user_update=='on')?"checked='checked'":'')?>/><label for="smsalert_otp_user_update"><?php _e('OTP For User Update', 'sms-alert') ?></label>
+            <?php  $smsalert_enable_otp_user_update = get_option('smsalert_otp_user_update', 'on');?>
+                <input type="checkbox" name="smsalert_otp_user_update" id="smsalert_otp_user_update" class="notify_box" <?php echo (($smsalert_enable_otp_user_update=='on')?"checked='checked'":'')?>/><label for="smsalert_otp_user_update"><?php esc_html_e('OTP For User Update', 'sms-alert') ?></label>
                 <!--/-OTP FOR User Profile Update-->
             </td>
         <?php } ?>
@@ -304,7 +308,7 @@
              <td scope="row" class="td-heading"><?php esc_attr_e('Modal Style', 'sms-alert'); ?></td>
              <td class="td-heading">
             <?php
-             $styles = array(
+             $smsalert_styles = array(
               'modal-slideIn' => 'Slide',
               'modal-fadeIn' => 'FadeIn',
               'modal-flipIn' => 'Flip',
@@ -314,9 +318,9 @@
             <select name="smsalert_general[modal_style]" id="modal_style">
                 <option value="">Default</option>
              <?php
-                foreach ( $styles as $k => $v ) {
+                foreach ( $smsalert_styles as $smsalert_k => $smsalert_v ) {
                     ?>
-                 <option value="<?php echo esc_attr($k); ?>" <?php echo ( $modal_style === $k ) ? 'selected="selected"' : ''; ?>><?php echo esc_attr($v); ?></option>
+                 <option value="<?php echo esc_attr($smsalert_k); ?>" <?php echo ( $modal_style === $smsalert_k ) ? 'selected="selected"' : ''; ?>><?php echo esc_attr($smsalert_v); ?></option>
                 <?php } ?>
                     </select>
                     <span class="tooltip" data-title="Select Modal Style Effect"><span class="dashicons dashicons-info"></span></span>
@@ -324,21 +328,21 @@
                 </td>
             </tr>
                             <!--/-Modal style-->
-         <tr valign="top" class="<?php echo $disablePlayground; ?>">
+         <tr valign="top" class="<?php echo esc_attr($smsalert_disablePlayground); ?>">
             <td scope="row" class="td-heading"><?php esc_html_e('OTP Template Style', 'sms-alert'); ?> <span class="tooltip" data-title="Edit OTP Template Style"><span class="dashicons dashicons-info"></span></span>
             </td>
             <td colspan="3">
                 <?php
-                $disabled = (! is_plugin_active('elementor/elementor.php')) ? "anchordisabled" : "";
+                $smsalert_disabled = (! is_plugin_active('elementor/elementor.php')) ? "anchordisabled" : "";
                 $post = get_page_by_path('modal_style', OBJECT, 'sms-alert'); 
                 ?>              
-                <a href= <?php get_admin_url() ?>"edit.php?post_name=modal_style" class="button <?php echo $disabled; ?> otpeditmodel action" target="_blank" style="float:left;"><?php esc_html_e('Edit With Elementor', 'sms-alert'); ?></a>
+                <a href= <?php get_admin_url() ?>"edit.php?post_name=modal_style" class="button <?php echo esc_attr($smsalert_disabled); ?> otpeditmodel action" target="_blank" style="float:left;"><?php esc_html_e('Edit With Elementor', 'sms-alert'); ?></a>
                 <?php if (!empty($post->post_type)) {?>
                 <a href="#" onclick="return false;" temp-style="modal_style" class="btn-outline btn_reset_style" style="float:left;"><?php esc_html_e('Reset', 'sms-alert'); ?></a>
                 <?php }?>
                 <span class="reset_style"></span>    
            <?php
-            if ($disabled!='') {
+            if ($smsalert_disabled!='') {
                 ?>        
             <span><?php esc_html_e('To edit, please install elementor plugin', 'sms-alert'); ?>    </span>
                 <?php
@@ -347,7 +351,7 @@
             </td>
         </tr>
 	
-        <tr valign="top" otp-section-token" class="<?php echo $disablePlayground; ?>">
+        <tr valign="top" otp-section-token" class="<?php echo esc_attr($smsalert_disablePlayground); ?>">
 			
             <td scope="row" class="td-heading" style="vertical-align: top;"><?php esc_html_e('OTP Template', 'sms-alert'); ?></td>
 			
@@ -400,7 +404,7 @@ jQuery("#btn_popup").click(function(){
     });
     //modal preview
         function previewtemplate() {
-             var selected_modal =  '<?php echo !empty(SmsAlertUtility::get_elementor_data("form_list"))?SmsAlertUtility::get_elementor_data("form_list"):'popup-1';?>';
+             var selected_modal =  '<?php echo !empty(SmsAlertUtility::get_elementor_data("form_list"))?esc_js(SmsAlertUtility::get_elementor_data("form_list")):'popup-1';?>';
             jQuery('.sa-edit-phone').hide(); 
             jQuery('.otp-number').removeClass('hide');
             if (selected_modal=='popup-1' || selected_modal=='popup-4')

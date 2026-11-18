@@ -10,20 +10,24 @@
  * @link     https://www.smsalert.co.in/
  */
 
-$redirect = isset($_GET['redirect_to'])?$_GET['redirect_to']: $redirect_url;
+if (! defined('ABSPATH') ) {
+    exit;
+}
+$smsalert_redirect = isset($_GET['redirect_to'])?sanitize_text_field(wp_unslash($_GET['redirect_to'])): $redirect_url;
 ?>
 <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
-    <label for="username"><?php esc_html_e($label_field, 'sms-alert'); ?><span class="required">*</span></label>
-    <input type="tel" placeholder = "<?php esc_html_e($placeholder_field, 'sms-alert'); ?>" class="woocommerce-Input woocommerce-Input--text input-text sa_mobileno phone-valid" name="billing_phone"  id="reg_with_mob" value="">
-    <input type="hidden" class="woocommerce-Input woocommerce-Input--text input-text" name="redirect" value="<?php esc_html_e($redirect, 'sms-alert'); ?>">
-    <input type="hidden" class="woocommerce-Input woocommerce-Input--text input-text" name="smsalert_name" value="<?php echo wp_rand(0, 99999)?>">
+    <label for="username"><?php echo esc_html($label_field); ?><span class="required">*</span></label>
+    <input type="tel" placeholder = "<?php echo esc_attr($placeholder_field); ?>" class="woocommerce-Input woocommerce-Input--text input-text sa_mobileno phone-valid" name="billing_phone"  id="reg_with_mob" value="">
+    <input type="hidden" class="woocommerce-Input woocommerce-Input--text input-text" name="redirect" value="<?php echo esc_url($smsalert_redirect); ?>">
+    <input type="hidden" class="woocommerce-Input woocommerce-Input--text input-text" name="smsalert_name" value="<?php echo esc_attr(wp_rand(0, 99999))?>">
   
     
 </p>
 <?php 
+// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- reCAPTCHA filter generates HTML.
 echo apply_filters('gglcptch_display_recaptcha', '', 'sa_swm_form');
 ?>
 <p class="form-row">
-    <button type="submit" class="button smsalert_reg_with_otp_btn" name="smsalert_reg_with_otp_btn" id="sign_with_mob_btn" value="<?php echo esc_html_e($button_field, 'sms-alert'); ?>"><span class="button__text"><?php echo esc_html_e($button_field, 'sms-alert'); ?></span></button>    
+    <button type="submit" class="button smsalert_reg_with_otp_btn" name="smsalert_reg_with_otp_btn" id="sign_with_mob_btn" value="<?php echo esc_attr($button_field); ?>"><span class="button__text"><?php echo esc_html($button_field); ?></span></button>    
     <a href="#" onclick="return false;" class="sa_default_signup_form" data-parentForm="register"><?php esc_html_e('Back', 'sms-alert'); ?></a>
 </p>

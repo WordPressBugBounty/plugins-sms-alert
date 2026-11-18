@@ -167,7 +167,7 @@ class NinjaForm extends FormInterface
         $form_id            = $form->get_id();
         $form_enable        = smsalert_get_option('ninja_order_status_' . $form_id, 'smsalert_ninja_general', 'on');
         $otp_enable         = smsalert_get_option('ninja_otp_' . $form_id, 'smsalert_ninja_general', 'on');
-        $uniqueNo            = rand();
+        $uniqueNo            = wp_rand();
         if ('on' === $form_enable && 'on' === $otp_enable ) {
             $settings['element_class'] = 'sa_ninja_submit_btn sa-default-btn-hide';    
             $settings['afterField'] = '
@@ -229,13 +229,13 @@ class NinjaForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -261,7 +261,7 @@ class NinjaForm extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -301,7 +301,7 @@ class NinjaForm extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('ninja-forms/ninja-forms.php') ) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::addDefaultSetting', 1, 2);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::addDefaultSetting', 1, 2);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }
     }
@@ -452,7 +452,7 @@ class NinjaForm extends FormInterface
             if ('on' === $form_enable && 'on' === $buyer_sms_notify ) {
                 if (! empty($billing_phone) ) {
                     $buyer_sms_content = smsalert_get_option('ninja_sms_body_' . $form_data['form_id'], 'smsalert_ninja_message', '');
-                    do_action('sa_send_sms', $billing_phone, self::parseSmsContent($buyer_sms_content, $datas));
+                    do_action('smsalert_send_sms', $billing_phone, self::parseSmsContent($buyer_sms_content, $datas));
                 }
             }
 
@@ -463,7 +463,7 @@ class NinjaForm extends FormInterface
 
                 if (! empty($admin_phone_number) ) {
                     $admin_sms_content = smsalert_get_option('ninja_admin_sms_body_' . $form_data['form_id'], 'smsalert_ninja_message', '');
-                    do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $datas));
+                    do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $datas));
                 }
             }
         }

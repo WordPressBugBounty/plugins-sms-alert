@@ -9,46 +9,52 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$fluent_forms = SaFluentForm::getFluentForms();
-if (! empty($fluent_forms) ) {
-	$disablePlayground     = SmsAlertUtility::isPlayground()?"disablePlayground":"";
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+$smsalert_fluent_forms = SaFluentForm::getFluentForms();
+if (! empty($smsalert_fluent_forms) ) {
+	$smsalert_disablePlayground     = SmsAlertUtility::isPlayground()?"disablePlayground":"";
     ?>
 <!-- accordion -->
 <div class="cvt-accordion">
     <div class="accordion-section">
-    <?php foreach ( $fluent_forms as $ks => $vs ) { ?>
-        <div class="cvt-accordion-body-title" data-href="#accordion_cust_<?php echo esc_attr($ks); ?>">
-            <input type="checkbox" name="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($ks); ?>]" id="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('fluent_order_status_' . esc_attr($ks), 'smsalert_fluent_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label><?php echo esc_attr(ucwords(str_replace('-', ' ', $vs))); ?></label>
+    <?php foreach ( $smsalert_fluent_forms as $smsalert_ks => $smsalert_vs ) { ?>
+        <div class="cvt-accordion-body-title" data-href="#accordion_cust_<?php echo esc_attr($smsalert_ks); ?>">
+            <input type="checkbox" name="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($smsalert_ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('fluent_order_status_' . esc_attr($smsalert_ks), 'smsalert_fluent_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label><?php echo esc_attr(ucwords(str_replace('-', ' ', $smsalert_vs))); ?></label>
             <span class="expand_btn"></span>
         </div>
-        <div id="accordion_cust_<?php echo esc_attr($ks); ?>" class="cvt-accordion-body-content">
+        <div id="accordion_cust_<?php echo esc_attr($smsalert_ks); ?>" class="cvt-accordion-body-content">
             <table class="form-table">
                 <tr>
-                    <td><input data-parent_id="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($ks); ?>]" type="checkbox" name="smsalert_fluent_general[fluent_message_<?php echo esc_attr($ks); ?>]" id="smsalert_fluent_general[fluent_message_<?php echo esc_attr($ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('fluent_message_' . esc_attr($ks), 'smsalert_fluent_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label for="smsalert_fluent_general[fluent_message_<?php echo esc_attr($ks); ?>]">Enable Message</label>
-                    <a href="admin.php?page=fluent_forms&route=editor&form_id=<?php echo $ks;?>" title="Edit Form" target="_blank" class="alignright"><small><?php esc_html_e('Edit Form', 'sms-alert')?></small></a>
+                    <td><input data-parent_id="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($smsalert_ks); ?>]" type="checkbox" name="smsalert_fluent_general[fluent_message_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_fluent_general[fluent_message_<?php echo esc_attr($smsalert_ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('fluent_message_' . esc_attr($smsalert_ks), 'smsalert_fluent_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label for="smsalert_fluent_general[fluent_message_<?php echo esc_attr($smsalert_ks); ?>]">Enable Message</label>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=fluent_forms&route=editor&form_id=' . absint($smsalert_ks))); ?>" title="Edit Form" target="_blank" class="alignright"><small><?php esc_html_e('Edit Form', 'sms-alert')?></small></a>
                     </td>
                     </tr>
                 <tr valign="top"  style="position:relative">
-                    <td class="<?php echo $disablePlayground; ?>">
+                    <td class="<?php echo esc_attr($smsalert_disablePlayground); ?>">
                         <div class="smsalert_tokens">
         <?php
-        $fields = SaFluentForm::getFluentVariables($ks);
-        foreach ( $fields as $key=>$value ) {
-            echo  "<a href='#' data-val='[" . esc_attr($key) . "]'>".esc_attr($value)."</a> | ";
+        $smsalert_fields = SaFluentForm::getFluentVariables($smsalert_ks);
+        foreach ( $smsalert_fields as $smsalert_key=>$smsalert_value ) {
+            echo  "<a href='#' data-val='[" . esc_attr($smsalert_key) . "]'>".esc_attr($smsalert_value)."</a> | ";
         }
         ?>
                         </div>
-                        <textarea data-parent_id="smsalert_fluent_general[fluent_message_<?php echo esc_attr($ks); ?>]" name="smsalert_fluent_message[fluent_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_fluent_message[fluent_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('fluent_order_status_' . esc_attr($ks), 'smsalert_fluent_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('fluent_sms_body_' . esc_attr($ks), 'smsalert_fluent_message', sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'))); ?></textarea>
-                        <div id="menu_fluent_cust_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
+                        <textarea data-parent_id="smsalert_fluent_general[fluent_message_<?php echo esc_attr($smsalert_ks); ?>]" name="smsalert_fluent_message[fluent_sms_body_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_fluent_message[fluent_sms_body_<?php echo esc_attr($smsalert_ks); ?>]" <?php echo( ( smsalert_get_option('fluent_order_status_' . esc_attr($smsalert_ks), 'smsalert_fluent_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php
+                        // translators: 1: Store name.						
+						echo esc_textarea(smsalert_get_option('fluent_sms_body_' . esc_attr($smsalert_ks), 'smsalert_fluent_message', sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'))); ?></textarea>
+                        <div id="menu_fluent_cust_<?php echo esc_attr($smsalert_ks); ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        Select Phone Field : <select name="smsalert_fluent_general[fluent_sms_phone_<?php echo esc_attr($ks); ?>]">
+                        Select Phone Field : <select name="smsalert_fluent_general[fluent_sms_phone_<?php echo esc_attr($smsalert_ks); ?>]">
         <?php
-        foreach ( $fields as $key=>$value ) {
+        foreach ( $smsalert_fields as $smsalert_key=>$smsalert_value ) {
             ?>
-                            <option value="<?php echo esc_attr($key); ?>" <?php echo ( trim(smsalert_get_option('fluent_sms_phone_' . $ks, 'smsalert_fluent_general', '')) === $key ) ? 'selected="selected"' : ''; ?>><?php echo esc_attr($value); ?></option>
+                            <option value="<?php echo esc_attr($smsalert_key); ?>" <?php echo ( trim(smsalert_get_option('fluent_sms_phone_' . $smsalert_ks, 'smsalert_fluent_general', '')) === $smsalert_key ) ? 'selected="selected"' : ''; ?>><?php echo esc_attr($smsalert_value); ?></option>
             <?php
         }
         ?>
@@ -56,7 +62,7 @@ if (! empty($fluent_forms) ) {
                     </td>
                 </tr>
                 <tr>
-                    <td><input data-parent_id="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($ks); ?>]" type="checkbox" name="smsalert_fluent_general[fluent_otp_<?php echo esc_attr($ks); ?>]" id="smsalert_fluent_general[fluent_otp_<?php echo esc_attr($ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('fluent_otp_' . esc_attr($ks), 'smsalert_fluent_general', 'off') === 'on' ) ? "checked='checked'" : '' ); ?>/><label for="smsalert_fluent_general[fluent_otp_<?php echo esc_attr($ks); ?>]">Enable Mobile Verification</label>
+                    <td><input data-parent_id="smsalert_fluent_general[fluent_order_status_<?php echo esc_attr($smsalert_ks); ?>]" type="checkbox" name="smsalert_fluent_general[fluent_otp_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_fluent_general[fluent_otp_<?php echo esc_attr($smsalert_ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('fluent_otp_' . esc_attr($smsalert_ks), 'smsalert_fluent_general', 'off') === 'on' ) ? "checked='checked'" : '' ); ?>/><label for="smsalert_fluent_general[fluent_otp_<?php echo esc_attr($smsalert_ks); ?>]">Enable Mobile Verification</label>
                     </td>
                 </tr>
             </table>

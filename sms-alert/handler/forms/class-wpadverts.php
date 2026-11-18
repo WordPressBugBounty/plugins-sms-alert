@@ -11,7 +11,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -73,18 +73,33 @@ class SA_WPadverts extends FormInterface
         $visible         = get_post_meta($listing_type, "adverts_visible", true);
         if ($visible > 0 ) {
             $publish     = get_the_date("Y-m-d H:i:s", $id, true);
-            $expiry      = date("Y-m-d H:i:s", strtotime($publish . " +$visible DAYS")); 
+            $expiry = (new DateTimeImmutable($publish, wp_timezone()))
+				->modify('+' . (int) $visible . ' days')
+				->format('Y-m-d H:i:s'); 
         }
         $buyerMob        = get_post_meta($id, 'adverts_phone', true);
         global $wpdb;
         $table_name       = $wpdb->prefix .'smsalert_renewal_reminders';
-        $subscription_details = $wpdb->get_results("SELECT next_payment_date, notification_sent_date FROM $table_name WHERE subscription_id = $id and source = '$source'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT next_payment_date, notification_sent_date
+				FROM `" . esc_sql($table_name) . "`
+				WHERE subscription_id = %d
+				AND source = %s",
+				$id,
+				$source
+			)
+		);
         if ('publish' === $status && 'on' === $customerNotify && $expiry) {
             $scheduler_data = get_option('smsalert_adv_renewal_scheduler');
             if (isset($scheduler_data['cron']) && ! empty($scheduler_data['cron']) ) {
                 foreach ( $scheduler_data['cron'] as $sdata ) {
-                    $next_payment_date    = date('Y-m-d', strtotime($expiry));
-                    $notify_days_before   = date('Y-m-d', strtotime('-' . $sdata['frequency'] . ' days', strtotime($next_payment_date)));
+                    $next_payment_date = (new DateTimeImmutable($expiry, wp_timezone()))
+						->format('Y-m-d');
+
+					$notify_days_before = (new DateTimeImmutable($next_payment_date, wp_timezone()))
+						->modify('-' . (int) $sdata['frequency'] . ' days')
+						->format('Y-m-d');
                     if ($sdata['frequency'] > 0 && $sdata['message'] != '' ) {
                         if ($subscription_details ) {
                             $wpdb->update(
@@ -131,7 +146,16 @@ class SA_WPadverts extends FormInterface
         $schedulerData        = get_option('smsalert_adv_reminder_scheduler');
         $today                = new DateTime();
         $today                = $today->format('Y-m-d');
-        $subscription_details = $wpdb->get_results("SELECT * FROM $table_name WHERE notification_sent_date = '$today' and source = '$source'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($table_name) . "`
+				WHERE notification_sent_date = %s
+				AND source = %s",
+				$today,
+				$source
+			)
+		);
         if ('on' === $customerNotify && $subscription_details) {
             foreach ( $subscription_details as $subscription ) {
                 $id                        = $subscription->subscription_id;
@@ -142,7 +166,7 @@ class SA_WPadverts extends FormInterface
                 $cust_sms_data['number']   = $buyerMob;
                 $cust_sms_data['sms_body'] = $customer_msg;
                 $customer_msg              = ( ! empty($cust_sms_data['sms_body']) ) ? $cust_sms_data['sms_body'] : ''; 
-                do_action('sa_send_sms', $buyerMob, $customer_msg);
+                do_action('smsalert_send_sms', $buyerMob, $customer_msg);
             }
         }
     } 
@@ -246,10 +270,12 @@ class SA_WPadverts extends FormInterface
             $schedulerData = array();
             $schedulerData['cron'][] = array(
                 'frequency' => '1',
+				// translators: 1: Author name, 2: Ad ID, 3: Store name, 4: Expiration date.
                 'message'   => sprintf(__('Hello %1$s, your advertisement %2$s with %3$s is expired on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[authorName]', '#[id]', '[store_name]', '[expiration_date]', PHP_EOL, PHP_EOL),
             );
             $schedulerData['cron'][] = array(
                 'frequency' => '2',
+				// translators: 1: Author name, 2: Ad ID, 3: Store name, 4: Expiration date.
                 'message'   => sprintf(__('Hello %1$s, your advertisement %2$s with %3$s is expired on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[authorName]', '#[id]', '[store_name]', '[expiration_date]', PHP_EOL, PHP_EOL),
             );
         }
@@ -287,6 +313,7 @@ class SA_WPadverts extends FormInterface
             $currentVal      = smsalert_get_option('customer_adv_notify_' . strtolower($vs), 'smsalert_adv_general', 'on');
             $checkboxNameId  = 'smsalert_adv_general[customer_adv_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_adv_message[customer_sms_adv_body_' . strtolower($vs) . ']';
+			// translators: 1: Author name, 2: Ad ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', sprintf(__('Hello %1$s, status of your advertisement #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[authorName]', '[id]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
             $textBody       = smsalert_get_option('customer_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When advertisement status is ' . ucwords($vs);
@@ -311,6 +338,7 @@ class SA_WPadverts extends FormInterface
             $currentVal      = smsalert_get_option('author_adv_notify_' . strtolower($vs), 'author_adv_general', 'on');
             $checkboxNameId  = 'smsalert_adv_general[author_adv_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_adv_message[author_sms_adv_body_' . strtolower($vs) . ']';
+			// translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('author_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL));
             $textBody       = smsalert_get_option('author_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When customer send ' . ucwords($vs);
@@ -337,6 +365,7 @@ class SA_WPadverts extends FormInterface
             $currentVal      = smsalert_get_option('admin_adv_notify_' . strtolower($vs), 'smsalert_adv_general', 'on');
             $checkboxNameId  = 'smsalert_adv_general[admin_adv_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_adv_message[admin_sms_adv_body_' . strtolower($vs) . ']';
+			// translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', sprintf(__('%1$s status of advertisement has been changed to %2$s.', 'sms-alert'), '[store_name]:', $vs));
             $textBody = smsalert_get_option('admin_sms_adv_body_' . strtolower($vs), 'smsalert_adv_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When advertisement status is ' . $vs;
@@ -408,7 +437,7 @@ class SA_WPadverts extends FormInterface
             $authorNotify  = smsalert_get_option('author_adv_notify_message', 'smsalert_adv_general', 'on');
             if (($authorNotify === 'on' && $authorMessage !== '')) {
                 $buyerMessage = $this->parseSmsBody($post, $authorMessage);
-                do_action('sa_send_sms', $authorNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $authorNumber, $buyerMessage);
             }
         } 
     }
@@ -435,7 +464,9 @@ class SA_WPadverts extends FormInterface
     public function sendSmsOnAdvertPublishToExpire($post)
     {
         $expired         = get_post_meta($post->ID, '_expiration_date', true);
-        $expiration_date =  date("Y-m-d H:i:s", $expired);
+        $expiration_date = (new DateTimeImmutable('@' . $expired))
+			->setTimezone(wp_timezone())
+			->format('Y-m-d H:i:s');
         $post->expired   = $expiration_date;
         $this->sendSmsOn($post);
     }
@@ -450,7 +481,9 @@ class SA_WPadverts extends FormInterface
     public function sendSmsOnAdvertExpiredToPublish($post)
     {
         $expired         = get_post_meta($post->ID, '_expiration_date', true);
-        $expiration_date =  date("Y-m-d H:i:s", $expired);
+		$expiration_date = (new DateTimeImmutable('@' . $expired))
+			->setTimezone(wp_timezone())
+			->format('Y-m-d H:i:s');
         $post->expired   = $expiration_date;
         $this->sendSmsOn($post);
     }
@@ -465,7 +498,9 @@ class SA_WPadverts extends FormInterface
     public function sendSmsOnAdvertExpiredToPending($post)
     {
         $expired         = get_post_meta($post->ID, '_expiration_date', true);
-        $expiration_date =  date("Y-m-d H:i:s", $expired);
+		$expiration_date = (new DateTimeImmutable('@' . $expired))
+			->setTimezone(wp_timezone())
+			->format('Y-m-d H:i:s');
         $post->expired   = $expiration_date;
         $this->sendSmsOn($post);
     }
@@ -541,7 +576,7 @@ class SA_WPadverts extends FormInterface
             $customerNotify  = smsalert_get_option('customer_adv_notify_' . $status, 'smsalert_adv_general', 'on');
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                 $buyerMessage = $this->parseSmsBody($post, $customerMessage);
-                do_action('sa_send_sms', $authorNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $authorNumber, $buyerMessage);
             }
         }
 
@@ -554,7 +589,7 @@ class SA_WPadverts extends FormInterface
             $adminPhoneNumber   = implode(',', $adminPhoneNumber);
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage   = $this->parseSmsBody($post, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }        
     } 
@@ -576,7 +611,9 @@ class SA_WPadverts extends FormInterface
         $post_title      = $adverd->post_title;
         $post_date       = $adverd->post_date;
         $expired         = get_post_meta($id, '_expiration_date', true);
-        $expiration_date = date("Y-m-d H:i:s", $expired);
+		$expiration_date = (new DateTimeImmutable('@' . $expired))
+			->setTimezone(wp_timezone())
+			->format('Y-m-d H:i:s');
         $post_url        = $adverd->guid;
         $find = array(
         '[id]',
@@ -629,7 +666,7 @@ class SA_WPadverts extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('wpadverts/wpadverts.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -659,7 +696,7 @@ class SA_WPadverts extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
     }
 

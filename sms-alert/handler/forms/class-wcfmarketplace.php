@@ -59,7 +59,7 @@ class Wcfmarketplace extends FormInterface
     public function saUpdateBillingPhone( $billing_phone, $user_id )
     {
         if (isset($_POST['wcfmvm_static_infos'])) {
-            $user_phone=isset($_POST['wcfmvm_static_infos']['phone'])?$_POST['wcfmvm_static_infos']['phone']:'';
+            $user_phone=isset($_POST['wcfmvm_static_infos']['phone'])?sanitize_text_field(wp_unslash($_POST['wcfmvm_static_infos']['phone'])):'';
             return ( ! empty($billing_phone) ) ? $billing_phone : $user_phone;
         }
         return $billing_phone;
@@ -86,13 +86,13 @@ class Wcfmarketplace extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -118,7 +118,7 @@ class Wcfmarketplace extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

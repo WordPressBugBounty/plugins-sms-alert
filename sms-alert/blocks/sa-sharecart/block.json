@@ -1,5 +1,5 @@
 {
-  "apiVersion": 1,
+  "apiVersion": 3,
   "name": "sms-alert/sa-sharecart",
   "title": "Share Cart",
   "description": "Displaying the share cart button",

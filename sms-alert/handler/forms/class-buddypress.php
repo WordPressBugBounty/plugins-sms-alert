@@ -111,7 +111,7 @@ class BuddyPressRegistrationForm extends FormInterface
     public function bpSiteLoginMobile($form = null, $args=array())
     {
         if ($form == null || is_array($form) || $form == 'login') {
-               echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . __('Login with OTP', 'sms-alert') . '" style="width: 100%;box-sizing: border-box">' . __('Login with OTP', 'sms-alert') . '</button></div>';
+               echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . esc_attr__('Login with OTP', 'sms-alert') . '" style="width: 100%;box-sizing: border-box">' . esc_html__('Login with OTP', 'sms-alert') . '</button></div>';
             add_action('wp_footer', array( $this, 'addLoginwithotpShortcode' ), 15);
         }
     }
@@ -148,8 +148,8 @@ class BuddyPressRegistrationForm extends FormInterface
      */
     public function saUpdateBillingPhone($billing_phone, $user_id)
     {
-        if (isset($_POST['signup_phone'])) {
-            $phone = $_POST['signup_phone'];
+        if (isset($_POST['signup_phone']) && isset($_POST['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'bp_new_signup')) {
+            $phone = !empty($_POST['signup_phone'])?sanitize_text_field(wp_unslash($_POST['signup_phone'])):'';
             return ( ! empty($billing_phone) ) ? $billing_phone : $phone;
         }
         return $billing_phone;
@@ -162,12 +162,14 @@ class BuddyPressRegistrationForm extends FormInterface
      */
     public function bpSiteRegistrationErrors()
     {  
-    
+        if(isset($_POST['_wpnonce']) && !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'bp_new_signup')){
+		 return;	
+		}
         $phone = ( ! empty($_POST['signup_phone']) ) ?sanitize_text_field(wp_unslash($_POST['signup_phone'])) : '';
         if (! SmsAlertcURLOTP::validateCountryCode($phone)) {        
             return;
         }
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $bp = buddypress();
         if (!empty($bp->signup->errors) ) {
             return;
@@ -184,8 +186,8 @@ class BuddyPressRegistrationForm extends FormInterface
             SmsAlertUtility::initialize_transaction($this->form_session_var2);            
       
         if (! isset($phone) || ! SmsAlertUtility::validatePhoneNumber($phone)) {            
-            $bp->signup->errors['signup_phone'] =  str_replace('##phone##', SmsAlertcURLOTP::checkPhoneNos($phone), $phoneLogic->_get_otp_invalid_format_message());
-            $bp->signup->signup_phone = $_POST['signup_phone'];
+            $bp->signup->errors['signup_phone'] =  str_replace('##phone##', SmsAlertcURLOTP::checkPhoneNos($phone), $smsalert_phoneLogic->_get_otp_invalid_format_message());
+            $bp->signup->signup_phone = !empty($_POST['signup_phone'])?sanitize_text_field(wp_unslash($_POST['signup_phone'])):'';
             return;
         } 
                    
@@ -193,7 +195,7 @@ class BuddyPressRegistrationForm extends FormInterface
             $getusers = SmsAlertUtility::getUsersByPhone('billling_phone', $phone);
             if (count($getusers) > 0 ) {  
                 $bp->signup->errors['signup_phone'] =  __('An account is already registered with this mobile number!', 'sms-alert');
-                $bp->signup->signup_phone = $_POST['signup_phone'];
+                $bp->signup->signup_phone = empty($_POST['signup_phone'])?sanitize_text_field(wp_unslash($_POST['signup_phone'])):'';
                 return;
             }            
         }
@@ -212,7 +214,7 @@ class BuddyPressRegistrationForm extends FormInterface
      */    
     public function processFormFields($username, $email, $password, $phone)
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $extra_data= null;       
         $phone = preg_replace('/[^0-9]/', '', $phone);
         smsalert_site_challenge_otp('test', $email, $password, $phone, 'phone', $extra_data);
@@ -247,7 +249,7 @@ class BuddyPressRegistrationForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var2 ])) {

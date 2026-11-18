@@ -77,7 +77,7 @@ class EverestForm extends FormInterface
     {    
         $form_id         = $form_data['id'];
         $form_field     = $form_data['form_fields'];        
-        $unique_class   = 'sa-class-'.mt_rand(1, 100);
+        $unique_class   = 'sa-class-'.wp_rand(1, 100);
         $user_authorize = new smsalert_Setting_Options();
         $islogged       = $user_authorize->is_user_authorised();
         $phone_field    = !empty(
@@ -133,7 +133,7 @@ class EverestForm extends FormInterface
     public function saEverestformBuilderSettingsSections($tab, $form_data)
     {
         $tab['smsalert']= esc_html__(
-            'SMS Alert', 'smsalert_form'
+            'SMS Alert', 'sms-alert'
         );
         return $tab;
     }
@@ -150,7 +150,7 @@ class EverestForm extends FormInterface
         $form_data['settings'] : array();        
         echo '<div class="evf-content-section evf-content-smsalert-settings">';
         echo '<div class="evf-content-section-title">';
-        esc_html_e('SMS Alert Message Configuration', 'smsalert_form');
+        esc_html_e('SMS Alert Message Configuration', 'sms-alert');
         echo '</div>';
         echo '<a href="https://kb.smsalert.co.in/knowledgebase/everest-forms-sms-integration/" target="_blank" class="btn-outline"><span class="dashicons dashicons-format-aside"></span> Documentation</a><br>';        
         everest_forms_panel_field(
@@ -207,6 +207,7 @@ class EverestForm extends FormInterface
             $form_data,
             esc_html__('Admin Message', 'sms-alert'),            
             array(
+			// translators: 1: Store name.
             'default' => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
             'smarttags'  => array(
                                 'type'        => 'fields',
@@ -241,6 +242,7 @@ class EverestForm extends FormInterface
             $form_data,
             esc_html__('Visitor Message', 'sms-alert'),            
             array(
+			// translators: 1: Store name.
             'default' => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
             'smarttags'  => array(
                                 'type'        => 'fields',
@@ -306,11 +308,11 @@ class EverestForm extends FormInterface
                     && ! empty($phone_field)
                 ) {
                     $cst_sms = self::parseSmsContent($visitor_message, $fields);             
-                    do_action('sa_send_sms', $phone, $cst_sms);
+                    do_action('smsalert_send_sms', $phone, $cst_sms);
                 }
                 if (! empty($admin_number) ) {
                     $admin_sms = self::parseSmsContent($admin_message, $fields); 
-                    do_action('sa_send_sms', $admin_number, $admin_sms);
+                    do_action('smsalert_send_sms', $admin_number, $admin_sms);
                 }
             }
         } 
@@ -338,15 +340,13 @@ class EverestForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($user_login,$user_email,$phone_number)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(
-            wp_unslash($_REQUEST['option'])
-        ) === 'smsalert-validate-otp-form' 
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' 
         ) {
             wp_send_json(
                 SmsAlertUtility::_create_json_response(
@@ -377,12 +377,8 @@ class EverestForm extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) 
-            && sanitize_text_field(
-                wp_unslash(
-                    $_REQUEST['option']
-                )
-            )==='smsalert-validate-otp-form' 
+        if (! empty($extra_data['option']) 
+            && $extra_data['option'] ==='smsalert-validate-otp-form' 
         ) {
             wp_send_json(
                 SmsAlertUtility::_create_json_response(

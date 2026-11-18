@@ -123,7 +123,7 @@ class GF_SMS_Alert extends GFFeedAddOn
      */
     public function feed_settings_title()
     {
-        return __('SMS ALERT', 'smsalert-gravity-forms');
+        return __('SMS ALERT', 'sms-alert');
     }
 
     /**
@@ -163,6 +163,7 @@ class GF_SMS_Alert extends GFFeedAddOn
         'type'    => 'textarea',
         'name'    => 'smsalert_gForm_cstmer_text',
         'tooltip' => 'Enter your Customer SMS Content',
+		// translators: 1: Store name.
         'default_value' => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
         'class'   => 'medium merge-tag-support mt-position-right',
         ),                    
@@ -184,6 +185,7 @@ class GF_SMS_Alert extends GFFeedAddOn
          'type'          => 'textarea',
          'name'          => 'smsalert_gForm_admin_text',
          'tooltip'       => 'Enter your admin SMS Content',
+		 // translators: 1: Store name.
         'default_value' => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
          'class'         => 'medium merge-tag-support mt-position-right',
                         
@@ -212,6 +214,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_cstmer_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Customer SMS Content',
+				// translators: 1: Store name, 2: User status.
                 'default_value' => sprintf(__('Dear user, your account with %1$s has been %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'),  '[store_name]', '[user_status]', PHP_EOL, PHP_EOL),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
@@ -232,6 +235,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_admin_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Admin SMS Content',
+				// translators: 1: Store name, 2: User status.
                 'default_value' => sprintf(__('Dear admin, your account with %1$s has been %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'),  '[store_name]', '[user_status]', PHP_EOL, PHP_EOL),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );                 
@@ -270,6 +274,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                'type'    => 'textarea',
                 'name'    => 'smsalert_gform_cstmer_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Customer SMS Content',
+				// translators: 1: Customer first name, 2: Entity ID, 3: Store name, 4: Payment status.
                 'default_value' => sprintf(__('Hello User, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '{entry_id}', '[store_name]', '{payment_status}', PHP_EOL, PHP_EOL)
                 ,
                 'class'   => 'medium merge-tag-support mt-position-right',
@@ -292,6 +297,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_admin_'. strtolower($vs) .'_text',
                 'tooltip' => 'Enter your Admin SMS Content',
+				// translators: 1: Store name, 2: Entity ID, 3: Payment status.
                 'default_value' => sprintf(__('%1$s: status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]', '#{entry_id}', '{payment_status}'),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
@@ -328,6 +334,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_cstmer_booking_'. strtolower($vss) .'_text',
                 'tooltip' => 'Enter your Customer SMS Content',
+				// translators: 1: Entity ID, 2: Store name, 3: Booking status.
                 'default_value' => sprintf(__('Hello user, status of your booking %1$s with %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '#{entry_id}', '[store_name]', '{booking_status}', PHP_EOL, PHP_EOL)
                 ,
                 'class'   => 'medium merge-tag-support mt-position-right',
@@ -350,6 +357,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 'type'    => 'textarea',
                 'name'    => 'smsalert_gform_admin_booking_'. strtolower($vss) .'_text',
                 'tooltip' => 'Enter your Admin SMS Content',
+				// translators: 1: Store name, 2: Entity ID, 3: Booking status.
                 'default_value' => sprintf(__('%1$s: status of booking %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#{entry_id}', '{booking_status}', PHP_EOL, PHP_EOL),
                 'class'   => 'medium merge-tag-support mt-position-right',
                 );
@@ -492,7 +500,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 $entry_id,
                 $message
             );
-            do_action('sa_send_sms', $cstmer_nos, $message);
+            do_action('smsalert_send_sms', $cstmer_nos, $message);
         }
         if (! empty($admin_nos) && ! empty($admin_msg) ) {
             
@@ -501,7 +509,7 @@ class GF_SMS_Alert extends GFFeedAddOn
                 $entry_id,
                 $admin_msg
             );
-            do_action('sa_send_sms', $admin_nos, $admin_msg);
+            do_action('smsalert_send_sms', $admin_nos, $admin_msg);
         }
     }    
         
@@ -717,7 +725,7 @@ class GF_Smsalert_Form extends FormInterface
                 $entry_id,
                 $cst_message
             );
-               do_action('sa_send_sms', $cstmer_nos, $message);
+               do_action('smsalert_send_sms', $cstmer_nos, $message);
         }
         /* Admin  SMS Notification */        
         if (! empty($admin_nos) 
@@ -729,7 +737,7 @@ class GF_Smsalert_Form extends FormInterface
                 $entry_id,
                 $admin_message                
             );
-            do_action('sa_send_sms', $admin_nos, $admin_msg);
+            do_action('smsalert_send_sms', $admin_nos, $admin_msg);
         }
     }
     
@@ -832,7 +840,7 @@ class GF_Smsalert_Form extends FormInterface
                 $cst_message,
                 $post
             );                
-            do_action('sa_send_sms', $cstmer_nos, $message);
+            do_action('smsalert_send_sms', $cstmer_nos, $message);
         }
         /* Admin  SMS Notification */        
         if (! empty($admin_nos) 
@@ -845,7 +853,7 @@ class GF_Smsalert_Form extends FormInterface
                 $admin_message,
                 $post                
             );
-            do_action('sa_send_sms', $admin_nos, $admin_msg);
+            do_action('smsalert_send_sms', $admin_nos, $admin_msg);
         }    
     }
    
@@ -949,7 +957,7 @@ class GF_Smsalert_Form extends FormInterface
                 $entry_id,
                 $cst_message
             );
-            do_action('sa_send_sms', $cstmer_nos, $message);
+            do_action('smsalert_send_sms', $cstmer_nos, $message);
         }
         /* Admin  SMS Notification */        
         if (! empty($admin_nos) 
@@ -961,7 +969,7 @@ class GF_Smsalert_Form extends FormInterface
                 $entry_id,
                 $admin_message                
             );
-            do_action('sa_send_sms', $admin_nos, $admin_msg);
+            do_action('smsalert_send_sms', $admin_nos, $admin_msg);
         }      
     }    
     
@@ -1071,16 +1079,14 @@ class GF_Smsalert_Form extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($user_login,$user_email,$phone_number )
+    public function handle_failed_verification($user_login,$user_email,$phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option'])
-            && sanitize_text_field(
-                wp_unslash($_REQUEST['option'])
-            ) ===        'smsalert-validate-otp-form' 
+        if (! empty($extra_data['option'])
+            && $extra_data['option'] ===        'smsalert-validate-otp-form' 
         ) {
             wp_send_json(
                 SmsAlertUtility::_create_json_response(
@@ -1111,8 +1117,8 @@ class GF_Smsalert_Form extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option'])  
-            && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' 
+        if (! empty($extra_data['option'])  
+            && $extra_data['option'] === 'smsalert-validate-otp-form' 
         ) {
             wp_send_json(
                 SmsAlertUtility::_create_json_response(

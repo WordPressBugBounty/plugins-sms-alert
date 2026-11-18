@@ -65,7 +65,7 @@ class WCSignupWithOTp
         add_action('start_process_signwithmob', array( $this, 'processRegistration' ), 10, 1);
         $this->routeData();
         add_action('smsalert_user_created', array( $this, 'smsalertWcUpdateNewDetails' ), 100, 2);
-        add_filter('sAlertDefaultSettings', array( $this, 'add_default_setting' ), 1);
+        add_filter('smsalertDefaultSettings', array( $this, 'add_default_setting' ), 1);
 
     }
 
@@ -180,7 +180,7 @@ class WCSignupWithOTp
 
         if (empty($user->billing_phone) ) {
             update_user_meta($user_id, 'billing_phone', $data['billing_phone']);
-            do_action('sa_send_sms', $data['billing_phone'], 'terer');
+            do_action('smsalert_send_sms', $data['billing_phone'], 'terer');
         }
 
     }
@@ -276,8 +276,11 @@ class WCSignupWithOTp
                     <div class="close"><span></span></div>
                     <div class="modal-body">
                         <div class="smsalert_validate_field">
-                            <div id="slide_form">
-            <?php echo $this->smsalertForms(); ?>
+                            <div id="slide_form">				
+            <?php 
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- smsalert forms generates HTML.
+			echo $this->smsalertForms(); 
+			?>
                             </div>
                         </div>
                     </div>
@@ -343,9 +346,11 @@ class WCSignupWithOTp
         $role                = ( ! empty($user->roles[0]) ) ? $user->roles[0] : '';
         $role_display_name   = ( ! empty($role) ) ? self::get_user_roles($role) : '';
         $smsalert_reg_notify = smsalert_get_option('wc_user_roles_' . $role, 'smsalert_signup_general', 'off');
+		// translators: 1: User name, 2: Store name.
         $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
 
         $smsalert_reg_admin_notify = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'off');
+		// translators: 1: User name, 2: Store name.
         $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
         $admin_phone_number        = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
 
@@ -364,7 +369,7 @@ class WCSignupWithOTp
             $billing_phone,
             );
             $sms_body_new_user = str_replace($search, $replace, $sms_body_new_user);
-            do_action('sa_send_sms', $billing_phone, $sms_body_new_user);
+            do_action('smsalert_send_sms', $billing_phone, $sms_body_new_user);
         }
 
         if ('on' === $smsalert_reg_admin_notify && ! empty($admin_phone_number) ) {
@@ -388,7 +393,7 @@ class WCSignupWithOTp
             $nos                     = explode(',', $admin_phone_number);
             $admin_phone_number      = array_diff($nos, array( 'postauthor', 'post_author' ));
             $admin_phone_number      = implode(',', $admin_phone_number);
-            do_action('sa_send_sms', $admin_phone_number, $sms_admin_body_new_user);
+            do_action('smsalert_send_sms', $admin_phone_number, $sms_admin_body_new_user);
         }
     }
 
@@ -531,10 +536,6 @@ class WCSignupWithOTp
             wc_add_notice('<strong>' . __('Error:', 'woocommerce') . '</strong> ' . $e, 'error');
 
             } else { */
-
-            ini_set('display_errors', 1);
-            ini_set('display_startup_errors', 1);
-            error_reporting(E_ALL);
 
             if (! is_wp_error($new_customer) ) {
 

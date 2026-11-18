@@ -92,13 +92,13 @@ class ProfileRegistrationForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -124,7 +124,7 @@ class ProfileRegistrationForm extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

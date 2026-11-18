@@ -94,7 +94,7 @@ class AffiliateManager extends FormInterface
     {
         add_action(
             'wpam_front_end_registration_form_submitted', array( 
-            $this, 'handleWpamRegisterForm' ), 10, 1
+            $this, 'handleWpamRegisterForm' ), 10, 2
         );
         add_action(
             'woocommerce_order_status_processing', array(
@@ -208,12 +208,14 @@ class AffiliateManager extends FormInterface
     public static function getTransactionDetail( $order_id = null )
     {
         global $wpdb;
-        $query      = '
-				SELECT *
-				FROM ' . $wpdb->prefix . 'wpam_transactions
-				WHERE referenceId = %s order by transactionId desc ';
-        $txn_record = $wpdb->get_row($wpdb->prepare($query, $order_id));
-        return $txn_record;
+		$txn_record = $wpdb->get_row($wpdb->prepare(
+			"SELECT *
+			FROM {$wpdb->prefix}wpam_transactions
+			WHERE referenceId = %s
+			ORDER BY transactionId DESC",
+			$order_id
+		));
+		return $txn_record;
     }
 
     /**
@@ -300,10 +302,17 @@ class AffiliateManager extends FormInterface
     public static function getAffiliateById( $affiliate_id = null )
     {
         global $wpdb;
-		$query = 'SELECT * FROM ' . $wpdb->prefix . 'wpam_affiliates where affiliateId = %s';
-        $db_fields = $wpdb->get_results($wpdb->prepare($query, $affiliate_id), ARRAY_A);
-        $response  = array_shift($db_fields);
-        return $response;
+		$db_fields = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT *
+				FROM {$wpdb->prefix}wpam_affiliates
+				WHERE affiliateId = %s",
+				$affiliate_id
+			),
+			ARRAY_A
+		);
+		$response  = array_shift($db_fields);
+		return $response;
     }
 
     /**
@@ -332,16 +341,16 @@ class AffiliateManager extends FormInterface
             'wpam_admin_notification_' . $status, 
             'smsalert_wpam_general', 'on'
         );
-
         $buyer_sms_content = smsalert_get_option(
             'wpam_sms_body_' . $status, 
             'smsalert_wpam_message',
+			// translators: 1: Customer first name, 2: Transaction Type, 3: Commission Amount, 4: Affiliate ID, 5: Order ID.
             sprintf(__('Hello %1$s,commission has been %2$s for %3$s to your affiliate account %4$s against order %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[transaction_type]', '[commission_amt]', '[affiliate_id]', '#[order_id]', PHP_EOL, PHP_EOL)
         );
-
         $admin_sms_content = smsalert_get_option(
             'wpam_admin_sms_body_' . $status, 
             'smsalert_wpam_message',
+			// translators: 1: Store name, 2: Transaction Type, 3: Commission Amount, 4: Affiliate ID, 5: Order ID.
             sprintf(__('%1$s: commission has been %2$s for %3$s to affiliate account %4$s against order %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[transaction_type]', '[commission_amt]', '[affiliate_id]', '#[order_id]', PHP_EOL, PHP_EOL)
         );
         if (count($am_user) > 0 ) {
@@ -385,29 +394,29 @@ class AffiliateManager extends FormInterface
     public static function afterChangedWpamStatus( $affiliate_id )
     {
         $am_user          = self::getAffiliateById($affiliate_id);
-        $status           = $_REQUEST['handler'];
-        $buyer_sms_notify = smsalert_get_option(
-            'wpam_order_status_' . $status, 
-            'smsalert_wpam_general', 'on'
-        );
-        $admin_sms_notify = smsalert_get_option(
-            'wpam_admin_notification_' . $status, 
-            'smsalert_wpam_general', 'on'
-        );
-
-        $buyer_sms_content = smsalert_get_option(
-            'wpam_sms_body_' . $status, 
-            'smsalert_wpam_message',
-            sprintf(__('Hello %1$s, status of your affiliate account %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[affiliate_id]', '[store_name]', '[affiliate_status]', PHP_EOL, PHP_EOL)
-        );
-
-        $admin_sms_content = smsalert_get_option(
-            'wpam_admin_sms_body_' . $status, 
-            'smsalert_wpam_message',
-            sprintf(__('%1$s: status of affiliate %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[affiliate_id]', '[affiliate_status]', PHP_EOL, PHP_EOL)
-        );
 
         if (count($am_user) > 0 ) {
+			$status           = $am_user['status'];
+			$buyer_sms_notify = smsalert_get_option(
+				'wpam_order_status_' . $status, 
+				'smsalert_wpam_general', 'on'
+			);
+			$admin_sms_notify = smsalert_get_option(
+				'wpam_admin_notification_' . $status, 
+				'smsalert_wpam_general', 'on'
+			);
+			$buyer_sms_content = smsalert_get_option(
+				'wpam_sms_body_' . $status, 
+				'smsalert_wpam_message',
+				// translators: 1: Customer first name, 2: Affiliate ID, 3: Store name, 4: Affiliate Status.
+				sprintf(__('Hello %1$s, status of your affiliate account %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[affiliate_id]', '[store_name]', '[affiliate_status]', PHP_EOL, PHP_EOL)
+			);
+			$admin_sms_content = smsalert_get_option(
+				'wpam_admin_sms_body_' . $status, 
+				'smsalert_wpam_message',
+				// translators: 1: Store name, 2: Affiliate ID, 3: Affiliate Status.
+				sprintf(__('%1$s: status of affiliate %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[affiliate_id]', '[affiliate_status]', PHP_EOL, PHP_EOL)
+			);
             $username      = $am_user['email'];
             $billing_phone = $am_user['phoneNumber'];
 
@@ -458,10 +467,10 @@ class AffiliateManager extends FormInterface
      *
      * @return array
      */
-    public function handleWpamRegisterForm()
+    public function handleWpamRegisterForm($model, $request)
     {
         SmsAlertUtility::checkSession();
-        $phone = ( ! empty($_POST['_phoneNumber']) ) ? sanitize_text_field(wp_unslash($_POST['_phoneNumber'])) : '';
+        $phone = ( ! empty($request['_phoneNumber']) ) ? sanitize_text_field(wp_unslash($request['_phoneNumber'])) : '';
         if (! SmsAlertcURLOTP::validateCountryCode($phone)) {        
             return false;
         }
@@ -475,11 +484,11 @@ class AffiliateManager extends FormInterface
             return $_POST;
         }
 
-        if (! empty($_POST) ) {
+        if (! empty($request) ) {
             if (empty($_SESSION) ) {
                 $_SESSION[ $this->form_session_var ] = 1;
 
-                $email = ( ! empty($_POST['_email']) ) ? sanitize_email(wp_unslash($_POST['_email'])) : '';
+                $email = ! empty($request['_email']) ? $request['_email'] : '';
                
 
                 $_SESSION['user_email']    = $email;
@@ -488,7 +497,7 @@ class AffiliateManager extends FormInterface
             }
 
             SmsAlertUtility::initialize_transaction($this->form_session_var);
-            $this->processPhoneAndStartOTPVerificationProcess($_POST);
+            $this->processPhoneAndStartOTPVerificationProcess($request);
         }
     }
 
@@ -530,7 +539,7 @@ class AffiliateManager extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
@@ -596,7 +605,7 @@ class AffiliateManager extends FormInterface
             $this, 'addTabs' ), 10
         );
         add_filter(
-            'sAlertDefaultSettings', array( 
+            'smsalertDefaultSettings', array( 
             $this, 'addDefaultSetting' ), 2
         );
     }
@@ -656,7 +665,7 @@ class AffiliateManager extends FormInterface
 
             $checkbox_name_id = 'smsalert_wpam_general[wpam_order_status_' . $vs . ']';
             $textarea_name_id = 'smsalert_wpam_message[wpam_sms_body_' . $vs . ']';
-
+            // translators: 1: Customer first name, 2: Affiliate ID, 3: Store name, 4: Affiliate Status.
             $text_body = smsalert_get_option('wpam_sms_body_' . $vs, 'smsalert_wpam_message', sprintf(__('Hello %1$s, status of your affiliate account %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[affiliate_id]', '[store_name]', '[affiliate_status]', PHP_EOL, PHP_EOL));
 
             $templates[ $ks ]['title']          = 'when Affiliate is ' . ucwords($vs);
@@ -674,7 +683,7 @@ class AffiliateManager extends FormInterface
 
             $checkbox_name_id = 'smsalert_wpam_general[wpam_order_status_' . $vs . ']';
             $textarea_name_id = 'smsalert_wpam_message[wpam_sms_body_' . $vs . ']';
-
+            // translators: 1: Customer first name, 2: Transaction type, 3: Commission amount, 4: Affiliate ID, 5: Order ID.
             $text_body = smsalert_get_option('wpam_sms_body_' . $vs, 'smsalert_wpam_message', sprintf(__('Hello %1$s,commission has been %2$s for %3$s to your affiliate account %4$s against order %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[transaction_type]', '[commission_amt]', '[affiliate_id]', '#[order_id]', PHP_EOL, PHP_EOL));
 
             $templates[ $ks ]['title']          = 'when Transaction is ' . ucwords($vs);
@@ -706,7 +715,7 @@ class AffiliateManager extends FormInterface
 
             $checkbox_name_id = 'smsalert_wpam_general[wpam_admin_notification_' . $vs . ']';
             $textarea_name_id = 'smsalert_wpam_message[wpam_admin_sms_body_' . $vs . ']';
-
+            // translators: 1: Store name, 2: Affiliate ID, 3: Affiliate status.
             $text_body = smsalert_get_option('wpam_admin_sms_body_' . $vs, 'smsalert_wpam_message', sprintf(__('%1$s: status of affiliate %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[affiliate_id]', '[affiliate_status]', PHP_EOL, PHP_EOL));
 
             $templates[ $ks ]['title']          = 'when Affiliate is ' . ucwords($vs);
@@ -724,9 +733,9 @@ class AffiliateManager extends FormInterface
 
             $checkbox_name_id = 'smsalert_wpam_general[wpam_admin_notification_' . $vs . ']';
             $textarea_name_id = 'smsalert_wpam_message[wpam_admin_sms_body_' . $vs . ']';
-
             $text_body = smsalert_get_option(
                 'wpam_admin_sms_body_' . $vs, 'smsalert_wpam_message', 
+				// translators: 1: Store name, 2: Transaction type, 3: Commission amount, 4: Affiliate ID, 5: Order ID.
                 sprintf(__('%1$s: commission has been %2$s for %3$s to affiliate account %4$s against order %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[transaction_type]', '[commission_amt]', '[affiliate_id]', '#[order_id]', PHP_EOL, PHP_EOL)
             );
 

@@ -57,7 +57,7 @@
                     if (ab_cart_phone.length >= 1) { //Checking if the phone number is longer than 1 digit
                         //If Phone valid
                         var ab_cart_name                 = $("#billing_first_name,#billing-first_name").val();
-                        var ab_cart_nonce                 = $("#smsalert_abcart_nonce").val();
+                        var ab_cart_nonce                 = $("#woocommerce-process-checkout-nonce").val();
                         var ab_cart_surname             = $("#billing_last_name,#billing-last_name").val();
                         var ab_cart_phone                 = mob_field.val();
                         var ab_cart_country             = $("#billing_country,#billing-country").val();
@@ -96,7 +96,7 @@
                         var data = {
                             action:                            "save_data",
                             ab_cart_email:                  ab_cart_email,
-                            smsalert_abcart_nonce:            ab_cart_nonce,
+                            abcart_nonce:            ab_cart_nonce,
                             ab_cart_name:                  ab_cart_name,
                             ab_cart_surname:              ab_cart_surname,
                             ab_cart_phone:                  ab_cart_phone,

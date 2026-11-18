@@ -65,7 +65,7 @@ class SAFormMaker extends FormInterface
      */    
     public function addSmsalertShortcode($form)
     {
-        $unique_class    = 'sa-class-'.mt_rand(1, 100);
+        $unique_class    = 'sa-class-'.wp_rand(1, 100);
         $form_id     = $form['form']->id;
      
         $form_enable = smsalert_get_option('formmarker_order_status_' . $form_id, 'smsalert_formmarker_general', 'on'); 
@@ -75,7 +75,7 @@ class SAFormMaker extends FormInterface
         $phonevalue = explode(":", $phone_field);
         $fieldid = !empty($phonevalue[1])?$phonevalue[1]:'';
         if ('on' === $form_enable && 'on' === $otp_enable && '' !== $phone_field ) {
-            $uniqueNo = rand();
+            $uniqueNo = wp_rand();
             $inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery(document).ready(function(){
 				
 				jQuery("form#form'. $form_id .'").each(function () 
@@ -122,14 +122,14 @@ class SAFormMaker extends FormInterface
             if (!empty($datas[$phoneId])) {            
                 $mobileno =  $datas[$phoneId];
             }
-            do_action('sa_send_sms', $mobileno, self::parseSmsContent($buyer_sms_content, $form));
+            do_action('smsalert_send_sms', $mobileno, self::parseSmsContent($buyer_sms_content, $form));
         }
         if ('on' === $form_enable && 'on' === $admin_sms_notify ) {
             $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
             $admin_phone_number = str_replace('post_author', '', $admin_phone_number);
             if (! empty($admin_phone_number) ) {
                 $admin_sms_content = smsalert_get_option('formmarker_admin_sms_body_'. $form_id, 'smsalert_formmarker_message', '');
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $form));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $form));
             }
         }
     }
@@ -155,13 +155,13 @@ class SAFormMaker extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -182,13 +182,13 @@ class SAFormMaker extends FormInterface
      * @return void
      */
     public function handle_post_verification( $redirect_to, $user_login, $user_email, $password, $phone_number, $extra_data )
-    {        
+    { 	
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
         
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -253,7 +253,7 @@ class SAFormMaker extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('form-maker/form-maker.php') ) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }
     }

@@ -147,6 +147,9 @@ class UserRegistrationForm extends FormInterface
      */
     public function smsalertUrRegistrationValidation($errors, $form_data, $form_id )
     {
+		if (!empty($_POST['form_id']) && !empty($_POST['ur_frontend_form_nonce']) && !wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['ur_frontend_form_nonce'])), 'ur_frontend_form_id' . sanitize_text_field(wp_unslash($_POST['form_id'])) ) ) {
+			return $errors;
+		}
         SmsAlertUtility::checkSession();
         
         if (!empty($_SESSION['sa_userr_mobile_verified']) ) {
@@ -157,7 +160,7 @@ class UserRegistrationForm extends FormInterface
         if (!empty($errors) ) {
             return $errors;
         }
-        $form_datas = json_decode(stripslashes($_POST['form_data']));
+        $form_datas = !empty($_POST['form_data'])?json_decode(stripslashes(sanitize_text_field(wp_unslash($_POST['form_data'])))):array();
         $username = '';$email='';$password='';$user_phone='';
         if (!empty($form_datas)) {
             foreach ($form_datas as $form_data) {
@@ -201,11 +204,11 @@ class UserRegistrationForm extends FormInterface
      */
     public function processFormFields( $username, $email, $errors, $password,$phone_no )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $phone_no);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            return new WP_Error('billing_phone_error', str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()));
+            return new WP_Error('billing_phone_error', str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message()));
         }
 
         SmsAlertUtility::checkSession();
@@ -227,8 +230,8 @@ class UserRegistrationForm extends FormInterface
      */
     public function saUpdateBillingPhone( $billing_phone, $user_id )
     {
-        if (isset($_POST['form_data'])) {
-            $form_datas = json_decode(stripslashes($_POST['form_data']));
+        if (!empty($_POST['form_id']) && isset($_POST['form_data']) && !empty($_POST['ur_frontend_form_nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['ur_frontend_form_nonce'])), 'ur_frontend_form_id' . sanitize_text_field(wp_unslash($_POST['form_id'])) ) ) {
+            $form_datas = json_decode(stripslashes(sanitize_text_field(wp_unslash($_POST['form_data']))));
             $user_phone='';
             if (!empty($form_datas)) {
                 foreach ($form_datas as $form_data) {
@@ -262,7 +265,7 @@ class UserRegistrationForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {

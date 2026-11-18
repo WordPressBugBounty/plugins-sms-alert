@@ -16,11 +16,11 @@ if (! defined('ABSPATH') ) {
 if (! is_plugin_active('woocommerce/woocommerce.php') ) {
     return;
 } else {
-    $user_authorize = new smsalert_Setting_Options();
-    $islogged       = $user_authorize->is_user_authorised();
-    if ($islogged) {
-        $sa_abcart = new SA_Abandoned_Cart();
-        $sa_abcart->run();
+    $smsalert_user_authorize = new smsalert_Setting_Options();
+    $smsalert_islogged       = $smsalert_user_authorize->is_user_authorised();
+    if ($smsalert_islogged) {
+        $smsalert_sa_abcart = new SA_Abandoned_Cart();
+        $smsalert_sa_abcart->run();
     }
 }
 /**
@@ -75,8 +75,8 @@ class SA_Abandoned_Cart
         }
         add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         add_action('sa_tabContent', array( $this, 'tabContent' ), 1);
-        add_filter('sAlertDefaultSettings', array( $this, 'addDefaultSetting' ), 1);
-        add_action('woocommerce_review_order_after_submit', array( $this, 'addNonceField' ), 1, 1);
+        add_filter('smsalertDefaultSettings', array( $this, 'addDefaultSetting' ), 1);
+        //add_action('woocommerce_review_order_after_submit', array( $this, 'addNonceField' ), 1, 1);
     }
 
     /**
@@ -94,10 +94,20 @@ class SA_Abandoned_Cart
      *
      * @return stirng
      */
-    public function addNonceField()
+  /*   public function addNonceField()
     { 
-        echo wp_nonce_field('smsalert_wp_abcart_nonce', 'smsalert_abcart_nonce', true, false);
-    }
+        echo wp_kses(
+			wp_nonce_field('smsalert_wp_abcart_nonce', 'smsalert_abcart_nonce', true, false),
+			array(
+				'input' => array(
+					'type'  => true,
+					'id'    => true,
+					'name'  => true,
+					'value' => true,
+				),
+			)
+		);
+    } */
 
     /**
      * Define admin hooks function.
@@ -250,10 +260,12 @@ class SA_Abandoned_Cart
             $scheduler_data  = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '60',
+			// translators: 1: Customer name, 2: Checkout url.
             'message'   => sprintf(__('Hey %1$s, We noticed you could not complete your order. Click on the link below to place your order. Shop Now - %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[checkout_url]', PHP_EOL, PHP_EOL),
             );
             $scheduler_data['cron'][] = array(
             'frequency' => '120',
+			// translators: 1: Customer name, 2: Checkout url.
             'message'   => sprintf(__('Hey %1$s, We noticed you could not complete your order. Click on the link below to place your order. Shop Now - %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[checkout_url]', PHP_EOL, PHP_EOL),
             );
         }
@@ -494,7 +506,7 @@ class SA_Cart_Admin
 			
 			$post_id = absint($post_id);
 			$data = $wpdb->get_row(
-				$wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $post_id),
+				$wpdb->prepare("SELECT * FROM `" . esc_sql($table_name) . "` WHERE id = %d", $post_id),
 				ARRAY_A
 			);
 			if ($data) {
@@ -524,7 +536,7 @@ class SA_Cart_Admin
         // Output table contents
         $deleted = false;
         if ('delete' === $wp_list_table->current_action() ) {
-            if (is_array($_REQUEST['id']) ) { // If deleting multiple lines from table
+            if (!empty($_REQUEST['id']) && is_array($_REQUEST['id']) ) { // If deleting multiple lines from table
                 $deleted_row_count = count($_REQUEST['id']);
             } else { // If a single row is deleted
                 $deleted_row_count = 1;
@@ -537,7 +549,7 @@ class SA_Cart_Admin
             <h2 id="heading-for-admin-notice-dislay"></h2>
 
         <?php
-        if ('admin.php' === $pagenow && 'ab-cart' === $_GET['page'] ) {
+        if ('admin.php' === $pagenow && !empty($_GET['page']) && 'ab-cart' === $_GET['page'] ) {
             if ($deleted ) {
                 ?>
                     <div class="updated below-h2" id="message"><p>Items deleted:  <?php echo esc_attr($deleted_row_count); ?></p></div>
@@ -550,7 +562,7 @@ class SA_Cart_Admin
                 </p>
             <?php } else { ?>
                 <form method="GET">
-                    <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>"/>
+                    <input type="hidden" name="page" value="<?php echo !empty($_REQUEST['page'])?esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))):''; ?>"/>
                 <?php $wp_list_table->display(); ?>
                 </form>
                 <?php
@@ -663,7 +675,16 @@ class SA_Cart_Admin
         if ('' === $start_date && '' === $end_date ) {
             return array();
         }
-        $results = $wpdb->get_results(( "SELECT cart_total,msg_sent,recovered,currency FROM $table_name WHERE time >= '$start_date' AND time <= '$end_date'" ), ARRAY_A);
+        $results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT cart_total, msg_sent, recovered, currency
+				 FROM `" . esc_sql($table_name) . "`
+				 WHERE `time` >= %s AND `time` <= %s",
+				$start_date,
+				$end_date
+			),
+			ARRAY_A
+		);
         $rec_amount   = 0;
         $ab_amount    = 0;
         $ab_carts     = 0;
@@ -827,7 +848,7 @@ class SA_Cart_Admin
      */
     public static function display_reports_page()
     {
-        if ('ab-cart-reports' === $_GET['page'] ) {
+        if (!empty($_GET['page']) && 'ab-cart-reports' === $_GET['page'] ) {
             wp_enqueue_script(
                 'd3_js',
                 SA_MOV_URL . 'js/d3.v3.min.js',
@@ -856,7 +877,7 @@ class SA_Cart_Admin
             <h1>Abandoned Cart Reports <a href="admin.php?page=ab-cart" class="button action">View List</a></h1>
             <h2 id="heading-for-admin-notice-dislay"></h2>
                 <form method="GET">
-                    <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>"/>
+                    <input type="hidden" name="page" value="<?php echo !empty($_REQUEST['page'])?esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))):''; ?>"/>
                     <div class="main_start_end_date" id="main_start_end_date" >
                 <div class = "filter_date_drop_down" id = "filter_date_drop_down" >
                     <label class="date_time_filter_label" for="date_time_filter_label">
@@ -916,7 +937,7 @@ class SA_Cart_Admin
         <span class="sa_counter_title">Abandoned Amount</span>
         </div>
         <div class="sa_counter_body">
-        <span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol"><?php echo $result['currency']; ?></span><?php echo ' ' . $result['abandoned_amount']; ?></bdi></span>        </div>
+        <span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol"><?php echo esc_html($result['currency']); ?></span><?php echo ' ' . esc_html($result['abandoned_amount']); ?></bdi></span>        </div>
 
         </div>
                     </div>
@@ -927,7 +948,7 @@ class SA_Cart_Admin
         <span class="sa_counter_title">Abandoned Carts</span>
         </div>
         <div class="sa_counter_body">
-            <?php echo $result['abandoned_count']; ?>        </div>
+            <?php echo esc_html($result['abandoned_count']); ?>        </div>
 
         </div>
                     </div>
@@ -938,7 +959,7 @@ class SA_Cart_Admin
         <span class="sa_counter_title">Recovered Amount</span>
         </div>
         <div class="sa_counter_body">
-        <span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol"><?php echo $result['currency']; ?></span><?php echo ' ' . $result['recovered_amount']; ?></bdi></span>        </div>
+        <span class="woocommerce-Price-amount amount"><bdi><span class="woocommerce-Price-currencySymbol"><?php echo esc_html($result['currency']); ?></span><?php echo ' ' . esc_html($result['recovered_amount']); ?></bdi></span>        </div>
 
         </div>
                     </div>
@@ -948,7 +969,7 @@ class SA_Cart_Admin
         <span class="sa_counter_title">Recovered Carts</span>
         </div>
         <div class="sa_counter_body">
-            <?php echo $result['recovered_count']; ?></div>
+            <?php echo esc_html($result['recovered_count']); ?></div>
 
         </div>
                     </div>
@@ -959,7 +980,7 @@ class SA_Cart_Admin
         <span class="sa_counter_title">SMS Sent</span>
         </div>
         <div class="sa_counter_body">
-            <?php echo $result['msg_count']; ?></div>
+            <?php echo esc_html($result['msg_count']); ?></div>
 
         </div>
                     </div>
@@ -982,7 +1003,7 @@ class SA_Cart_Admin
         global $pagenow;
 
         // Checking if we are on open plugin page
-        if ('admin.php' === $pagenow && 'sms-alert' === sanitize_text_field($_GET['page']) ) {
+        if ('admin.php' === $pagenow && !empty($_GET['page']) && 'sms-alert' === sanitize_text_field(wp_unslash($_GET['page'])) ) {
 
             // Checking if WP Cron hooks are scheduled
             $missing_hooks = array();
@@ -1005,18 +1026,27 @@ class SA_Cart_Admin
                 ?>
                 <div class="warning notice updated">
                 <?php
-                echo sprintf(
-                /* translators: %s - Cron event name */
-                    _n('It seems that WP Cron event <strong>%s</strong> required for automation is not scheduled.', 'It seems that WP Cron events <strong>%s</strong> required for automation are not scheduled.', $total, 'sms-alert'),
-                    $hooks
-                );
+                echo wp_kses_post(
+					sprintf(
+						/* translators: %s - Cron event name */
+						_n(
+							'It seems that WP Cron event <strong>%s</strong> required for automation is not scheduled.',
+							'It seems that WP Cron events <strong>%s</strong> required for automation are not scheduled.',
+							$total,
+							'sms-alert'
+						),
+						esc_html($hooks)
+					)
+				);
                 ?>
                 <?php
-                echo sprintf(
-                /* translators: %1$s - Plugin name, %2$s - Link */
-                    __('Please try disabling and enabling %1$s plugin. If this notice does not go away after that, please <a href="https://wordpress.org/support/plugin/sms-alert/" target="_blank">get in touch with us</a>.', 'sms-alert'),
-                    SMSALERT_PLUGIN_NAME
-                );
+                echo wp_kses_post(
+					sprintf(
+						/* translators: %1$s - Plugin name */
+						__('Please try disabling and enabling %1$s plugin. If this notice does not go away after that, please <a href="https://wordpress.org/support/plugin/sms-alert/" target="_blank">get in touch with us</a>.', 'sms-alert'),
+						esc_html(SMSALERT_PLUGIN_NAME)
+					)
+				);
                 ?>
                     </p>
                 </div>
@@ -1057,22 +1087,32 @@ class SA_Cart_Admin
         $form_quiet_hours = smsalert_get_option('from_quiet_hours', 'smsalert_abandoned_cart', '22:00');
         $to_quiet_hours = smsalert_get_option('to_quiet_hours', 'smsalert_abandoned_cart', '08:00');
         if ('1' === $quiet_hours) {
-            $current_time = date('H:i:s', strtotime(current_time('mysql')));
+            $current_time = current_datetime()->format('H:i:s');
             if ($current_time >= $form_quiet_hours && $current_time <= $to_quiet_hours) {
                 return;
             }
         } 
         foreach ( $scheduler_data['cron'] as $sdata ) {
 
-            $datetime = current_time('mysql');
-            $fromdate = date('Y-m-d H:i:s', strtotime('-' . $sdata['frequency'] . ' minutes', strtotime($datetime)));
+            $datetime = current_datetime();
+			$fromdate = $datetime->modify('-' . absint($sdata['frequency']) . ' minutes')->format('Y-m-d H:i:s');
 
-            $todate = date('Y-m-d H:i:s', strtotime('-' . ( $sdata['frequency'] + $cron_frequency ) . ' minutes', strtotime($datetime)));    
-             
-            $rows_to_phone = $wpdb->get_results(
-                'SELECT * FROM ' . $table_name . " WHERE cart_contents != '' AND recovered = '0' AND time >= '" . $todate . "' AND time <= '" . $fromdate . "' ",
-                ARRAY_A
-            );
+			$todate = $datetime->modify('-' . ( absint($sdata['frequency']) + absint($cron_frequency) ) . ' minutes')->format('Y-m-d H:i:s');
+
+			$rows_to_phone = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT * FROM `" . esc_sql($table_name) . "`
+					WHERE cart_contents != %s
+					AND recovered = %s
+					AND time >= %s
+					AND time <= %s",
+					'',
+					'0',
+					$todate,
+					$fromdate
+				),
+				ARRAY_A
+			);
 
             if ($rows_to_phone ) { // If we have new rows in the database
 
@@ -1093,7 +1133,7 @@ class SA_Cart_Admin
                             $total_msg_sent = $last_msg_count + 1;
                             $wpdb->query(
                                 $wpdb->prepare(
-                                    "UPDATE $table_name
+                                    "UPDATE `" . esc_sql($table_name) . "`
 									SET msg_sent = %d
 									WHERE msg_sent = %d AND
 									session_id = %s",
@@ -1177,7 +1217,9 @@ class SA_Cart_Admin
     {
         global $wpdb;
         $table_name  = $wpdb->prefix . SA_CART_TABLE_NAME;
-        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
+        $total_items =  $wpdb->get_var(
+			"SELECT COUNT(id) FROM `" . esc_sql($table_name) . "`"
+		);
         return $total_items;
     }
 
@@ -1260,20 +1302,19 @@ class SA_Cart_Admin
         }
 
         // Processing GET parameter from the link
-        $hash_id = sanitize_text_field($_GET['cart']); // Getting and sanitizing GET value from the link
+        $hash_id = sanitize_text_field(wp_unslash($_GET['cart'])); // Getting and sanitizing GET value from the link
         $parts   = explode('-', $hash_id); // Splitting GET value into hash and ID
         $hash    = $parts[0];
         $id      = $parts[1];
 
         // Retrieve row from the abandoned cart table in order to check if hashes match
         $main_table = $wpdb->prefix . SA_CART_TABLE_NAME;
-        $row        = $wpdb->get_row(
-            $wpdb->prepare(
-                'SELECT id, email, cart_contents, session_id FROM ' . $main_table . '
-			WHERE id = %d',
-                $id
-            )
-        );
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id, email, cart_contents, session_id FROM `" . esc_sql($main_table) . "` WHERE id = %d",
+				$id
+			)
+		);
 
         if (empty($row) ) { // Exit function if no row found
             return;
@@ -1328,7 +1369,7 @@ class SA_Cart_Admin
 
         // Redirecting user to Checkout page
         $checkout_url = wc_get_checkout_url();
-        wp_redirect($checkout_url, '303');
+        wp_safe_redirect($checkout_url, '303');
         exit();
     }
 
@@ -1445,7 +1486,7 @@ class SA_Admin_Table extends WP_List_Table
      */
     function column_name( $item )
     {
-        $req_page = sanitize_text_field(wp_unslash($_REQUEST['page']));
+        $req_page = !empty($_REQUEST['page'])?sanitize_text_field(wp_unslash($_REQUEST['page'])):'';
         $actions  = array(
         'delete' => sprintf('<a href="?page=%s&action=delete&id=%s">%s</a>', $req_page, $item['id'], __('Delete', 'sms-alert')),
         );
@@ -1684,16 +1725,16 @@ class SA_Admin_Table extends WP_List_Table
     {
         global $wpdb;
         $table_name = $wpdb->prefix . SA_CART_TABLE_NAME; // do not forget about tables prefix
-        $verify = !empty($_REQUEST['_wpnonce'])?wp_verify_nonce($_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural']):false;
+        $verify = !empty($_REQUEST['_wpnonce'])?wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'bulk-' . $this->_args['plural']):false;
         if ($verify) {           
             if ('delete' === $this->current_action() ) {
-                $ids = isset($_REQUEST['id']) ? smsalert_sanitize_array($_REQUEST['id']) : array();
+                $ids = isset($_REQUEST['id']) ? smsalert_sanitize_array(wp_unslash($_REQUEST['id'])) : array();
                 if (! empty($ids) ) {
                     if (is_array($ids) ) { // Bulk abandoned cart deletion
                         foreach ( $ids as $key => $id ) {
                             $wpdb->query(
                                 $wpdb->prepare(
-                                    "DELETE FROM $table_name
+                                    "DELETE FROM `" . esc_sql($table_name) . "`
                                 WHERE id = %d",
                                     intval($id)
                                 )
@@ -1703,7 +1744,7 @@ class SA_Admin_Table extends WP_List_Table
                         $id = $ids;
                         $wpdb->query(
                             $wpdb->prepare(
-                                "DELETE FROM $table_name
+                                "DELETE FROM `" . esc_sql($table_name) . "`
                             WHERE id = %d",
                                 intval($id)
                             )
@@ -1713,15 +1754,24 @@ class SA_Admin_Table extends WP_List_Table
             }
         
             if ('sa_abcart_sendsms' === $this->current_action() ) {
-                $id = isset($_REQUEST['id']) ? smsalert_sanitize_array($_REQUEST['id']) : array();
-                $params =array(
-                'post_ids'=> $id,
-                'type'=> 'abandoned_data',
-                
-                );
-                echo get_smsalert_template('template/sms_campaign.php', $params, true);
-                exit();
-            }
+				$id = isset($_REQUEST['id']) ? smsalert_sanitize_array(wp_unslash($_REQUEST['id'])) : array();
+
+				$id = is_array($id) ? $id : array($id);
+				$id = array_values(array_filter(array_map('absint', $id)));
+
+				if (!empty($id)) {
+					wp_safe_redirect(
+						add_query_arg(
+							array(
+								'post_ids' => implode(',', $id),
+								'type'     => 'abandoned_data',
+							),
+							admin_url('admin.php?page=sa-smscampaign')
+						)
+					);
+					exit;
+				}
+			}
         }
     }
 
@@ -1751,12 +1801,12 @@ class SA_Admin_Table extends WP_List_Table
         $sortable              = $this->get_sortable_columns();
         $this->_column_headers = array( $columns, $hidden, $sortable ); // here we configure table headers, defined in our methods
         $this->processBulkAction(); // process bulk action if any
-        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name WHERE 1");// will be used in pagination settings
+        $total_items = $wpdb->get_var("SELECT COUNT(id) FROM `" . esc_sql($table_name) . "` WHERE 1");// will be used in pagination settings
 
         // prepare query params, as usual current page, order by and order direction
-        $paged   = isset($_REQUEST['paged']) ? max(0, intval(sanitize_text_field($_REQUEST['paged'])) - 1) : 0;
-        $orderby = ( isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns())) ) ? sanitize_text_field($_REQUEST['orderby']) : 'time';
-        $order   = ( isset($_REQUEST['order']) && in_array($_REQUEST['order'], array( 'asc', 'desc' )) ) ? sanitize_text_field($_REQUEST['order']) : 'desc';
+        $paged   = isset($_REQUEST['paged']) ? max(0, intval(sanitize_text_field(wp_unslash($_REQUEST['paged']))) - 1) : 0;
+        $orderby = ( isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns())) ) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : 'time';
+        $order   = ( isset($_REQUEST['order']) && in_array($_REQUEST['order'], array( 'asc', 'desc' )) ) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'desc';
 
         // configure pagination
         $this->set_pagination_args(
@@ -1768,7 +1818,21 @@ class SA_Admin_Table extends WP_List_Table
         );
 
         // define $items array
-        $this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE 1 ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged * $per_page), ARRAY_A);
+        $orderby = sanitize_sql_orderby( $orderby );
+		$order   = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
+
+		if ( false === $orderby ) {
+			$orderby = 'id';
+		}
+
+		$this->items = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM `" . esc_sql( $table_name ) . "` WHERE 1 ORDER BY $orderby $order LIMIT %d OFFSET %d",
+				$per_page,
+				$paged * $per_page
+			),
+			ARRAY_A
+		);
     }
 }
 ?>
@@ -1897,7 +1961,12 @@ class SA_Cart_Public
     function saveUserData()
     {
         // First check if data is being sent and that it is the data we want
-        check_ajax_referer('smsalert_wp_abcart_nonce', 'smsalert_abcart_nonce');
+		if (isset($_POST['is_exit_intent']) ) {	
+          check_ajax_referer('smsalert_wp_abcart_nonce', 'smsalert_abcart_nonce');
+		}
+		else{
+		  check_ajax_referer('woocommerce-process_checkout', 'abcart_nonce');
+		}
         if (isset($_POST['ab_cart_phone']) ) {
             $plugin_admin = new SA_Cart_Admin(SMSALERT_PLUGIN_NAME_SLUG, SmsAlertConstants::SA_VERSION);
 
@@ -1920,28 +1989,28 @@ class SA_Cart_Public
                 return;
             }
             // Checking if we have values coming from the input fields
-            ( isset($_POST['ab_cart_name']) ) ? $name       = sanitize_text_field($_POST['ab_cart_name']) : $name = '';
-            ( isset($_POST['ab_cart_surname']) ) ? $surname = sanitize_text_field($_POST['ab_cart_surname']) : $surname = '';
-            ( isset($_POST['ab_cart_phone']) ) ? $phone     = sanitize_text_field($_POST['ab_cart_phone']) : $phone = '';
-            ( isset($_POST['ab_cart_country']) ) ? $country = sanitize_text_field($_POST['ab_cart_country']) : $country = '';
-            ( isset($_POST['ab_cart_city']) && '' !== sanitize_text_field($_POST['ab_cart_city']) ) ? $city = sanitize_text_field($_POST['ab_cart_city']) : $city = '';
-            ( isset($_POST['ab_cart_billing_company']) ) ? $company               = sanitize_text_field($_POST['ab_cart_billing_company']) : $company = '';
-            ( isset($_POST['ab_cart_billing_address_1']) ) ? $address_1           = sanitize_text_field($_POST['ab_cart_billing_address_1']) : $address_1 = '';
-            ( isset($_POST['ab_cart_billing_address_2']) ) ? $address_2           = sanitize_text_field($_POST['ab_cart_billing_address_2']) : $address_2 = '';
-            ( isset($_POST['ab_cart_billing_state']) ) ? $state                   = sanitize_text_field($_POST['ab_cart_billing_state']) : $state = '';
-            ( isset($_POST['ab_cart_billing_postcode']) ) ? $postcode             = sanitize_text_field($_POST['ab_cart_billing_postcode']) : $postcode = '';
-            ( isset($_POST['ab_cart_shipping_first_name']) ) ? $shipping_name     = sanitize_text_field($_POST['ab_cart_shipping_first_name']) : $shipping_name = '';
-            ( isset($_POST['ab_cart_shipping_last_name']) ) ? $shipping_surname   = sanitize_text_field($_POST['ab_cart_shipping_last_name']) : $shipping_surname = '';
-            ( isset($_POST['ab_cart_shipping_company']) ) ? $shipping_company     = sanitize_text_field($_POST['ab_cart_shipping_company']) : $shipping_company = '';
-            ( isset($_POST['ab_cart_shipping_country']) ) ? $shipping_country     = sanitize_text_field($_POST['ab_cart_shipping_country']) : $shipping_country = '';
-            ( isset($_POST['ab_cart_shipping_address_1']) ) ? $shipping_address_1 = sanitize_text_field($_POST['ab_cart_shipping_address_1']) : $shipping_address_1 = '';
-            ( isset($_POST['ab_cart_shipping_address_2']) ) ? $shipping_address_2 = sanitize_text_field($_POST['ab_cart_shipping_address_2']) : $shipping_address_2 = '';
-            ( isset($_POST['ab_cart_shipping_city']) ) ? $shipping_city           = sanitize_text_field($_POST['ab_cart_shipping_city']) : $shipping_city = '';
-            ( isset($_POST['ab_cart_shipping_state']) ) ? $shipping_state         = sanitize_text_field($_POST['ab_cart_shipping_state']) : $shipping_state = '';
-            ( isset($_POST['ab_cart_shipping_postcode']) ) ? $shipping_postcode   = sanitize_text_field($_POST['ab_cart_shipping_postcode']) : $shipping_postcode = '';
-            ( isset($_POST['ab_cart_order_comments']) ) ? $comments               = sanitize_text_field($_POST['ab_cart_order_comments']) : $comments = '';
-            ( isset($_POST['ab_cart_create_account']) ) ? $create_account         = sanitize_text_field($_POST['ab_cart_create_account']) : $create_account = '';
-            ( isset($_POST['ab_cart_ship_elsewhere']) ) ? $ship_elsewhere         = sanitize_text_field($_POST['ab_cart_ship_elsewhere']) : $ship_elsewhere = '';
+            ( isset($_POST['ab_cart_name']) ) ? $name       = sanitize_text_field(wp_unslash($_POST['ab_cart_name'])) : $name = '';
+            ( isset($_POST['ab_cart_surname']) ) ? $surname = sanitize_text_field(wp_unslash($_POST['ab_cart_surname'])) : $surname = '';
+            ( isset($_POST['ab_cart_phone']) ) ? $phone     = sanitize_text_field(wp_unslash($_POST['ab_cart_phone'])) : $phone = '';
+            ( isset($_POST['ab_cart_country']) ) ? $country = sanitize_text_field(wp_unslash($_POST['ab_cart_country'])) : $country = '';
+            ( isset($_POST['ab_cart_city']) && '' !== sanitize_text_field(wp_unslash($_POST['ab_cart_city'])) ) ? $city = sanitize_text_field(wp_unslash($_POST['ab_cart_city'])) : $city = '';
+            ( isset($_POST['ab_cart_billing_company']) ) ? $company               = sanitize_text_field(wp_unslash($_POST['ab_cart_billing_company'])) : $company = '';
+            ( isset($_POST['ab_cart_billing_address_1']) ) ? $address_1           = sanitize_text_field(wp_unslash($_POST['ab_cart_billing_address_1'])) : $address_1 = '';
+            ( isset($_POST['ab_cart_billing_address_2']) ) ? $address_2           = sanitize_text_field(wp_unslash($_POST['ab_cart_billing_address_2'])) : $address_2 = '';
+            ( isset($_POST['ab_cart_billing_state']) ) ? $state                   = sanitize_text_field(wp_unslash($_POST['ab_cart_billing_state'])) : $state = '';
+            ( isset($_POST['ab_cart_billing_postcode']) ) ? $postcode             = sanitize_text_field(wp_unslash($_POST['ab_cart_billing_postcode'])) : $postcode = '';
+            ( isset($_POST['ab_cart_shipping_first_name']) ) ? $shipping_name     = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_first_name'])) : $shipping_name = '';
+            ( isset($_POST['ab_cart_shipping_last_name']) ) ? $shipping_surname   = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_last_name'])) : $shipping_surname = '';
+            ( isset($_POST['ab_cart_shipping_company']) ) ? $shipping_company     = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_company'])) : $shipping_company = '';
+            ( isset($_POST['ab_cart_shipping_country']) ) ? $shipping_country     = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_country'])) : $shipping_country = '';
+            ( isset($_POST['ab_cart_shipping_address_1']) ) ? $shipping_address_1 = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_address_1'])) : $shipping_address_1 = '';
+            ( isset($_POST['ab_cart_shipping_address_2']) ) ? $shipping_address_2 = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_address_2'])) : $shipping_address_2 = '';
+            ( isset($_POST['ab_cart_shipping_city']) ) ? $shipping_city           = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_city'])) : $shipping_city = '';
+            ( isset($_POST['ab_cart_shipping_state']) ) ? $shipping_state         = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_state'])) : $shipping_state = '';
+            ( isset($_POST['ab_cart_shipping_postcode']) ) ? $shipping_postcode   = sanitize_text_field(wp_unslash($_POST['ab_cart_shipping_postcode'])) : $shipping_postcode = '';
+            ( isset($_POST['ab_cart_order_comments']) ) ? $comments               = sanitize_text_field(wp_unslash($_POST['ab_cart_order_comments'])) : $comments = '';
+            ( isset($_POST['ab_cart_create_account']) ) ? $create_account         = sanitize_text_field(wp_unslash($_POST['ab_cart_create_account'])) : $create_account = '';
+            ( isset($_POST['ab_cart_ship_elsewhere']) ) ? $ship_elsewhere         = sanitize_text_field(wp_unslash($_POST['ab_cart_ship_elsewhere'])) : $ship_elsewhere = '';
 
             $phone = SmsAlertUtility::formatNumberForCountryCode($phone);
             $other_fields = array(
@@ -1982,7 +2051,7 @@ class SA_Cart_Public
                         array(
                         'name'          => sanitize_text_field($name),
                         'surname'       => sanitize_text_field($surname),
-                        'email'         => sanitize_email($_POST['ab_cart_email']),
+                        'email'         => !empty($_POST['ab_cart_email'])?sanitize_email(wp_unslash($_POST['ab_cart_email'])):'',
                         'phone'         => filter_var($phone, FILTER_SANITIZE_NUMBER_INT),
                         'location'      => sanitize_text_field(serialize($location)),
                         'cart_contents' => serialize($product_array),
@@ -2007,27 +2076,27 @@ class SA_Cart_Public
                 }
             } elseif ($session_id !== null ) {
                 // Inserting row into Database
-                $wpdb->query(
-                    $wpdb->prepare(
-                        'INSERT INTO ' . $table_name . '
+				$wpdb->query(
+					$wpdb->prepare(
+						"INSERT INTO `" . esc_sql($table_name) . "`
 						( name, surname, email, phone, location, cart_contents, cart_total, currency, time, session_id, msg_sent, other_fields )
-						VALUES ( %s, %s, %s, %s, %s, %s, %0.2f, %s, %s, %s, %d, %s )',
-                        array(
-                        sanitize_text_field($name),
-                        sanitize_text_field($surname),
-                        sanitize_email($_POST['ab_cart_email']),
-                        filter_var($phone, FILTER_SANITIZE_NUMBER_INT),
-                        sanitize_text_field(serialize($location)),
-                        serialize($product_array),
-                        sanitize_text_field($cart_total),
-                        sanitize_text_field($cart_currency),
-                        sanitize_text_field($current_time),
-                        sanitize_text_field($session_id),
-                        sanitize_text_field($msg_sent),
-                        sanitize_text_field(serialize($other_fields)),
-                        )
-                    )
-                );
+						VALUES ( %s, %s, %s, %s, %s, %s, %f, %s, %s, %s, %d, %s )",
+						array(
+							sanitize_text_field( $name ),
+							sanitize_text_field( $surname ),
+							! empty( $_POST['ab_cart_email'] ) ? sanitize_email( wp_unslash( $_POST['ab_cart_email'] ) ) : '',
+							filter_var( $phone, FILTER_SANITIZE_NUMBER_INT ),
+							maybe_serialize( $location ),
+							maybe_serialize( $product_array ),
+							round( (float) $cart_total, 2 ),
+							sanitize_text_field( $cart_currency ),
+							sanitize_text_field( $current_time ),
+							sanitize_text_field( $session_id ),
+							absint( $msg_sent ),
+							maybe_serialize( $other_fields ),
+						)
+					)
+				);
                 // Storing session_id in WooCommerce session
                 WC()->session->set('cart_session_id', $session_id);
                 $this->increase_captured_abandoned_cart_count(); // Increasing total count of captured abandoned carts
@@ -2072,8 +2141,8 @@ class SA_Cart_Public
                 $main_table     = $wpdb->prefix . SA_CART_TABLE_NAME;
                 $abandoned_cart = $wpdb->get_row(
                     $wpdb->prepare(
-                        'SELECT session_id FROM ' . $main_table . '
-					WHERE session_id = %d',
+                        "SELECT session_id FROM `" . esc_sql($main_table) . "`
+					WHERE session_id = %d",
                         get_current_user_id()
                     )
                 );
@@ -2175,26 +2244,26 @@ class SA_Cart_Public
                 );
 
                 // Inserting row into Database
-                $wpdb->query(
-                    $wpdb->prepare(
-                        'INSERT INTO ' . $table_name . '
+				$wpdb->query(
+					$wpdb->prepare(
+						"INSERT INTO `" . esc_sql($table_name) . "`
 						( name, surname, email, phone, location, cart_contents, cart_total, currency, time, session_id, msg_sent )
-						VALUES ( %s, %s, %s, %s, %s, %s, %0.2f, %s, %s, %s, %d )',
-                        array(
-                            sanitize_text_field($name),
-                            sanitize_text_field($surname),
-                            sanitize_email($email),
-                            filter_var($phone, FILTER_SANITIZE_NUMBER_INT),
-                            sanitize_text_field(serialize($location)),
-                            serialize($product_array),
-                            sanitize_text_field($cart_total),
-                            sanitize_text_field($cart_currency),
-                            sanitize_text_field($current_time),
-                            sanitize_text_field($session_id),
-                            sanitize_text_field($msg_sent),
-                        )
-                    )
-                );
+						VALUES ( %s, %s, %s, %s, %s, %s, %f, %s, %s, %s, %d )",
+						array(
+							sanitize_text_field( $name ),
+							sanitize_text_field( $surname ),
+							sanitize_email( $email ),
+							filter_var( $phone, FILTER_SANITIZE_NUMBER_INT ),
+							maybe_serialize( $location ),
+							maybe_serialize( $product_array ),
+							round( (float) $cart_total, 2 ),
+							sanitize_text_field( $cart_currency ),
+							sanitize_text_field( $current_time ),
+							sanitize_text_field( $session_id ),
+							absint( $msg_sent ),
+						)
+					)
+				);
                 // Storing session_id in WooCommerce session
                 WC()->session->set('cart_session_id', $session_id);
 
@@ -2269,9 +2338,9 @@ class SA_Cart_Public
             // Checking if we have this abandoned cart in our database already
             return $result = $wpdb->get_var(
                 $wpdb->prepare(
-                    'SELECT session_id
-				FROM ' . $main_table . '
-				WHERE session_id = %s',
+                    "SELECT session_id
+				FROM `" . esc_sql($main_table) . "`
+				WHERE session_id = %s",
                     $cart_session_id
                 )
             );
@@ -2332,7 +2401,7 @@ class SA_Cart_Public
 
         $duplicate_rows = $wpdb->query(
             $wpdb->prepare(
-                "DELETE FROM $table_name
+                "DELETE FROM `" . esc_sql($table_name) . "`
 				WHERE session_id = %s
 				ORDER BY %s DESC
 				LIMIT %d",
@@ -2363,13 +2432,17 @@ class SA_Cart_Public
         // Set the value that msg has not been sent
         // $msg_sent = 0;
         $cart_session_id = WC()->session->get('cart_session_id');
-        $msg_sent        = $wpdb->get_var('SELECT msg_sent, session_id FROM ' . $table_name . " WHERE session_id = '" . $cart_session_id . "'");
+        $msg_sent = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT msg_sent FROM `" . esc_sql($table_name) . "` WHERE session_id = %s",
+				$cart_session_id
+			)
+		);
 
         $row = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT cart_contents,time
-			FROM ' . $table_name . '
-			WHERE session_id = %s',
+                "SELECT cart_contents,time FROM `" . esc_sql($table_name) . "`
+			WHERE session_id = %s",
                 $cart_session_id
             )
         );
@@ -2515,9 +2588,8 @@ class SA_Cart_Public
         // Retrieve a single row with current customer ID
         $row = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT *
-			FROM ' . $table_name . '
-			WHERE session_id = %s',
+                "SELECT * FROM `" . esc_sql($table_name) . "`
+			WHERE session_id = %s",
                 $cart_session_id
             )
         );
@@ -2627,7 +2699,7 @@ class SA_Cart_Public
      */
     function displayExitIntentForm()
     {
-        $cart_insert = isset($_POST['cart_insert']) ? sanitize_text_field($_POST['cart_insert']) : false;
+        $cart_insert = isset($_POST['cart_insert']) ? sanitize_text_field(wp_unslash($_POST['cart_insert'])) : false;
         if (! $this->exitIntentEnabled() || ! WC()->cart ) { // If Exit Intent disabled or WooCommerce cart does not exist
             return;
         }
@@ -2638,6 +2710,7 @@ class SA_Cart_Public
             if ($cart_insert ) { // In case function triggered using Ajax Add to Cart
                 return wp_send_json_success($output); // Sending Output to Javascript function
             } else { // Outputing in case of page reload
+			    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML is generated by buildExitIntentOutput().
                 echo $output;
             }
         }
@@ -2674,9 +2747,8 @@ class SA_Cart_Public
         $cart_session_id = WC()->session->get('cart_session_id'); 
         $row = $wpdb->get_row(
             $wpdb->prepare(
-                'SELECT *
-			FROM ' . $table_name . '
-			WHERE session_id = %s',
+                "SELECT * FROM `" . esc_sql($table_name) . "`
+			WHERE session_id = %s",
                 $cart_session_id
             )
         );
@@ -2790,7 +2862,11 @@ class SA_Cart_Public
         }
         $template_file = $this->get_exit_intent_template_path($template_name, $tempate_path, $default_path);
         if (! file_exists($template_file) ) { // Handling error output in case template file does not exist
-            _doing_it_wrong(__FUNCTION__, sprintf('<code>%s</code> does not exist.', $template_file), '4.0');
+             _doing_it_wrong(
+            __FUNCTION__,
+				sprintf('<code>%s</code> does not exist.', esc_html($template_file)),
+				'4.0'
+			);
             return;
         }
         include $template_file;

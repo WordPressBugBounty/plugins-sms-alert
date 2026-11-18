@@ -116,12 +116,12 @@ class SAElementor extends FormInterface
         $user_phone = $field['value'];
         if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {        
             return;
-        }		
+        }	
+        $form_id = $record->get_form_settings('id');		
         if (isset($_REQUEST['option']) && 'smsalert_elementor_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         } else {
 			SmsAlertUtility::checkSession();
-            $form_id = !empty($_POST['form_id'])?$_POST['form_id']:'';
 			if(isset($_SESSION['sa_el_form_verified'.$form_id]))
 			{
 				unset($_SESSION['sa_el_form_verified'.$form_id]);
@@ -138,7 +138,7 @@ class SAElementor extends FormInterface
             wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter phone number.', 'sms-alert'), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
         }
-        return $this->processFormFields($user_phone,$_POST);
+        return $this->processFormFields($user_phone,array('form_id'=>$form_id));
     }
 
     /**
@@ -150,11 +150,11 @@ class SAElementor extends FormInterface
      */
     public function processFormFields( $user_phone, $data )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $user_phone);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $getdata['user_phone'], $phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
+            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $getdata['user_phone'], $smsalert_phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
         }
         
@@ -182,7 +182,7 @@ class SAElementor extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
@@ -423,7 +423,7 @@ class Elementor extends ElementorPro\Modules\Forms\Fields\Field_Base
 				$inline_script = 'document.addEventListener("DOMContentLoaded", function() {';
                 if ($field['field_type'] == 'sa_billing_phone' ) {
                     if ('on' === $country_flag_enable ) {
-                        $uniqueNo = rand();
+                        $uniqueNo = wp_rand();
                         $unique  = $form->get_id();
                         $inline_script .= 'jQuery(document).ready(function(){
 							jQuery(".elementor-form #form-field-'.$field['custom_id'].'").each(function () 
@@ -559,7 +559,7 @@ class Elementor extends ElementorPro\Modules\Forms\Fields\Field_Base
         $form->add_render_attribute('input' . $item_index, 'type', 'sa_billing_phone', true);
         $form->add_render_attribute('input' . $item_index, 'placeholder', $item['sa_billing_phone']);
         $form->add_render_attribute('input' . $item_index, 'value', $item['sa_default_value']);
-        
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Elementor escapes attributes when generating the render attribute string.
         echo '<input ' . $form->get_render_attribute_string('input' . $item_index) . '>';
     }
 }
@@ -650,6 +650,7 @@ class Sendmsms_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\A
             'placeholder' => __('Write yout text or use fields shortcode', 'sms-alert'),
             'label_block' => true,
             'render_type' => 'none',
+			// translators: 1: Store name.
             'default' => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
             'classes' => '',
             'description' => __('Use fields shortcodes for send form data or write your custom text.', 'sms-alert'),
@@ -689,6 +690,7 @@ class Sendmsms_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\A
             'placeholder' => __('Write yout text or use fields shortcode', 'sms-alert'),
             'label_block' => true,
             'render_type' => 'none',
+			// translators: 1: Store name.
             'default' => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
             'classes' => '',
             'description' => __('Use fields shortcodes for send form data or write your custom text.', 'sms-alert'),
@@ -756,13 +758,13 @@ class Sendmsms_Action_After_Submit extends \ElementorPro\Modules\Forms\Classes\A
             }
 
             $message = $this->parseSmsBody($fields, $customer_message);
-            do_action('sa_send_sms', $cust_phone, $message);
+            do_action('smsalert_send_sms', $cust_phone, $message);
         }
 
         if ('true' === $admin_sms_enable && '' !== $admin_message && '' !== $admin_number) {
 
             $message = $this->parseSmsBody($fields, $admin_message);
-            do_action('sa_send_sms', $admin_number, $message);
+            do_action('smsalert_send_sms', $admin_number, $message);
         }
     }
  

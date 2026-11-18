@@ -175,8 +175,10 @@ class PhoneLogic extends LogicInterface
     public function _get_otp_sent_message()
     {
         if ( SmsAlertUtility::isPlayground()) {
+			 // translators: 1: Customer phone.
 			 return sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##').'</br> '.sprintf(__('Use 1234 as OTP to proceed, as real message is not sent in playground mode.', 'sms-alert'));
 		 }else{
+			// translators: 1: Customer phone. 
 			return !empty(SmsAlertUtility::get_elementor_data("sa_ele_f_mobile_lbl")) ? SmsAlertUtility::get_elementor_data("sa_ele_f_mobile_lbl") : sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##');
 		 }
     }

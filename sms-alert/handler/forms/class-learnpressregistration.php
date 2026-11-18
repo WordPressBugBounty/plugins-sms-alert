@@ -122,7 +122,7 @@ class LearnpressRegistrationForm extends FormInterface
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         }
 
-        return $this->processFormFields($username, $email, $errors, $password);
+        return $this->processFormFields($username, $email, $errors, $password, $_POST);
     }
 
     /**
@@ -135,13 +135,13 @@ class LearnpressRegistrationForm extends FormInterface
      *
      * @return array
      */
-    public function processFormFields( $username, $email, $errors, $password )
+    public function processFormFields( $username, $email, $errors, $password, $data )
     {
-        global $phoneLogic;
-        $phone = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
+        global $smsalert_phoneLogic;
+        $phone = ( ! empty($data['billing_phone']) ) ? sanitize_text_field(wp_unslash($data['billing_phone'])) : '';
 
         if (! isset($phone) || ! SmsAlertUtility::validatePhoneNumber($phone) ) {
-            return new WP_Error('billing_phone_error', str_replace('##phone##', SmsAlertcURLOTP::checkPhoneNos($phone), $phoneLogic->_get_otp_invalid_format_message()));
+            return new WP_Error('billing_phone_error', str_replace('##phone##', SmsAlertcURLOTP::checkPhoneNos($phone), $smsalert_phoneLogic->_get_otp_invalid_format_message()));
         }
         smsalert_site_challenge_otp($username, $email, $errors, $phone, 'phone', $password);
     }
@@ -155,7 +155,7 @@ class LearnpressRegistrationForm extends FormInterface
     {
         ?><li class="form-field">
                 <label for="reg_username"><?php esc_html_e('Phone', 'sms-alert'); ?>&nbsp;<span class="required">*</span></label>
-                <input id ="billing_phone" name="billing_phone" type="text" placeholder="<?php esc_attr_e('Phone', 'sms-alert'); ?>" autocomplete="phone" value="<?php echo esc_attr(LP_Helper::sanitize_params_submitted($_POST['billing_phone'] ?? '')); ?>">
+                <input id ="billing_phone" name="billing_phone" type="text" placeholder="<?php esc_attr_e('Phone', 'sms-alert'); ?>" autocomplete="phone" value="<?php echo esc_attr(LP_Helper::sanitize_params_submitted(sanitize_text_field(wp_unslash($_POST['billing_phone'] ?? '')))); ?>">
             </li><?php
     }
 
@@ -168,7 +168,7 @@ class LearnpressRegistrationForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {

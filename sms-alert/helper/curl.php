@@ -256,6 +256,7 @@ class SmsAlertcURLOTP
         $username = smsalert_get_option('smsalert_name', 'smsalert_gateway');
         $password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
         $senderid = smsalert_get_option('smsalert_api', 'smsalert_gateway');
+		// translators: 1: OTP.
         $template = smsalert_get_option('sms_otp_send', 'smsalert_message', sprintf(__('Your verification code for mobile verification is %1$s %2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[otp]', PHP_EOL, PHP_EOL));
         $template = str_replace(array('[store_name]','[shop_url]'), array(get_bloginfo(),get_site_url()), $template);
 
@@ -492,7 +493,7 @@ class SmsAlertcURLOTP
         $fields = array(
         'user' => $username,
         'pwd'  => $password,
-        'name' => $_SERVER['SERVER_NAME'],
+        'name' => !empty($_SERVER['SERVER_NAME'])?sanitize_text_field(wp_unslash($_SERVER['SERVER_NAME'])):'',
         );
 
         $response = self::callAPI($url, $fields, null);
@@ -522,11 +523,9 @@ class SmsAlertcURLOTP
         $password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
 
         // $group_name   = smsalert_get_option( 'group_auto_sync', 'smsalert_general', '');
-        $xmlstr = <<<XML
-<?xml version='1.0' encoding='UTF-8'?>
-<group>
-</group>
-XML;
+     $xmlstr = "<?xml version='1.0' encoding='UTF-8'?>\n"
+    . "<group>\n"
+    . "</group>";
 
         $msg  = new SimpleXMLElement($xmlstr);
         $user = $msg->addChild('user');
@@ -587,11 +586,10 @@ XML;
         $username = smsalert_get_option('smsalert_name', 'smsalert_gateway');
         $password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
         $senderid = !empty($senderid)?$senderid:smsalert_get_option('smsalert_api', 'smsalert_gateway');
-        $xmlstr = <<<XML
-<?xml version='1.0' encoding='UTF-8'?>
-<message>
-</message>
-XML;
+		$xmlstr = "<?xml version='1.0' encoding='UTF-8'?>\n"
+    . "<message>\n"
+    . "</message>";
+	
         $msg    = new SimpleXMLElement($xmlstr);
         $user   = $msg->addChild('user');
         $user->addAttribute('username', $username);

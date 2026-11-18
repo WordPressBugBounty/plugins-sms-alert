@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Amelia booking helper.
  *
@@ -12,7 +11,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -61,9 +60,10 @@ class SAameliabooking extends FormInterface
      */
     public function ameliaNewCustomer($reservation, $booking)
     {
-		$buyerNumber= $reservation['phone'];        
+		$buyerNumber= $reservation['phone'];
+        // translators: 1: Store name.        
         $defaultSms = sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]');
-        do_action('sa_send_sms', $buyerNumber, $defaultSms);        
+        do_action('smsalert_send_sms', $buyerNumber, $defaultSms);        
     }
 
     /**
@@ -89,7 +89,16 @@ class SAameliabooking extends FormInterface
         global $wpdb;
         $tableName       = $wpdb->prefix.'smsalert_booking_reminder';
         $source          = 'amelia-booking';
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $booking_id and source = '$source'");
+        $booking_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$booking_id,
+				$source
+			)
+		);
         if ($bookingStatus === 'approved' && $customerNotify === 'on') {
             if ($booking_details) {
                 $wpdb->update(
@@ -137,13 +146,27 @@ class SAameliabooking extends FormInterface
         $schedulerData = get_option('smsalert_alb_reminder_scheduler');
 
         foreach ($schedulerData['cron'] as $sdata) {            
-            $datetime = current_time('mysql');
-            $fromdate = date('Y-m-d H:i:s', strtotime('+'.($sdata['frequency'] * 60 - $cronFrequency).' minutes', strtotime($datetime)));
-            $todate = date('Y-m-d H:i:s', strtotime('+'.$cronFrequency.' minutes', strtotime($fromdate)));
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
+
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM '.$tableName." WHERE start_date > '".$fromdate."' AND start_date <= '".$todate."' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
             if ($rowsToPhone) {    
 
                 // If we have new rows in the database
@@ -157,7 +180,16 @@ class SAameliabooking extends FormInterface
                         global $wpdb;
                         $table_name = $wpdb->prefix . 'amelia_customer_bookings';
                         $table_name1 = $wpdb->prefix . 'amelia_appointments';
-                        $reservation     = $wpdb->get_results("SELECT * FROM ".$table_name." INNER JOIN ".$table_name1." ON  ".$table_name.".appointmentId = ".$table_name1.".id WHERE ".$table_name.".appointmentId= ".$id."");
+                        $reservation = $wpdb->get_results(
+							$wpdb->prepare(
+								"SELECT *
+								FROM `" . esc_sql($table_name) . "`
+								INNER JOIN `" . esc_sql($table_name1) . "`
+									ON `" . esc_sql($table_name) . "`.appointmentId = `" . esc_sql($table_name1) . "`.id
+								WHERE `" . esc_sql($table_name) . "`.appointmentId = %d",
+								$id
+							)
+						);
                         $obj[$key]['sms_body'] = self::parseSmsReminder($reservation, $customerMessage);                        
                     }
                     $response    = SmsAlertcURLOTP::sendSmsXml($obj);                    
@@ -287,6 +319,7 @@ class SAameliabooking extends FormInterface
             $schedulerData = array();
             $schedulerData['cron'][] = [
                 'frequency' => '1',
+				// translators: 1: Customer first name, 2: Appointment ID, 3: Store name, 4: Booking start time.
                 'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[firstName]', '#[appointmentId]', '[store_name]', '[bookingStart]', PHP_EOL, PHP_EOL),
             ];
         }
@@ -332,7 +365,7 @@ class SAameliabooking extends FormInterface
              $currentVal = smsalert_get_option('customer_alb_notify_'.strtolower($vs), 'smsalert_alb_general', 'on');
              $checkboxMameId = 'smsalert_alb_general[customer_alb_notify_'.strtolower($vs).']';
              $textareaNameId = 'smsalert_alb_message[customer_sms_alb_body_'.strtolower($vs).']';
-
+             // translators: 1: Customer first name, 2: Appointment ID, 3: Store name.
              $defaultTemplate = sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[firstName]', '[appointmentId]', '[store_name]', strtolower($vs), PHP_EOL, PHP_EOL);
 
              $textBody = smsalert_get_option('customer_sms_alb_body_'.strtolower($vs), 'smsalert_alb_message', $defaultTemplate);
@@ -369,7 +402,7 @@ class SAameliabooking extends FormInterface
             $currentVal      = smsalert_get_option('admin_alb_notify_'.strtolower($vs), 'smsalert_alb_general', 'on');
             $checkboxMameId  = 'smsalert_alb_general[admin_alb_notify_'.strtolower($vs).']';
             $textareaNameId  = 'smsalert_alb_message[admin_sms_alb_body_'.strtolower($vs).']';
-
+            // translators: 1: Store name.
             $defaultTemplate = sprintf(__('Hello admin, status of your booking with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL);
 
             $textBody       = smsalert_get_option('admin_sms_alb_body_'.strtolower($vs), 'smsalert_alb_message', $defaultTemplate);
@@ -465,7 +498,7 @@ class SAameliabooking extends FormInterface
 
         if ($customerNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseSmsBody($reservation, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // send msg to admin.
@@ -478,7 +511,7 @@ class SAameliabooking extends FormInterface
             $adminMessage       = smsalert_get_option('admin_sms_alb_body_' . $bookingStatus, 'smsalert_alb_message', '');
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($reservation, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         } 
 
@@ -511,7 +544,12 @@ class SAameliabooking extends FormInterface
             $serviceId     = $reservation->serviceId;                    
         } 
         $table_name = $wpdb->prefix . 'amelia_services';
-        $service = $wpdb->get_results("SELECT `name` FROM " .$table_name. " WHERE id=".$serviceId);
+        $service = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT `name` FROM `" . esc_sql($table_name) . "` WHERE id = %d",
+				$serviceId
+			)
+		);
         foreach ($service as $servicenames) {
             $servicename=$servicenames->name; 
         } 
@@ -581,7 +619,12 @@ class SAameliabooking extends FormInterface
         $bookingEnd        = $reservation['bookingEnd'];
         $serviceId     = $reservation['serviceId'];
         $table_name = $wpdb->prefix . 'amelia_services';
-        $service = $wpdb->get_results("SELECT `name` FROM " .$table_name. " WHERE id=".$serviceId);
+		$service = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT `name` FROM `" . esc_sql($table_name) . "` WHERE id = %d",
+				$serviceId
+			)
+		);
         foreach ($service as $servicenames) {
             $servicename=$servicenames->name;             
         }
@@ -659,7 +702,7 @@ class SAameliabooking extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('ameliabooking/ameliabooking.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
 
@@ -693,7 +736,7 @@ class SAameliabooking extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
 
     }//end handle_failed_verification()

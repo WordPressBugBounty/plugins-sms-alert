@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -136,6 +136,7 @@ class Fluentcrm extends FormInterface
             $currentVal      = smsalert_get_option('customer_ft_notify_' . strtolower($vs), 'smsalert_ft_general', 'on');
             $checkboxNameId  = 'smsalert_ft_general[customer_ft_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_ft_message[customer_sms_ft_body_' . strtolower($vs) . ']';
+			// translators: 1: Customer first name, 2: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_ft_body_' . strtolower($vs), 'smsalert_ft_message', sprintf(__('Hello %1$s, status of your contact with %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
 
@@ -166,6 +167,7 @@ class Fluentcrm extends FormInterface
             $currentVal      = smsalert_get_option('admin_ft_notify_' . strtolower($vs), 'smsalert_ft_general', 'on');
             $checkboxNameId  = 'smsalert_ft_general[admin_ft_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_ft_message[admin_sms_ft_body_' . strtolower($vs) . ']';
+			// translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_ft_body_' . strtolower($vs), 'smsalert_ft_message', sprintf(__('Hello admin, status of your contact with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
 
@@ -215,7 +217,7 @@ class Fluentcrm extends FormInterface
 
         if (($customerNotify === 'on' && $customerMessage !== '')) {
                 $buyerMessage = $this->parseSmsBody($contact, $customerMessage);
-                do_action('sa_send_sms', $phone_no, $buyerMessage);
+                do_action('smsalert_send_sms', $phone_no, $buyerMessage);
         }
             // Send msg to admin.
             $adminPhoneNumber = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -228,7 +230,7 @@ class Fluentcrm extends FormInterface
 
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($contact, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
     }
@@ -331,7 +333,7 @@ class Fluentcrm extends FormInterface
     {
 
         if (is_plugin_active('fluent-crm/fluent-crm.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -362,7 +364,7 @@ class Fluentcrm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
     }
 

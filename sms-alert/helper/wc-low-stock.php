@@ -70,9 +70,11 @@ class WCLowStock
     public static function getWcStockTemplates()
     {
         $smsalert_low_stock_admin_msg = smsalert_get_option('admin_low_stock_msg', 'smsalert_general', 'on');
+		// translators: 1: Store name, 2: Item name, 3: Item quantity.
         $sms_body_admin_low_stock_msg = smsalert_get_option('sms_body_admin_low_stock_msg', 'smsalert_message', sprintf(__('%1$s: Low Stock Alert For Product %2$s, current stock %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[item_name]', '[item_qty]', PHP_EOL, PHP_EOL));
 
         $smsalert_out_of_stock_admin_msg = smsalert_get_option('admin_out_of_stock_msg', 'smsalert_general', 'on');
+		// translators: 1: Store name, 2: Item name, 3: Item quantity.
         $sms_body_admin_out_of_stock_msg = smsalert_get_option('sms_body_admin_out_of_stock_msg', 'smsalert_message', sprintf(__('%1$s: Out Of Stock Alert For Product %2$s, current stock %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[item_name]', '[item_qty]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -131,7 +133,7 @@ class WCLowStock
                 $admin_phone_number = str_replace('post_author', $author_no, $admin_phone_number);
             }
 
-            do_action('sa_send_sms', $admin_phone_number, $message);
+            do_action('smsalert_send_sms', $admin_phone_number, $message);
         }
     }
 
@@ -158,7 +160,7 @@ class WCLowStock
                 $admin_phone_number = str_replace('post_author', $author_no, $admin_phone_number);
             }
 
-            do_action('sa_send_sms', $admin_phone_number, $message);
+            do_action('smsalert_send_sms', $admin_phone_number, $message);
         }
     }
 

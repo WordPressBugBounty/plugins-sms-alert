@@ -35,7 +35,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
      */
     public function __construct()
     {
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_filter('sa_wc_variables', __CLASS__ . '::addTemplateVariable', 1, 2);
 
         $smsalert_driver_notify = smsalert_get_option('driver_notify', 'smsalert_driver_general', 'on');
@@ -71,7 +71,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
             $delivery_code  = $order->get_meta('_sa_deliverycode');
         }
         
-
+        // translators: 1: Customer phone. 
         $code_message = str_replace('##phone##', $phone_number, sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'));
 
         $invalid_message = __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert');
@@ -128,7 +128,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
      */
     public function verifyDeliveryCode()
     {
-        if (! empty($_REQUEST['option']) && 'sa_verify_delivery_code' === sanitize_text_field(wp_unslash($_REQUEST['option'])) && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'sa-dr-nonce' ) ) {
+        if (! empty($_REQUEST['option']) && 'sa_verify_delivery_code' === sanitize_text_field(wp_unslash($_REQUEST['option'])) && !empty($_GET['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_GET['nonce'])), 'sa-dr-nonce' ) ) {
 
             $order_id      = ( ! empty($_REQUEST['order_id']) ) ? sanitize_text_field(wp_unslash($_REQUEST['order_id'])) : '';
             if (version_compare(WC_VERSION, '7.1', '<') ) {
@@ -189,6 +189,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
         $text_body = smsalert_get_option(
             'driver_notify',
             'smsalert_driver_message',
+			// translators: 1: Store name, 2: Customer first name, 3: Item name, 4: Item name with quantity.
             sprintf(__('%1$s: Hello %2$s, you have been assigned a new delivery for %3$s%4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[first_name]', '[item_name]', '[item_name_qty]', PHP_EOL, PHP_EOL)
         );
 
@@ -332,7 +333,7 @@ class Smsalert_Delivery_Drivers_Woocommerce
             }
             $driver_no   = get_the_author_meta('billing_phone', $driver_id);
 
-            do_action('sa_send_sms', $driver_no, $this->parseSmsBody($order, $driver_message, $driver_id));
+            do_action('smsalert_send_sms', $driver_no, $this->parseSmsBody($order, $driver_message, $driver_id));
 
             if (strpos($cust_message, '[delivery_code]') !== false ) {
                 $this->saveDeliveryCode($order_id, $delivery_code);

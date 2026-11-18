@@ -48,7 +48,7 @@ class SmsAlertLearnPress
         add_action('learn-press/payment-form', __CLASS__ . '::smsalertShowButtonAtCheckout', 15);
 
         add_action('learn-press/checkout-order-processed', __CLASS__ . '::smsalertLpSavedBillingPhone', 10, 2);
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1, 2);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1, 2);
         add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
     }
 
@@ -100,8 +100,11 @@ class SmsAlertLearnPress
         $become_teacher                       = smsalert_get_option('become_teacher', 'smsalert_lpress_general', 'on');
         $student_notification_course_enroll   = smsalert_get_option('course_enroll', 'smsalert_lpress_general', 'on');
         $student_notification_course_finished = smsalert_get_option('course_finished', 'smsalert_lpress_general', 'on');
+		// translators: 1: Customer username, 2: Store name.
         $sms_body_become_teacher_msg          = smsalert_get_option('sms_body_become_teacher_msg', 'smsalert_lpress_message', sprintf(__('Congratulation %1$s, you have become an instructor with %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
+		// translators: 1: Customer username, 2: Course name, 3: Store name.
         $sms_body_course_enroll_msg           = smsalert_get_option('sms_body_course_enroll', 'smsalert_lpress_message', sprintf(__('Congratulation %1$s, you have enrolled course %2$s with %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[username]', '[course_name]', '[store_name]', PHP_EOL, PHP_EOL));
+		// translators: 1: Course name, 2: Store name.
         $sms_body_course_finished_msg         = smsalert_get_option('sms_body_course_finished', 'smsalert_lpress_message', sprintf(__('Congratulation you have finished course %1$s with %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[course_name]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -115,6 +118,7 @@ class SmsAlertLearnPress
             $text_body = smsalert_get_option(
                 'lpress_sms_body_' . $vs,
                 'smsalert_lpress_message',
+				// translators: 1: Customer username, 2: Order ID, 3: Store name, 4: Order status.
                 sprintf(__('Hello %1$s, status of your %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[username]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL)
             );
 
@@ -169,8 +173,11 @@ class SmsAlertLearnPress
         $admin_become_teacher               = smsalert_get_option('admin_become_teacher', 'smsalert_lpress_general', 'on');
         $admin_notification_course_enroll   = smsalert_get_option('admin_course_enroll', 'smsalert_lpress_general', 'on');
         $admin_notification_course_finished = smsalert_get_option('admin_course_finished', 'smsalert_lpress_general', 'on');
+		// translators: 1: Store name, 2: Username.
         $sms_body_admin_become_teacher_msg  = smsalert_get_option('sms_body_admin_become_teacher_msg', 'smsalert_lpress_message', sprintf(__('%1$s: Hi admin, an instructor %2$s has been joined.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[username]', PHP_EOL, PHP_EOL));
+		// translators: 1: Store name, 2: Username, 3: Course name.
         $sms_body_course_enroll_admin_msg   = smsalert_get_option('sms_body_course_enroll_admin_msg', 'smsalert_lpress_message', sprintf(__('%1$s: Hi Admin %2$s has enrolled course - %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[username]', '[course_name]', PHP_EOL, PHP_EOL));
+		// translators: 1: Store name, 2: Username, 3: Course name.
         $sms_body_course_finished_admin_msg = smsalert_get_option('sms_body_course_finished_admin_msg', 'smsalert_lpress_message', sprintf(__('%1$s: Hi Admin %2$s has finished course %3$s%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[username]', '[course_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -180,7 +187,7 @@ class SmsAlertLearnPress
 
             $checkbox_name_id = 'smsalert_lpress_general[lpress_admin_notification_' . $vs . ']';
             $textarea_name_id = 'smsalert_lpress_message[lpress_admin_sms_body_' . $vs . ']';
-
+            // translators: 1: Store name, 2: Order ID, 3: Order status.
             $text_body = smsalert_get_option('lpress_admin_sms_body_' . $vs, 'smsalert_lpress_message', sprintf(__('%1$s: status of order %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]', PHP_EOL, PHP_EOL));
 
             $templates[ $ks ]['title']          = 'When Order is ' . ucwords($vs);
@@ -440,14 +447,14 @@ class SmsAlertLearnPress
 
         if ('on' === $buyer_sms_notify ) {
             $buyer_sms_content = smsalert_get_option('sms_body_course_enroll', 'smsalert_lpress_message', '');
-            do_action('sa_send_sms', $billing_phone, self::parseSmsContent(null, $buyer_sms_content, null, $user_id, $course_id));
+            do_action('smsalert_send_sms', $billing_phone, self::parseSmsContent(null, $buyer_sms_content, null, $user_id, $course_id));
         }
 
         if ('on' === $admin_sms_notify ) {
             $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
             if ('' !== $admin_phone_number ) {
                 $admin_sms_content = smsalert_get_option('sms_body_course_enroll_admin_msg', 'smsalert_lpress_message', '');
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent(null, $admin_sms_content, null, $user_id, $course_id));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent(null, $admin_sms_content, null, $user_id, $course_id));
             }
         }
     }
@@ -469,14 +476,14 @@ class SmsAlertLearnPress
 
         if ('on' === $buyer_sms_notify ) {
             $buyer_sms_content = smsalert_get_option('sms_body_course_finished', 'smsalert_lpress_message', '');
-            do_action('sa_send_sms', $billing_phone, self::parseSmsContent(null, $buyer_sms_content, null, $user_id, $course_id));
+            do_action('smsalert_send_sms', $billing_phone, self::parseSmsContent(null, $buyer_sms_content, null, $user_id, $course_id));
         }
 
         if ('on' === $admin_sms_notify ) {
             $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
             if ('' !== $admin_phone_number ) {
                 $admin_sms_content = smsalert_get_option('sms_body_course_finished_admin_msg', 'smsalert_lpress_message', '');
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent(null, $admin_sms_content, null, $user_id, $course_id));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent(null, $admin_sms_content, null, $user_id, $course_id));
             }
         }
     }
@@ -498,15 +505,17 @@ class SmsAlertLearnPress
             $user_id          = get_post_meta($order_id, '_user_id', true);
             $billing_phone     = get_post_meta($order_id, '_billing_phone', true);
             if ('on' === $buyer_sms_notify ) {
+				// translators: 1: Username, 2: Order ID, 3: Store name, 4: Order status.
                 $buyer_sms_content = smsalert_get_option('lpress_sms_body_' . $new_status, 'smsalert_lpress_message', sprintf(__('Hello %1$s, status of your %2$s with %3$s has been changed to %4$s.', 'sms-alert'), '[username]', '[order_id]', '[store_name]', '[order_status]'));
-                do_action('sa_send_sms', $billing_phone, self::parseSmsContent($order_id, $buyer_sms_content, $new_status, $user_id));
+                do_action('smsalert_send_sms', $billing_phone, self::parseSmsContent($order_id, $buyer_sms_content, $new_status, $user_id));
             }
 
             if ('on' === $admin_sms_notify ) {
                 $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
                 if ('' !== $admin_phone_number ) {
+					// translators: 1: Store name, 2: Order ID, 3: Order status.
                     $admin_sms_content = smsalert_get_option('lpress_admin_sms_body_' . $new_status, 'smsalert_lpress_message', sprintf(__('%1$s status of order %2$s has been changed to %3$s.', 'sms-alert'), '[store_name]:', '#[order_id]', '[order_status]'));
-                    do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent($order_id, $admin_sms_content, $new_status, $user_id));
+                    do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent($order_id, $admin_sms_content, $new_status, $user_id));
                 }
             }
         }
@@ -529,7 +538,7 @@ class SmsAlertLearnPress
             $billing_phone     = get_user_meta($user_id, 'billing_phone', true);
             $buyer_sms_content = smsalert_get_option('sms_body_become_teacher_msg', 'smsalert_lpress_message', '');
             if ('lp_teacher' === $role ) {
-                do_action('sa_send_sms', $billing_phone, self::parseSmsContent(null, $buyer_sms_content, null, $user_id));
+                do_action('smsalert_send_sms', $billing_phone, self::parseSmsContent(null, $buyer_sms_content, null, $user_id));
             }
         }
 
@@ -538,7 +547,7 @@ class SmsAlertLearnPress
             $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
             $admin_sms_content  = smsalert_get_option('sms_body_admin_become_teacher_msg', 'smsalert_lpress_message', '');
             if ('lp_teacher' === $role ) {
-                do_action('sa_send_sms', $billing_phone, self::parseSmsContent(null, $admin_sms_content, null, $user_id));
+                do_action('smsalert_send_sms', $billing_phone, self::parseSmsContent(null, $admin_sms_content, null, $user_id));
             }
         }
     }

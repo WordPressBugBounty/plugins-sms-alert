@@ -67,14 +67,12 @@ class SaFluentForm extends FormInterface
     public function addSmsalertConversational($form, $settings)
     {                
         $formId = $form->id;
-        $uniqueNo = rand();
+        $uniqueNo = wp_rand();
         $form_enable = smsalert_get_option('fluent_order_status_' .$formId, 'smsalert_fluent_general', 'on');
         $otp_enable  = smsalert_get_option('fluent_otp_' .$formId, 'smsalert_fluent_general', 'on');        
         $phone_field = smsalert_get_option('fluent_sms_phone_' .$formId, 'smsalert_fluent_general', '');
         if ('on' === $form_enable && 'on' === $otp_enable && '' !== $phone_field ) {
-            echo '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script><script>
-			document.addEventListener("DOMContentLoaded", function() {
-			    jQuery(document).ready(function(){ 
+			$inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery(document).ready(function(){ 
 					jQuery("div.ff_conv_app ").prepend("<form id=\"sa_conv_form\"></form>");					jQuery("#sa_conv_form").html(jQuery("#sa_conv_form").next("div.ffc_conv_form"));
 					jQuery("#sa_conv_form").addClass("sa-wp-form");
 					jQuery("#sa_conv_form").css({width:"100%"});					
@@ -128,10 +126,12 @@ class SaFluentForm extends FormInterface
 					var popup = \''.str_replace(array("\n","\r","\r\n"), "", (get_smsalert_template("template/otp-popup.php", array(), true))).'\';
 					jQuery("body").append(popup);
 					}
-				}, 200);
-			    });
-			</script>';
-            SAVerify::enqueue_otp_js_script();			
+				}, 200);});';
+            if (! wp_script_is('sainlinescript-handle-footer', 'enqueued') ) {
+				wp_register_script('sainlinescript-handle-footer', '', [], '', true);
+				wp_enqueue_script('sainlinescript-handle-footer'); 
+			}
+			wp_add_inline_script("sainlinescript-handle-footer", $inline_script);			
         }
     }
     
@@ -144,7 +144,7 @@ class SaFluentForm extends FormInterface
      */    
     public function addSmsalertShortcode($form)
     {
-        $unique_class    = 'sa-class-'.mt_rand(1, 100);
+        $unique_class    = 'sa-class-'.wp_rand(1, 100);
 		$form_id     = $form->id;
         $form_enable = smsalert_get_option('fluent_order_status_' . $form_id, 'smsalert_fluent_general', 'on');
         $otp_enable  = smsalert_get_option('fluent_otp_' . $form_id, 'smsalert_fluent_general', 'on');
@@ -153,7 +153,7 @@ class SaFluentForm extends FormInterface
 			$inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery("input[name='.$phone_field.']").addClass("phone-valid");';
 			if ('on' === $otp_enable ) 
 			{
-				$uniqueNo = rand();
+				$uniqueNo = wp_rand();
 				$inline_script .= ' jQuery("form#fluentform_' . esc_attr($form_id) . '").not(".sa-wp-form").first().addClass("' . $unique_class . ' sa-wp-form");
 					jQuery(document).on("elementor/popup/show", (event, id, instance) => {
 						add_smsalert_button(".'.$unique_class.' .ff-btn-submit","input[name=' . esc_attr($phone_field) . ']","'.$uniqueNo.'");
@@ -210,7 +210,7 @@ class SaFluentForm extends FormInterface
         
         if ('on' === $form_enable && 'on' === $buyer_sms_notify && array_key_exists($phone_field, $form_data) ) {
             $buyer_sms_content = smsalert_get_option('fluent_sms_body_' . $form_id, 'smsalert_fluent_message', '');
-            do_action('sa_send_sms', $form_data[ '' . $phone_field . '' ], self::parseSmsContent($buyer_sms_content, $form_data));
+            do_action('smsalert_send_sms', $form_data[ '' . $phone_field . '' ], self::parseSmsContent($buyer_sms_content, $form_data));
         }
         if ('on' === $admin_sms_notify ) {
 
@@ -219,7 +219,7 @@ class SaFluentForm extends FormInterface
 
             if (! empty($admin_phone_number) ) {
                 $admin_sms_content = smsalert_get_option('fluent_admin_sms_body_' . $form_id, 'smsalert_fluent_message', '');
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $form_data));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $form_data));
             }
         }
     }
@@ -245,13 +245,13 @@ class SaFluentForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -273,13 +273,12 @@ class SaFluentForm extends FormInterface
      */
     public function handle_post_verification( $redirect_to, $user_login, $user_email, $password, $phone_number, $extra_data )
     {
-        
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
         
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -346,7 +345,7 @@ class SaFluentForm extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('fluentform/fluentform.php') ) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }
     }

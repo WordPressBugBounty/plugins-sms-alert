@@ -233,10 +233,10 @@ class Wpmember extends FormInterface
      */
     public function validateSubmitted( $fields )
     {
-        global $wpmem_themsg;
+        global $smsalert_wpmem_themsg;
         SmsAlertUtility::checkSession();
-        if (array_key_exists($this->form_phone_ver, $_SESSION) && strcasecmp($_SESSION[ $this->form_phone_ver ], $fields[ $this->phone_field_key ]) !== 0 ) {
-            $wpmem_themsg = __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert');
+        if (array_key_exists($this->form_phone_ver, $_SESSION) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_phone_ver ]), $fields[ $this->phone_field_key ]) !== 0 ) {
+            $smsalert_wpmem_themsg = __('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert');
             return false;
         } else {
             return true;
@@ -286,14 +286,14 @@ class Wpmember extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
-        global $wpmem_themsg;
+        global $smsalert_wpmem_themsg;
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        $wpmem_themsg = SmsAlertUtility::_get_invalid_otp_method();
+        $smsalert_wpmem_themsg = SmsAlertUtility::_get_invalid_otp_method();
     }
 
     /**

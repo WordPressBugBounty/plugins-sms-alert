@@ -11,7 +11,7 @@
  * Plugin Name: SMSAlert - WooCommerce
  * Plugin URI: https://wordpress.org/plugins/sms-alert/
  * Description: This is a WooCommerce add-on. By Using this plugin admin and buyer can get notification after placing order via sms using SMS Alert.
- * Version: 4.0.3
+ * Version: 4.0.4
  * Author: Cozy Vision Technologies Pvt. Ltd.
  * Author URI: https://www.smsalert.co.in
  * WC requires at least: 4.6
@@ -268,17 +268,8 @@ class smsalert_WC_Order_SMS
         //commented later we use for redirect after install , plugin.
         add_action('admin_init', array($this, 'smsalertPluginRedirect'));
         add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
-        add_filter('sAlertDefaultSettings', array( $this, 'addDefaultSetting' ), 1);
-        //add_action( 'activated_plugin', array($this, 'cyb_activation_redirect') ); //testing part
+        add_filter('smsalertDefaultSettings', array( $this, 'addDefaultSetting' ), 1);
     }
-    
-    //testing part
-    //commented later we use for redirect after install the plugin.
-    // public function cyb_activation_redirect( $plugin ) {
-    // if ( $plugin == plugin_basename( __FILE__ ) ) {
-    // exit( wp_redirect( admin_url( 'admin.php?page=sms-alert' ) ) );
-    // }
-    // }
     
     /**
      * Onpage modify billing phone at checkout page when country code is enabled
@@ -325,9 +316,11 @@ class smsalert_WC_Order_SMS
         $role                = ( ! empty($user->roles[0]) ) ? $user->roles[0] : '';
         $role_display_name   = ( ! empty($role) ) ? self::get_user_roles($role) : '';
         $smsalert_reg_notify = smsalert_get_option('wc_user_roles_' . $role, 'smsalert_signup_general', 'off');
+		// translators: 1: User name, 2: Store name.
         $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
 
         $smsalert_reg_admin_notify = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'off');
+		// translators: 1: User name, 2: Store name.
         $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
         $admin_phone_number        = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
 
@@ -346,7 +339,7 @@ class smsalert_WC_Order_SMS
             $billing_phone,
             );
             $sms_body_new_user = str_replace($search, $replace, $sms_body_new_user);
-            // do_action( 'sa_send_sms', $billing_phone, $sms_body_new_user ); //commented on 25-08-2021
+            // do_action( 'smsalert_send_sms', $billing_phone, $sms_body_new_user ); //commented on 25-08-2021
             $obj             = array();
             $obj['number']   = $billing_phone;
             $obj['sms_body'] = $sms_body_new_user;
@@ -374,7 +367,7 @@ class smsalert_WC_Order_SMS
             $nos                     = explode(',', $admin_phone_number);
             $admin_phone_number      = array_diff($nos, array( 'postauthor', 'post_author' ));
             $admin_phone_number      = implode(',', $admin_phone_number);
-            // do_action( 'sa_send_sms', $admin_phone_number, $sms_admin_body_new_user ); //commented on 25-08-2021.
+            // do_action( 'smsalert_send_sms', $admin_phone_number, $sms_admin_body_new_user ); //commented on 25-08-2021.
             $obj             = array();
             $obj['number']   = $admin_phone_number;
             $obj['sms_body'] = $sms_admin_body_new_user;
@@ -446,6 +439,7 @@ class smsalert_WC_Order_SMS
 
             $checkbox_name_id = 'smsalert_signup_general[wc_user_roles_' . $role_key . ']';
             $textarea_name_id = 'smsalert_signup_message[signup_sms_body_' . $role_key . ']';
+			// translators: 1: User name, 2: Store name.
             $text_body        = smsalert_get_option('signup_sms_body_' . $role_key, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
 
             $templates[ $role_key ]['title']          = 'When ' . ucwords($role['name']) . ' is registered';
@@ -467,6 +461,7 @@ class smsalert_WC_Order_SMS
     public static function getNewUserRegisterTemplates()
     {
         $smsalert_notification_reg_admin_msg = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'on');
+		// translators: 1: User name, 2: Store name.
         $sms_body_registration_admin_msg     = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -500,6 +495,7 @@ class smsalert_WC_Order_SMS
      */
     public static function addDefaultSetting( $defaults = array() )
     {
+		// translators: 1: User name, 2: Store name.
         $sms_body_registration_admin_msg = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $wc_user_roles = self::get_user_roles();
@@ -637,7 +633,7 @@ class smsalert_WC_Order_SMS
      */
     public function registerHookSendSms()
     {
-        add_action('sa_send_sms', array( $this, 'fnSaSendSms' ), 10, 3);
+        add_action('smsalert_send_sms', array( $this, 'fnSaSendSms' ), 10, 3);
     }
     
     /**
@@ -647,10 +643,10 @@ class smsalert_WC_Order_SMS
      *
      * @return void
      */
-    public static function localization_setup()
+    /* public static function localization_setup()
     {
         load_plugin_textdomain('sms-alert', false, dirname(plugin_basename(__FILE__)) . '/languages/');
-    }
+    } */
 
     /**
      * Enques scripts to be loaded in admin section.
@@ -739,7 +735,7 @@ class smsalert_WC_Order_SMS
     {
         
         if (! get_option('smsalert_activation_date') ) {
-            add_option('smsalert_activation_date', date('Y-m-d'));
+            add_option('smsalert_activation_date', current_datetime()->format('Y-m-d'));
         }
         if (! wp_next_scheduled('smsalert_balance_notify') ) {
             wp_schedule_event(time(), 'hourly', 'smsalert_balance_notify');
@@ -762,7 +758,8 @@ class smsalert_WC_Order_SMS
     {
         if (get_option('smsalert_do_activation_redirect', false)) {
             delete_option('smsalert_do_activation_redirect');
-            wp_redirect("admin.php?page=sms-alert");
+            wp_safe_redirect("admin.php?page=sms-alert");
+			exit;
         }
     }                                  
 
@@ -773,14 +770,14 @@ class smsalert_WC_Order_SMS
      */
     public static function saCartActivate()
     {
-        global $wpdb, $table_name;
+        global $wpdb, $smsalert_table_name;
 
-        $table_name      = $wpdb->prefix . SA_CART_TABLE_NAME;
+        $smsalert_table_name      = $wpdb->prefix . SA_CART_TABLE_NAME;
         $tabl_name = $wpdb->prefix . "smsalert_renewal_reminders";                                                    
         $reminder_table_name = $wpdb->prefix . "smsalert_booking_reminder";                                                    
         $charset_collate = $wpdb->get_charset_collate();
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE IF NOT EXISTS $smsalert_table_name (
 			id BIGINT(20) NOT NULL AUTO_INCREMENT,
 			name VARCHAR(60),
 			surname VARCHAR(60),
@@ -823,7 +820,7 @@ class smsalert_WC_Order_SMS
         dbDelta($sql);
 
         // Resets table Auto increment index to 1.
-        $sql = "ALTER TABLE $table_name AUTO_INCREMENT = 1";
+        $sql = "ALTER TABLE $smsalert_table_name AUTO_INCREMENT = 1";
         dbDelta($sql);
 
         $ab_cart_fc_captured_abandoned_cart_count = get_option('ab_cart_fc_captured_abandoned_cart_count');
@@ -896,7 +893,11 @@ class smsalert_WC_Order_SMS
 			$booking_table = $wpdb->prefix . 'smsalert_booking_reminder';
 			$renewal_table = $wpdb->prefix . 'smsalert_renewal_reminders';
 
-			$wpdb->query("DROP TABLE IF EXISTS $main_table,$booking_table,$renewal_table");
+			$wpdb->query(
+				"DROP TABLE IF EXISTS `" . esc_sql( $main_table ) . "`,
+				`" . esc_sql( $booking_table ) . "`,
+				`" . esc_sql( $renewal_table ) . "`"
+			);
 
 			delete_option('cart_captured_abandoned_cart_count');
 			delete_option('smsalert_message');
@@ -942,7 +943,7 @@ class smsalert_WC_Order_SMS
     public function saSyncGrpAction()
     {
 		$current_user_is_admin = current_user_can('manage_options');
-        if (array_key_exists('option', $_GET) && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'smsalert-nonce' ) ) {
+        if (array_key_exists('option', $_GET) && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_GET['nonce'])), 'smsalert-nonce' ) ) {
             switch ( trim(sanitize_text_field(wp_unslash($_GET['option']))) ) {
             case 'smsalert-group-sync':
                 self::syncCustomers();
@@ -969,12 +970,10 @@ class smsalert_WC_Order_SMS
         $update_id = ! empty($update_id) ? $update_id : 0;
         global $wpdb;
 
-        $sql = $wpdb->prepare(
+        $uids = $wpdb->get_col($wpdb->prepare(
             "SELECT ID FROM {$wpdb->users} WHERE {$wpdb->users}.ID > %d order by ID asc limit 100",
             $update_id
-        );
-
-        $uids = $wpdb->get_col($sql);
+        ));
         if (0 === count($uids) ) {
             wp_send_json(
                 array(
@@ -1032,7 +1031,7 @@ class smsalert_WC_Order_SMS
      */
     public static function sendSmsalertBalance()
     {
-        $date            = date('Y-m-d');
+        $date            = current_datetime()->format('Y-m-d');
         $update_datetime = smsalert_get_option('last_updated_lBal_alert', 'smsalert_background_task', '');
 
         if ($update_datetime == $date ) {
@@ -1059,7 +1058,7 @@ class smsalert_WC_Order_SMS
                 }
             }
 
-            update_option('smsalert_background_task', array( 'last_updated_lBal_alert' => date('Y-m-d') ));// update last time and date.
+            update_option('smsalert_background_task', array( 'last_updated_lBal_alert' => current_datetime()->format('Y-m-d') ));// update last time and date.
         }
     }
 
@@ -1071,7 +1070,7 @@ class smsalert_WC_Order_SMS
     public function dailyEmailAlert()
     {
         $username        = smsalert_get_option('smsalert_name', 'smsalert_gateway', '');
-        $date            = date('Y-m-d');
+        $date            = current_datetime()->format('Y-m-d');
         $to_mail         = smsalert_get_option('alert_email', 'smsalert_general', '');
         $update_datetime = smsalert_get_option('last_updated_dBal_alert', 'smsalert_background_dBal_task', '');
 
@@ -1092,7 +1091,7 @@ class smsalert_WC_Order_SMS
                 'admin_url'     => admin_url(),
                 );
                 $dailyemailcontent = get_smsalert_template('template/emails/daily-email-alert.php', $params, true);
-                update_option('smsalert_background_dBal_task', array( 'last_updated_dBal_alert' => date('Y-m-d') ));// update last time and date.
+                update_option('smsalert_background_dBal_task', array( 'last_updated_dBal_alert' => current_datetime()->format('Y-m-d') ));// update last time and date.
                 wp_mail($to_mail, '✱ SMS Alert ✱ Daily  Balance Alert ', $dailyemailcontent, 'content-type:text/html');
             }
         }
@@ -1133,7 +1132,7 @@ class smsalert_WC_Order_SMS
      * @return void
  */
 add_action('plugins_loaded', 'loadSaWcOrderSms');
-add_action('init', array('SMSAlert_WC_Order_SMS','localization_setup'));
+//add_action('init', array('SMSAlert_WC_Order_SMS','localization_setup'));
 
 /**
  * Sets cron schedules.

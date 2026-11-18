@@ -9,14 +9,18 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
 global $pagenow;
 if (empty($pagenow) || 'plugins.php' != $pagenow ) {
     return false;
 }
 
-    $form_fields = apply_filters('smsalert_deactivation_form_fields', array());
+    $smsalert_form_fields = apply_filters('smsalert_deactivation_form_fields', array());
 ?>
-<?php if (! empty($form_fields) ) : ?>
+<?php if (! empty($smsalert_form_fields) ) : ?>
     <div class="smsf-onboarding-section">
         <div class="smsf-on-boarding-wrapper-background">
         <div class="smsf-on-boarding-wrapper">
@@ -28,8 +32,8 @@ if (empty($pagenow) || 'plugins.php' != $pagenow ) {
             <h3 class="smsf-on-boarding-heading"></h3>
             <p class="smsf-on-boarding-desc"><?php esc_html_e('May we have a little info about why you are deactivating?', 'sms-alert'); ?></p>
             <form action="#" method="post" class="smsf-on-boarding-form">
-                <?php foreach ( $form_fields as $key => $field_attr ) : ?>
-                    <?php $this->renderFieldHtml($field_attr, 'deactivating'); ?>
+                <?php foreach ( $smsalert_form_fields as $smsalert_key => $smsalert_field_attr ) : ?>
+                    <?php $this->renderFieldHtml($smsalert_field_attr, 'deactivating'); ?>
                 <?php endforeach; ?>
                 <div class="smsf-on-boarding-form-btn__wrapper">
                     <div class="smsf-on-boarding-form-submit smsf-on-boarding-form-verify ">

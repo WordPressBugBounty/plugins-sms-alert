@@ -68,6 +68,21 @@ if (! defined('ABSPATH') ) {
 	require_once 'forms/class-wsform.php';
 	add_action('wp_loaded', 'smsalert_customer_validation_handle_form', 1);	
     add_action('smsalert_validate_otp', '_handle_validation_form_action', 1, 2);
+	add_action('rest_api_init', function () {
+		register_rest_route('smsalert/v1', '/validate-otp', array(
+			'methods'             => 'POST',
+			'callback'            => 'smsalert_rest_validate_otp',
+			'permission_callback' => '__return_true',
+		));
+	});
+	
+	function smsalert_rest_validate_otp(WP_REST_Request $request)
+	{
+		// Pass REST request parameters to the existing validation handler.
+		$_REQUEST = array_merge($_REQUEST, $request->get_params());
+		$_REQUEST['option'] = 'smsalert-validate-otp-form';
+		_handle_validation_form_action();
+	}
 
     /**
      * Generate and show OTP form.
@@ -106,11 +121,11 @@ function smsalert_site_challenge_otp( $user_login, $user_email, $errors, $phone_
 function _handle_verification_resend_otp_action( $otp_type, $from_both )
 {
     SmsAlertUtility::checkSession();
-    $user_email   = sanitize_email($_SESSION['user_email']);
-    $user_login   = sanitize_text_field($_SESSION['user_login']);
-    $password     = sanitize_text_field($_SESSION['user_password']);
-    $phone_number = sanitize_text_field($_SESSION['phone_number_mo']);
-    $extra_data   = sanitize_text_field($_SESSION['extra_data']);
+    $user_email   = isset($_SESSION['user_email'])?sanitize_email($_SESSION['user_email']):'';
+    $user_login   = isset($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):'';
+    $password     = isset($_SESSION['user_password'])?sanitize_text_field($_SESSION['user_password']):'';
+    $phone_number = isset($_SESSION['phone_number_mo'])?sanitize_text_field($_SESSION['phone_number_mo']):'';
+    $extra_data   = isset($_SESSION['extra_data'])?sanitize_text_field($_SESSION['extra_data']):'';
     _handle_otp_action($user_login, $user_email, $phone_number, $otp_type, $from_both);
 }
 
@@ -127,8 +142,8 @@ function _handle_verification_resend_otp_action( $otp_type, $from_both )
      */
 function _handle_otp_action( $user_login, $user_email, $phone_number, $otp_type, $form )
 {
-    global $phoneLogic;
-    $phoneLogic->_handle_logic($user_login, $user_email, $phone_number, $otp_type, $form);
+    global $smsalert_phoneLogic;
+    $smsalert_phoneLogic->_handle_logic($user_login, $user_email, $phone_number, $otp_type, $form);
 }
 
     /**
@@ -157,16 +172,20 @@ function _handle_validation_form_action( $requestVariable = 'smsalert_customer_v
 {
     SmsAlertUtility::checkSession();
     $_REQUEST        = smsalert_sanitize_array($_REQUEST);
-    $user_login      = ! SmsAlertUtility::isBlank($_SESSION['user_login']) ? sanitize_text_field(wp_unslash($_SESSION['user_login'])) : null;
-    $user_email      = ! SmsAlertUtility::isBlank($_SESSION['user_email']) ? sanitize_email(wp_unslash($_SESSION['user_email'])) : null;
+    $user_login      = isset($_SESSION['user_login']) ? sanitize_text_field($_SESSION['user_login']) : null;
+    $user_email      = isset($_SESSION['user_email']) ? sanitize_email(wp_unslash($_SESSION['user_email'])) : null;
     $phone_number    = ( array_key_exists('billing_phone', $_REQUEST) && ! empty($_REQUEST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_REQUEST['billing_phone'])) : null;
-    $phone_number    = array_key_exists('phone_number_mo', $_SESSION) && ! SmsAlertUtility::isBlank($_SESSION['phone_number_mo']) ? sanitize_text_field($_SESSION['phone_number_mo']) : $phone_number;
+    $phone_number    = array_key_exists('phone_number_mo', $_SESSION) && ! SmsAlertUtility::isBlank(sanitize_text_field($_SESSION['phone_number_mo'])) ? sanitize_text_field($_SESSION['phone_number_mo']) : $phone_number;
 	if(SmsAlertUtility::isBlank($phone_number))
 	{
 		_handle_error_validated($user_login, $user_email, $phone_number);
 	}
-    $password        = ! SmsAlertUtility::isBlank($_SESSION['user_password']) ? sanitize_text_field($_SESSION['user_password']) : null;
-    $extra_data      = ! SmsAlertUtility::isBlank($_SESSION['extra_data']) ? smsalert_sanitize_array($_SESSION['extra_data']) : null;
+    $password        = isset($_SESSION['user_password']) ? sanitize_text_field($_SESSION['user_password']) : null;
+    $extra_data      = isset($_SESSION['extra_data']) ? smsalert_sanitize_array($_SESSION['extra_data']) : array();
+	if(!empty($_REQUEST['option']) && is_array($extra_data))
+	{
+		$extra_data['option'] = $_REQUEST['option'];
+	}
     $requestVariable = ( array_key_exists('phone', $_REQUEST) && ! array_key_exists('smsalert_customer_validation_otp_token', $_REQUEST) ) ? sanitize_text_field(wp_unslash($_REQUEST['phone'])) : 'smsalert_customer_validation_otp_token';
 
     //$requestVariable = array_key_exists( 'order_verify', $_REQUEST ) ? 'order_verify' : $requestVariable;
@@ -177,7 +196,7 @@ function _handle_validation_form_action( $requestVariable = 'smsalert_customer_v
     if (( 'success' === $content['status'] ) && isset($content['description']['desc']) && strcasecmp($content['description']['desc'], 'Code Matched successfully.') === 0 ) {
         _handle_success_validated($user_login, $user_email, $password, $phone_number, $extra_data);
     } else {
-        _handle_error_validated($user_login, $user_email, $phone_number);
+        _handle_error_validated($user_login, $user_email, $phone_number, $extra_data);
     }
 }
 
@@ -207,9 +226,9 @@ function _handle_success_validated( $user_login, $user_email, $password, $phone_
      *
      * @return void
      */
-function _handle_error_validated( $user_login, $user_email, $phone_number )
+function _handle_error_validated( $user_login, $user_email, $phone_number, $extra_data )
 {
-    do_action('otp_verification_failed', $user_login, $user_email, $phone_number);
+    do_action('otp_verification_failed', $user_login, $user_email, $phone_number, $extra_data);
 }
 
 
@@ -230,12 +249,12 @@ function _handle_mo_ajax_phone_validate( $getdata )
     SmsAlertUtility::checkSession();
     $_SESSION[ FormSessionVars::AJAX_FORM ] = trim($getdata['billing_phone']);
     smsalert_site_challenge_otp(
-        sanitize_text_field($_SESSION['user_login']),
+        isset($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):'',
         null,
         null,
         trim(sanitize_text_field($getdata['billing_phone'])),
         'phone',
-        sanitize_text_field($_SESSION['user_password']),
+        isset($_SESSION['user_password'])?sanitize_text_field($_SESSION['user_password']):'',
         null,
         null
     );

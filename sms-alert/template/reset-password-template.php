@@ -10,6 +10,9 @@
  * @link     https://www.smsalert.co.in/
  */
 
+if (! defined('ABSPATH') ) {
+    exit;
+}
 if (! headers_sent() ) {
     header('Content-Type: text/html; charset=utf-8');
 }
@@ -44,7 +47,7 @@ if (! SmsAlertUtility::isBlank($user_email) || ! SmsAlertUtility::isBlank($phone
 													<input type="hidden" name="otp_type" value="' . esc_attr($otp_type) . '">';
 
 
-    sa_extra_post_data();
+    smsalert_extra_post_data();
     echo '									</form>
 											</div>';
 }

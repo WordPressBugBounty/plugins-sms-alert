@@ -145,15 +145,15 @@ class Shortcode
      */
     function saveSubscribeData()
     {
-        $grp_name = sanitize_text_field($_POST['grp_name']);
-        $datas[] = array('person_name'=>sanitize_text_field($_POST['name']),'number'=>sanitize_text_field($_POST['mobile']));
+        $grp_name = !empty($_POST['grp_name'])?sanitize_text_field(wp_unslash($_POST['grp_name'])):'';
+        $datas[] = array('person_name'=>!empty($_POST['name'])?sanitize_text_field(wp_unslash($_POST['name'])):'','number'=>!empty($_POST['mobile'])?sanitize_text_field(wp_unslash($_POST['mobile'])):'');
         $response = SmsAlertcURLOTP::createContact($datas, $grp_name);
         $response = json_decode($response, true);
         if ($response['status']=='success') {
             echo "<div class='sastock_output' style='color: rgb(255, 255, 255); background-color: green; padding: 10px; border-radius: 4px; margin-bottom: 10px;'>You have subscribed successfully.</div>";
         } else {
             $error = !is_array($response['description'])?$response['description']:$response['description']['desc'];
-            echo '<div class="sastock_output" style="color: rgb(255, 255, 255); background-color: red; padding: 10px; border-radius: 4px; margin-bottom: 10px;">'.$error.'</div>';
+            echo '<div class="sastock_output" style="color: rgb(255, 255, 255); background-color: red; padding: 10px; border-radius: 4px; margin-bottom: 10px;">'.esc_html($error).'</div>';
         }
         die();
     }
@@ -176,15 +176,31 @@ class Shortcode
         if ('on' !== $enabled_login_with_otp && 'on' !== $enabled_login_with_admin_otp && current_user_can('administrator')) {
             return(esc_html__('Please Enable Login With OTP.', 'sms-alert'));
         }
-        $unique_class    = 'sa-lwo-'.mt_rand(1, 100);
+        $unique_class    = 'sa-lwo-'.wp_rand(1, 100);
         if (is_user_logged_in() && !current_user_can('administrator')) {
             return;
         }    
         ob_start();
         global $wp;
-        echo '<form class="sa-lwo-form sa_loginwithotp-form '.$unique_class.'" method="post" action="' . home_url($wp->request) . '/?option=smsalert_verify_login_with_otp">';
+		$action_url = add_query_arg(
+			'option',
+			'smsalert_verify_login_with_otp',
+			home_url($wp->request)
+		);
+        echo '<form class="sa-lwo-form sa_loginwithotp-form '.esc_attr($unique_class).'" method="post" action="' . esc_url($action_url).'">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Template generates the login form HTML.
         get_smsalert_template('template/login-with-otp-form.php', array('label_field'=>$label_field, 'placeholder_field'=>$placeholder_field, 'button_field'=>$button_field, 'redirect_url'=>$redirect_url));
-        echo wp_nonce_field('smsalert_wp_loginwithotp_nonce', 'smsalert_loginwithotp_nonce', true, false);
+        echo wp_kses(
+			wp_nonce_field('smsalert_wp_loginwithotp_nonce', 'smsalert_loginwithotp_nonce', true, false),
+			array(
+				'input' => array(
+					'type'  => true,
+					'id'    => true,
+					'name'  => true,
+					'value' => true,
+				),
+			)
+		);
         echo '</form><style>.sa_default_login_form{display:none;}</style>';
         echo do_shortcode('[sa_verify phone_selector=".sa_mobileno" submit_selector= ".'.$unique_class.' .smsalert_login_with_otp_btn"]');
         $otp_modal = 'document.addEventListener("DOMContentLoaded", function() {
@@ -220,7 +236,7 @@ class Shortcode
         $placeholder_field    = ( ! empty($callback['sa_placeholder']) ) ? $callback['sa_placeholder'] : 'Enter Number';
         $button_field    = ( ! empty($callback['sa_button']) ) ? $callback['sa_button'] : 'Signup with Mobile';
         $enabled_signup_with_mobile = smsalert_get_option('signup_with_mobile', 'smsalert_general');
-        $unique_class    = 'sa-swm-'.mt_rand(1, 100);
+        $unique_class    = 'sa-swm-'.wp_rand(1, 100);
         if ('on' !== $enabled_signup_with_mobile && current_user_can('administrator')) {
             return(esc_html__('Please Enable Signup With Mobile.', 'sms-alert'));
         }
@@ -229,9 +245,25 @@ class Shortcode
         }    
         ob_start();
         global $wp;
-        echo '<form class="sa-lwo-form sa-signupwithotp-form '.$unique_class.'" method="post" action="' . home_url($wp->request) . '/?option=signwthmob">';
+		$action_url = add_query_arg(
+			'option',
+			'signwthmob',
+			home_url($wp->request)
+		);
+        echo '<form class="sa-lwo-form sa-signupwithotp-form '.esc_attr($unique_class).'" method="post" action="' . esc_url($action_url).'">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Template generates the signup form HTML.
         get_smsalert_template('template/sign-with-mobile-form.php', array('label_field'=>$label_field, 'placeholder_field'=>$placeholder_field, 'button_field'=>$button_field, 'redirect_url'=>$redirect_url));
-        echo wp_nonce_field('smsalert_wp_signupwithmobile_nonce', 'smsalert_signupwithmobile_nonce', true, false);
+		echo wp_kses(
+			wp_nonce_field('smsalert_wp_signupwithmobile_nonce', 'smsalert_signupwithmobile_nonce', true, false),
+			array(
+				'input' => array(
+					'type'  => true,
+					'id'    => true,
+					'name'  => true,
+					'value' => true,
+				),
+			)
+		);
         echo '</form><style>.sa_default_signup_form{display:none;}</style>';
         echo do_shortcode('[sa_verify phone_selector="#reg_with_mob" submit_selector= ".'.$unique_class.' .smsalert_reg_with_otp_btn"]');        
         $otp_modal = 'document.addEventListener("DOMContentLoaded", function() {

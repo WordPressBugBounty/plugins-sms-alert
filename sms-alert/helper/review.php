@@ -38,7 +38,7 @@ class WCReview
      */
     public function __construct()
     {
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
         add_action('woocommerce_order_status_changed', array( $this, 'scheduleSms' ), 100, 4);
         add_action('comment_post', array( $this, 'smsalertSendReviewMsg' ), 11, 3);
@@ -81,8 +81,8 @@ class WCReview
             $message               = $this->parseSmsBody($comment_id, $commentdata, $message);
             $review_added_user_msg = smsalert_get_option('review_added_user_msg', 'smsalert_review', 'on');
             if ('on' === $review_added_user_msg && '' !== $message ) {
-                $user_phone = ( isset($_POST['billing_phone']) && '' !== $_POST['billing_phone'] ) ? $_POST['billing_phone'] : get_user_meta($commentdata['user_id'], 'billing_phone', true);
-                do_action('sa_send_sms', $user_phone, $message);
+                $user_phone = ( isset($_POST['billing_phone']) && '' !== $_POST['billing_phone'] ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : get_user_meta($commentdata['user_id'], 'billing_phone', true);
+                do_action('smsalert_send_sms', $user_phone, $message);
             }
             // send admin notificaton.
             $message                = smsalert_get_option('sms_body_review_added_admin_msg', 'smsalert_review', '');
@@ -95,7 +95,7 @@ class WCReview
                 if (( strpos($admin_phone_number, 'post_author') !== false ) && ! empty($author_no) ) {
                     $admin_phone_number = str_replace('post_author', $author_no, $admin_phone_number);
                 }
-                do_action('sa_send_sms', $admin_phone_number, $message);
+                do_action('smsalert_send_sms', $admin_phone_number, $message);
             }
         }
     }
@@ -175,7 +175,7 @@ class WCReview
             $buyer_sms_data['sms_body'] = $review_message;
             $buyer_sms_data             = WooCommerceCheckOutForm::pharseSmsBody($buyer_sms_data, $order_id);
             $review_message             = ( ! empty($buyer_sms_data['sms_body']) ) ? $buyer_sms_data['sms_body'] : '';
-            do_action('sa_send_sms', $buyer_no, $review_message, $schedule);
+            do_action('smsalert_send_sms', $buyer_no, $review_message, $schedule);
         }
     }
 
@@ -241,11 +241,14 @@ class WCReview
         $current_val                    = smsalert_get_option('customer_notify', 'smsalert_or_general', 'on');
         $checkbox_name_id               = 'smsalert_or_general[customer_notify]';
         $text_area_name_id              = 'smsalert_or_message[customer_notify]';
+		// translators: 1: Customer first name, 2: Store name, 3: Store name.
         $text_body                      = smsalert_get_option('customer_notify', 'smsalert_or_message', sprintf(__('Hi %1$s, thank you for your recent order on %2$s. Can you take 1 minute to leave a review about your experience with us? %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[store_name]', 'https://www.google.com/search?q=[store_name]', PHP_EOL, PHP_EOL));
         $review_added_user_msg          = smsalert_get_option('review_added_user_msg', 'smsalert_review', 'on');
+		// translators: 1: Customer first name, 2: Store name.
         $sms_body_review_added_user_msg = smsalert_get_option('sms_body_review_added_user_msg', 'smsalert_review', sprintf(__('Dear %1$s, Thank you for sharing your valuable feedback on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $review_added_admin_msg          = smsalert_get_option('review_added_admin_msg', 'smsalert_review', 'on');
+		// translators: 1: Customer name, 2: Rating, 3: Item name, 4: Store name.
         $sms_body_review_added_admin_msg = smsalert_get_option('sms_body_review_added_admin_msg', 'smsalert_review', sprintf(__('Dear admin, %1$s has left a %2$s star review for %3$s on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '[rating]', '[item_name]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $datas[]   = array(

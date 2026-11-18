@@ -212,6 +212,7 @@ class Send_SMS extends \Uncanny_Automator\Recipe\Action
         $this->set_integration('SAUncanny_Automator');
         $this->set_action_code('Send_SMS');
         $this->set_action_meta('sa_mobile');
+		// translators: %1$s: Action metadata used as the number field identifier.
         $this->set_sentence(sprintf(esc_attr__('Send an sms to {{a number:%1$s}} from SMS Alert', 'sms-alert'), $this->get_action_meta()));
         $this->set_readable_sentence(esc_attr__('Send an {{SMS}} from SMS Alert', 'sms-alert'));
     }
@@ -278,7 +279,7 @@ class Send_SMS extends \Uncanny_Automator\Recipe\Action
         $body = wp_filter_post_kses(stripslashes(( Automator()->parse->text($action_meta['SMS_BODY'], $recipe_id, $user_id, $args) )));
         
         //Send sms        
-        do_action('sa_send_sms', $to, $body);
+        do_action('smsalert_send_sms', $to, $body);
         $status = true;
         $status_string = $status ? __('SMS was sent', 'sms-alert') : __('SMS was not sent', 'sms-alert');
         $this->hydrate_tokens( 

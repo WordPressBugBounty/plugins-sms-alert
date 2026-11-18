@@ -73,7 +73,7 @@ class PieRegistrationForm extends FormInterface
             return $billing_phone;
         }
         if (isset($_SESSION['sa_mobile_pie']) ) {
-            $phone = $_SESSION['sa_mobile_pie'];
+            $phone = sanitize_text_field($_SESSION['sa_mobile_pie']);
             unset($_SESSION['sa_mobile_pie']);
             return ( ! empty($billing_phone) ) ? $billing_phone : $phone;
         }
@@ -143,7 +143,7 @@ class PieRegistrationForm extends FormInterface
     { 
         SmsAlertUtility::checkSession();
         $phone_field = $this->getPhoneFieldKey();
-        $user_phone = !SmsAlertUtility::isBlank($phone_field) ? $_POST[$phone_field] : null;
+        $user_phone = !SmsAlertUtility::isBlank($phone_field) ? (!empty($data[$phone_field])?$data[$phone_field]:'') : null;
         if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {                
             return $errors;
         }
@@ -151,14 +151,10 @@ class PieRegistrationForm extends FormInterface
             unset($_SESSION['sa_pie_mobile_verified']);
             return $errors;
         }
-        $verify = check_ajax_referer('piereg_wp_registration_form_nonce', 'piereg_registration_form_nonce', false);
-        if (!$verify) {
-            return $errors->add('registration-error-invalid-nonce', __('Sorry, nonce did not verify.', 'sms-alert'));
-        }
         if (sizeof($errors->errors) > 0) {
             return $errors;
         }
-        if (isset($_REQUEST['option']) && 'smsalert_register_with_otp' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (isset($data['sa_option']) && 'smsalert_register_with_otp' === $data['sa_option'] ) {
             SmsAlertUtility::initialize_transaction($this->form_session_var2);
         }
 
@@ -171,10 +167,10 @@ class PieRegistrationForm extends FormInterface
         }
 
         if (isset($user_phone) && SmsAlertUtility::isBlank($user_phone) ) {
-            return $errors->add("registration-error-invalid-phone", __('Please enter phone number.', 'pie-register'));
+            return $errors->add("registration-error-invalid-phone", __('Please enter phone number.', 'sms-alert'));
         }
 
-        return $this->processFormFields($_POST['username'], $_POST['e_mail'], $user_phone, $errors);
+        return $this->processFormFields((!empty($data['username'])?$data['username']:''), (!empty($data['e_mail'])?$data['e_mail']:''), $user_phone, $errors);
     }
     
     /**
@@ -210,11 +206,11 @@ class PieRegistrationForm extends FormInterface
      */
     public function processFormFields( $username, $email, $phone, $errors )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $phone);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            return $errors->add("billing_phone_error", str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()));
+            return $errors->add("billing_phone_error", str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message()));
         }
         smsalert_site_challenge_otp($username, $email, $errors, $phone_num, 'phone');
     }
@@ -240,7 +236,7 @@ class PieRegistrationForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var2 ]) ) {

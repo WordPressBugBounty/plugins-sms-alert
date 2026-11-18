@@ -62,11 +62,11 @@ class SA_Forminator extends FormInterface
      * */     
     public function addSmsalertShortcode($id, $form_type, $post_id, $form_fields, $form_settings)
     {
-        $unique_id = mt_rand(1, 100);
+        $unique_id = wp_rand(1, 100);
         $unique_class    = 'sa-class-'.$unique_id;
         $form_enable = smsalert_get_option('forminator_form_status_' . $id, 'smsalert_forminator_general', 'on');
         $otp_enable  = smsalert_get_option('forminator_otp_' . $id, 'smsalert_forminator_general', 'on');
-        $uniqueNo = rand();
+        $uniqueNo = wp_rand();
         $phone_field = smsalert_get_option('forminator_sms_phone_' . $id, 'smsalert_forminator_general', '');  
         if ('on' === $form_enable && 'on' === $otp_enable && '' !== $phone_field ) {
               $inline_script = 'document.addEventListener("DOMContentLoaded", function() {jQuery(document).ready(function(){
@@ -147,14 +147,14 @@ class SA_Forminator extends FormInterface
                     $mobile = $vd['value'];
                 }
             }
-            do_action('sa_send_sms', $mobile, self::parseSmsContent($buyer_sms_content, $datas));
+            do_action('smsalert_send_sms', $mobile, self::parseSmsContent($buyer_sms_content, $datas));
         }
         if ('on' === $admin_sms_notify ) {
             $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
             $admin_phone_number = str_replace('post_author', '', $admin_phone_number);
             if (! empty($admin_phone_number) ) {
                 $admin_sms_content = smsalert_get_option('forminator_admin_sms_body_' . $form_id, 'smsalert_forminator_message', '');
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $datas));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $datas));
             }
         }
         return $datas;
@@ -181,13 +181,13 @@ class SA_Forminator extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
-    {        
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
+    {   	
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -208,12 +208,12 @@ class SA_Forminator extends FormInterface
      * @return void
      */
     public function handle_post_verification( $redirect_to, $user_login, $user_email, $password, $phone_number, $extra_data )
-    {        
+    {      
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -272,7 +272,7 @@ class SA_Forminator extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('forminator/forminator.php') ) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }
     }

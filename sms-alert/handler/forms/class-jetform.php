@@ -60,29 +60,29 @@ class JetForm extends FormInterface
      */
     public function jetformSubmissionComplete($form_data, $entry_id )
     {
-        global $form_id;          
-        $form_id          = $form_data ->action_handler->form_id;
+        global $smsalert_form_id;          
+        $smsalert_form_id          = $form_data ->action_handler->form_id;
         $form_enable      = smsalert_get_option(
-            'jetform_order_status_' . $form_id,
+            'jetform_order_status_' . $smsalert_form_id,
             'smsalert_jetform_general', 'on'
         );
         
         $phone_field      = smsalert_get_option(
-            'jetform_sms_phone_' . $form_id, 
+            'jetform_sms_phone_' . $smsalert_form_id, 
             'smsalert_jetform_general', ''
         );
         
         $buyer_sms_notify = smsalert_get_option(
-            'jetform_message_' . $form_id, 
+            'jetform_message_' . $smsalert_form_id, 
             'smsalert_jetform_general', 'on'
         );
         $admin_sms_notify = smsalert_get_option(
-            'jetform_admin_notification_' . $form_id,
+            'jetform_admin_notification_' . $smsalert_form_id,
             'smsalert_jetform_general', 'on'
         );        
         if ('on' === $form_enable && 'on' === $buyer_sms_notify ) {
             $buyer_sms_content = smsalert_get_option(
-                'jetform_sms_body_' . $form_id, 
+                'jetform_sms_body_' . $smsalert_form_id, 
                 'smsalert_jetform_message', ''
             );    
             
@@ -97,7 +97,7 @@ class JetForm extends FormInterface
                 }  
             }  
             $msg = self::parseSmsContent($buyer_sms_content, $form_data);
-            do_action('sa_send_sms', $mobile, $msg);
+            do_action('smsalert_send_sms', $mobile, $msg);
         }
         if ('on' === $admin_sms_notify ) {
             $admin_phone_number = smsalert_get_option(
@@ -108,11 +108,11 @@ class JetForm extends FormInterface
             );
             if (! empty($admin_phone_number) ) {
                 $admin_sms_content = smsalert_get_option(
-                    'jetform_admin_sms_body_' . $form_id, 
+                    'jetform_admin_sms_body_' . $smsalert_form_id, 
                     'smsalert_jetform_message', ''
                 );
                 do_action(
-                    'sa_send_sms', $admin_phone_number,
+                    'smsalert_send_sms', $admin_phone_number,
                     self::parseSmsContent($admin_sms_content, $form_data)
                 );
             }
@@ -141,7 +141,7 @@ class JetForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($user_login,$user_email,$phone_number)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
     }
 
@@ -214,7 +214,7 @@ class JetForm extends FormInterface
     {
         if (is_plugin_active('jetformbuilder/jet-form-builder.php') ) {
             add_filter(
-                'sAlertDefaultSettings',
+                'smsalertDefaultSettings',
                 __CLASS__ . '::add_default_settings', 1, 2
             );
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);

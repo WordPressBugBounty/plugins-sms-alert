@@ -91,15 +91,15 @@ class Wpjobs extends FormInterface
             $datas['[job_name]']        = get_post_meta($application_id, '_job_applied_for', true);
 
             if (! empty($visitor_message) && '1' === $new_application_customer_msg_enable ) {
-                do_action('sa_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
+                do_action('smsalert_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
             }
 
             if (! empty($candidate_message) && '1' === $new_application_candidate_msg_enable && ! empty($candidate_phone) ) {
-                do_action('sa_send_sms', $candidate_phone, self::parseSmsContent($candidate_message, $datas));
+                do_action('smsalert_send_sms', $candidate_phone, self::parseSmsContent($candidate_message, $datas));
             }
 
             if (! empty($admin_number) && ! empty($admin_message) && '1' === $new_application_admin_msg_enable ) {
-                do_action('sa_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
+                do_action('smsalert_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
             }
         }
     }
@@ -154,10 +154,10 @@ class Wpjobs extends FormInterface
             $datas['[job_id]']     = $post->ID;
             $datas['[job_name]']   = $post->post_title;
             if (! empty($visitor_message) && '1' === $approve_customer_msg_enable ) {
-                do_action('sa_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
+                do_action('smsalert_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
             }
             if (! empty($admin_number) && ! empty($admin_message) && '1' === $approve_admin_msg_enable ) {
-                do_action('sa_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
+                do_action('smsalert_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
             }
         }
     }
@@ -173,7 +173,7 @@ class Wpjobs extends FormInterface
     {
         if (! is_user_logged_in() ) {
             $fields['job']['job_phone'] = array(
-            'label'       => __('Phone', 'job_manager'),
+            'label'       => __('Phone', 'sms-alert'),
             'type'        => 'text',
             'required'    => true,
             'placeholder' => 'Enter Mobile Number',
@@ -384,10 +384,10 @@ www.smsalert.co.in',
             $datas['[job_name]']   = $post->post_title;
             $datas['[store_name]'] = get_bloginfo();
             if (! empty($visitor_message) && '1' === $new_job_customer_msg_enable ) {
-                do_action('sa_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
+                do_action('smsalert_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
             }
             if (! empty($admin_number) && ! empty($admin_message) && '1' === $new_job_admin_msg_enable ) {
-                do_action('sa_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
+                do_action('smsalert_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
             }
         }
     }
@@ -422,10 +422,10 @@ www.smsalert.co.in',
             $datas['[job_name]']   = $post->post_title;
             $datas['[store_name]'] = get_bloginfo();
             if (! empty($visitor_message) && '1' === $edit_job_customer_msg_enable ) {
-                do_action('sa_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
+                do_action('smsalert_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
             }
             if (! empty($admin_number) && ! empty($admin_message) && '1' === $edit_job_admin_msg_enable ) {
-                do_action('sa_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
+                do_action('smsalert_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
             }
         }
     }
@@ -451,13 +451,13 @@ www.smsalert.co.in',
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -483,7 +483,7 @@ www.smsalert.co.in',
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

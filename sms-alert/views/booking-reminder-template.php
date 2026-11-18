@@ -9,48 +9,52 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
 if (!empty($templates)) {    
-    $notify_id = $templates[0]['notify_id'];
+    $smsalert_notify_id = $templates[0]['notify_id'];
     ?>
 <div class="cvt-accordion">
     <div class="accordion-section">
-        <div class="cvt-accordion-body-title" data-href="#<?php echo esc_attr($notify_id); ?>">
+        <div class="cvt-accordion-body-title" data-href="#<?php echo esc_attr($smsalert_notify_id); ?>">
             <input type="checkbox" name="<?php echo esc_attr($templates[0]['checkboxNameId']); ?>" id="<?php echo esc_attr($templates[0]['checkboxNameId']); ?>" class="notify_box" <?php echo ( 'on' === $templates[0]['enabled'] ) ? "checked='checked'" : ''; ?> /><label><?php echo esc_attr($templates[0]['title']); ?></label>
             <span class="expand_btn"></span>
         </div>
-        <div id="<?php echo esc_attr($notify_id); ?>" class="cvt-accordion-body-content">
+        <div id="<?php echo esc_attr($smsalert_notify_id); ?>" class="cvt-accordion-body-content">
             <?php
-            $count = 0;
-            $total_frequency = array();
-            foreach ( $templates as $template ) {
-                if ($template['text-body'] == '' ) {
+            $smsalert_count = 0;
+            $smsalert_total_frequency = array();
+            foreach ( $templates as $smsalert_template ) {
+                if ($smsalert_template['text-body'] == '' ) {
                     continue;
                 }
                 ?>
-            <table class="form-table wc_reminder_sche bottom-border" id="scheduler_<?php echo esc_attr($count); ?>">
+            <table class="form-table wc_reminder_sche bottom-border" id="scheduler_<?php echo esc_attr($smsalert_count); ?>">
                 <tr valign="top">
                     <th>
                         <label><?php esc_html_e('Send Booking Reminder Before', 'sms-alert'); ?></label>
                     </th>
                     <td>
                 <?php
-                $hours = $template['frequency'];
-                array_push($total_frequency, $hours);
-                if (empty($hours) ) {
-                    $hours = 1;
+                $smsalert_hours = $smsalert_template['frequency'];
+                array_push($smsalert_total_frequency, $smsalert_hours);
+                if (empty($smsalert_hours) ) {
+                    $smsalert_hours = 1;
                 }
                 ?>
-                    <select id="<?php echo esc_attr($template['selectNameId']); ?>" name="<?php echo esc_attr($template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" class="smsalert_reminder_scheduler">
-                            <option value='1' <?php selected($hours, 1); ?>><?php esc_html_e('Before 1 hour', 'sms-alert'); ?></option>
-                            <option value='2' <?php selected($hours, 2); ?>><?php esc_html_e('Before 2 hours', 'sms-alert'); ?></option>
-                            <option value='3' <?php selected($hours, 3); ?>><?php esc_html_e('Before 3 hours', 'sms-alert'); ?></option>
-                            <option value='4' <?php selected($hours, 4); ?>><?php esc_html_e('Before 4 hours', 'sms-alert'); ?></option>
-                            <option value='5' <?php selected($hours, 5); ?>><?php esc_html_e('Before 5 hours', 'sms-alert'); ?></option>
-                            <option value='6' <?php selected($hours, 6); ?>><?php esc_html_e('Before 6 hours', 'sms-alert'); ?></option>
-                            <option value='12' <?php selected($hours, 12); ?>><?php esc_html_e('Before 12 hours', 'sms-alert'); ?></option>
-                            <option value='24' <?php selected($hours, 24); ?>><?php esc_html_e('Before 1 day', 'sms-alert'); ?></option>
-                            <option value='48' <?php selected($hours, 48); ?>><?php esc_html_e('Before 2 days', 'sms-alert'); ?></option>
-                            <option value='0' <?php selected($hours, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
+                    <select id="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" name="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" class="smsalert_reminder_scheduler">
+                            <option value='1' <?php selected($smsalert_hours, 1); ?>><?php esc_html_e('Before 1 hour', 'sms-alert'); ?></option>
+                            <option value='2' <?php selected($smsalert_hours, 2); ?>><?php esc_html_e('Before 2 hours', 'sms-alert'); ?></option>
+                            <option value='3' <?php selected($smsalert_hours, 3); ?>><?php esc_html_e('Before 3 hours', 'sms-alert'); ?></option>
+                            <option value='4' <?php selected($smsalert_hours, 4); ?>><?php esc_html_e('Before 4 hours', 'sms-alert'); ?></option>
+                            <option value='5' <?php selected($smsalert_hours, 5); ?>><?php esc_html_e('Before 5 hours', 'sms-alert'); ?></option>
+                            <option value='6' <?php selected($smsalert_hours, 6); ?>><?php esc_html_e('Before 6 hours', 'sms-alert'); ?></option>
+                            <option value='12' <?php selected($smsalert_hours, 12); ?>><?php esc_html_e('Before 12 hours', 'sms-alert'); ?></option>
+                            <option value='24' <?php selected($smsalert_hours, 24); ?>><?php esc_html_e('Before 1 day', 'sms-alert'); ?></option>
+                            <option value='48' <?php selected($smsalert_hours, 48); ?>><?php esc_html_e('Before 2 days', 'sms-alert'); ?></option>
+                            <option value='0' <?php selected($smsalert_hours, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
                         </select>    
                     
                         <a href="#" onclick="return false;" class="sa-delete-btn alignright"><span class="dashicons dashicons-dismiss"></span><?php esc_html_e('Remove', 'sms-alert'); ?></a>
@@ -60,33 +64,33 @@ if (!empty($templates)) {
                     <td colspan="2">
                         <div class="smsalert_tokens">
                 <?php
-                foreach ( $template['token'] as $vk => $vv ) {
-                    echo  "<a href='#' data-val='".esc_attr($vk)."'>".esc_attr($vv)."</a> | ";
+                foreach ( $smsalert_template['token'] as $smsalert_vk => $smsalert_vv ) {
+                    echo  "<a href='#' data-val='".esc_attr($smsalert_vk)."'>".esc_attr($smsalert_vv)."</a> | ";
                 }
                 ?>
-                <?php if (! empty($template['moreoption']) ) { ?>
+                <?php if (! empty($smsalert_template['moreoption']) ) { ?>
                                 <a href="<?php echo esc_url($url); ?>" class="thickbox search-token-btn">[...More]</a>
                 <?php } ?>
                         </div>
-                        <textarea name="<?php echo esc_attr($template['textareaNameId']); ?>" id="<?php echo esc_attr($template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" <?php echo( ( 'on' === $template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($template['text-body']); ?></textarea>
+                        <textarea name="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" id="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" <?php echo( ( 'on' === $smsalert_template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($smsalert_template['text-body']); ?></textarea>
                         <div id="menu_renewal" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>
             </table>
-                <?php $count++; 
+                <?php $smsalert_count++; 
             } ?>
             <div style="padding: 10px 0px 0px 10px;">
-                <button class="button action addNew" type="button" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>"> <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Add New', 'sms-alert'); ?></button>
+                <button class="button action addNew" type="button" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>"> <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Add New', 'sms-alert'); ?></button>
             </div>
             </div>
         </div>
     </div>    
        <div class="submit alignright">
-<a href="admin.php?page=booking-reminder&source=<?php echo $notify_id; ?>" class="button action"><?php esc_html_e('View List', 'sms-alert'); ?></a>
+<a href="<?php echo esc_url(admin_url('admin.php?page=booking-reminder&source=' . absint($smsalert_notify_id))); ?>" class="button action"><?php esc_html_e('View List', 'sms-alert'); ?></a>
         </div>
 <!-- /-cvt-accordion -->
 <script>
-    jQuery(document).on('click',"#<?php echo $notify_id ?> .addNew",function(){
+    jQuery(document).on('click',"#<?php echo esc_js($smsalert_notify_id) ?> .addNew",function(){
         var notify_id = jQuery(this).parents(".cvt-accordion-body-content").attr("id");
         var last_scheduler_no = jQuery('#'+notify_id).find('.form-table:last').attr("id").split('_')[1];
 
@@ -102,7 +106,7 @@ if (!empty($templates)) {
     });
 
     //delete ab cart cron schedule
-    jQuery(document).on('click',"#<?php echo $notify_id ?> .sa-delete-btn",function(){
+    jQuery(document).on('click',"#<?php echo esc_js($smsalert_notify_id) ?> .sa-delete-btn",function(){
         var notify_id = jQuery(this).parents(".cvt-accordion-body-content").attr("id");
         var last_item     = (jQuery("#"+notify_id+" .wc_reminder_sche").length==1) ? true : false;
         if(last_item)
@@ -116,8 +120,8 @@ if (!empty($templates)) {
         }
     });
     jQuery(document).ready(function(){
-        var frequency_arr = <?php echo json_encode($total_frequency) ?>;
-        var notify_id = '<?php echo $notify_id ?>';
+        var frequency_arr = <?php echo json_encode($smsalert_total_frequency) ?>;
+        var notify_id = '<?php echo esc_js($smsalert_notify_id) ?>';
         jQuery('#'+notify_id+' .smsalert_reminder_scheduler').each(
         function(index) {
             var selected_freq = jQuery("#"+notify_id+" #scheduler_"+index+" .smsalert_reminder_scheduler").find(":selected").val();

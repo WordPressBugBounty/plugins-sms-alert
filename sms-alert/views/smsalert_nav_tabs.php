@@ -1,3 +1,19 @@
+<?php
+/**
+ * Smsalert nav tabs template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
 <header class="header">
     <input class="menu-btn" type="checkbox" id="menu-btn" />
     <label class="menu-icon" for="menu-btn"><span class="navicon"></span></label>

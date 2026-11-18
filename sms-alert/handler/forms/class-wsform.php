@@ -95,14 +95,14 @@ class SA_Wsform extends FormInterface
             $phone_field = preg_replace('/(\w+)_(\d+)/i', 'field_$2', $phone_field);
             $data = $datas->meta;            
             $mobile = !empty($data[$phone_field]['value']) ? $data[$phone_field]['value'] : "";            
-            do_action('sa_send_sms', $mobile, self::parseSmsContent($buyer_sms_content, $datas->meta));
+            do_action('smsalert_send_sms', $mobile, self::parseSmsContent($buyer_sms_content, $datas->meta));
         }
         if ('on' === $admin_sms_notify ) {
             $admin_phone_number = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
             $admin_phone_number = str_replace('post_author', '', $admin_phone_number);
             if (! empty($admin_phone_number) ) {
                 $admin_sms_content = smsalert_get_option('wsform_admin_sms_body_' . $form_id, 'smsalert_wsform_message', '');
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $datas->meta));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsContent($admin_sms_content, $datas->meta));
             }
         } 
         return $response;
@@ -129,13 +129,13 @@ class SA_Wsform extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
-    {        
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
+    {   	
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -156,12 +156,12 @@ class SA_Wsform extends FormInterface
      * @return void
      */
     public function handle_post_verification( $redirect_to, $user_login, $user_email, $password, $phone_number, $extra_data )
-    {        
+    {    
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -223,7 +223,7 @@ class SA_Wsform extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('ws-form/ws-form.php') || is_plugin_active('ws-form-pro/ws-form.php') ) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_settings', 1, 2);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }
     }

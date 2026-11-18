@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -80,6 +80,9 @@ class SAwptravelengine extends FormInterface
      */
     public function wptSiteRegistrationErrors( $errors, $username, $email )
     {
+		if (isset($_POST['_wpnonce']) && !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'wp-travel-engine-register')) {
+		   return $errors;	
+		}
         SmsAlertUtility::checkSession();
         $user_phone = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
         if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {        
@@ -93,9 +96,7 @@ class SAwptravelengine extends FormInterface
         if ($errors->get_error_code() ) {
             return $errors;
         }
-        $username = ! empty($_REQUEST['username']) ? sanitize_text_field(wp_unslash($_REQUEST['username'])) : '';
-        $email    = ! empty($_REQUEST['email']) ? sanitize_text_field(wp_unslash($_REQUEST['email'])) : '';
-        $password = ! empty($_REQUEST['password']) ? sanitize_text_field(wp_unslash($_REQUEST['password'])) : '';
+        $password = '';
         if (isset($_REQUEST['option']) && 'smsalert_register_with_otp' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         }
@@ -106,15 +107,23 @@ class SAwptravelengine extends FormInterface
 
             $getusers = SmsAlertUtility::getUsersByPhone('billing_phone', $user_phone);
             if (count($getusers) > 0 ) {
-                return new WP_Error('registration-error-number-exists', __('An account is already registered with this mobile number. Please login.', 'sms-alert'));
+				$errors->add(
+					'registration-error-number-exists',
+					__('An account is already registered with this mobile number. Please login.', 'sms-alert')
+				);
+				return $errors;
             }
         }
 
         if (isset($user_phone) && SmsAlertUtility::isBlank($user_phone) ) {
-            return new WP_Error('registration-error-invalid-phone', __('Please enter phone number.', 'sms-alert'));
+			$errors->add(
+				'registration-error-invalid-phone',
+				__('Please enter phone number.', 'sms-alert')
+			);
+			return $errors;
         }
 
-        return $this->processFormFields($username, $email, $errors, $password);
+        return $this->processFormFields($username, $email, $errors, $password, $user_phone);
     }
     
     /**
@@ -127,14 +136,17 @@ class SAwptravelengine extends FormInterface
      *
      * @return void
      */
-    public function processFormFields( $username, $email, $errors, $password )
+    public function processFormFields( $username, $email, $errors, $password, $user_phone )
     {
-        global $phoneLogic;
-        $phone_no  = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
-        $phone_num = preg_replace('/[^0-9]/', '', $phone_no);
+        global $smsalert_phoneLogic;
+        $phone_num = preg_replace('/[^0-9]/', '', $user_phone);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            return new WP_Error('billing_phone_error', str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()));
+			$errors->add(
+				'billing_phone_error',
+				str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message())
+			);
+			return $errors;
         }
         smsalert_site_challenge_otp($username, $email, $errors, $phone_num, 'phone', $password);
     }
@@ -185,7 +197,7 @@ class SAwptravelengine extends FormInterface
         'booking_phone'  => array(
         'type'           => 'text',
         'wrapper_class'  => 'wp-travel-engine-billing-details-field-wrap',
-        'field_label'    => __('Phone', 'wp-travel-engine'),
+        'field_label'    => __('Phone', 'sms-alert'),
         'label_class'    => 'wpte-bf-label',
         'name'           => 'wp_travel_engine_booking_setting[place_order][booking][phone]',
         'id'             => 'billing_phone',
@@ -280,6 +292,7 @@ class SAwptravelengine extends FormInterface
             $currentVal      = smsalert_get_option('customer_te_notify_' . strtolower($vs), 'smsalert_te_general', 'on');
             $checkboxNameId  = 'smsalert_te_general[customer_te_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_te_message[customer_sms_te_body_' . strtolower($vs) . ']';
+			// translators: 1: Customer name, 2: Booking ID, 3: Store name. 
             $defaultTemplate = smsalert_get_option('customer_sms_te_body_' . strtolower($vs), 'smsalert_te_message', sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[fname]', '[booking_id]', '[store_name]', strtolower($vs), PHP_EOL, PHP_EOL));
             $textBody       = smsalert_get_option('customer_sms_te_body_' . strtolower($vs), 'smsalert_te_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When customer booking is ' . ucwords($vs);
@@ -311,6 +324,7 @@ class SAwptravelengine extends FormInterface
             $currentVal      = smsalert_get_option('admin_te_notify_' . strtolower($vs), 'smsalert_te_general', 'on');
             $checkboxNameId  = 'smsalert_te_general[admin_te_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_te_message[admin_sms_te_body_' . strtolower($vs) . ']';
+			// translators: 1: Store name. 
             $defaultTemplate = smsalert_get_option('admin_sms_te_body_' . strtolower($vs), 'smsalert_te_message', sprintf(__('Hello admin, status of your booking with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', strtolower($vs), PHP_EOL, PHP_EOL));
             $textBody = smsalert_get_option('admin_sms_te_body_' . strtolower($vs), 'smsalert_te_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When admin change status to ' . $vs;
@@ -349,8 +363,7 @@ class SAwptravelengine extends FormInterface
     {         
         $booking_metas = get_post_meta($booking_id, 'wp_travel_engine_booking_setting', true);        
         $buyerNumber   = $booking_metas['place_order']['booking']['phone']; 
-        $bookingStatuss = get_post_meta($booking_id, 'wp_travel_engine_booking_status', true);
-        $bookingStatus = !empty($_POST['wp_travel_engine_booking_status']) ? $_POST['wp_travel_engine_booking_status'] : $bookingStatuss;        
+        $bookingStatus = get_post_meta($booking_id, 'wp_travel_engine_booking_status', true);       
         $customerMessage   = smsalert_get_option('customer_sms_te_body_' . $bookingStatus, 'smsalert_te_message', '');
         $customerNotify    = smsalert_get_option('customer_te_notify_' . $bookingStatus, 'smsalert_te_general', 'on');
         if (($customerNotify === 'on' && $customerMessage !== '')) {
@@ -390,7 +403,7 @@ class SAwptravelengine extends FormInterface
     public function parseSmsBody($booking_id, $content = null)
     {
         $booking_metas         = get_post_meta($booking_id, 'wp_travel_engine_booking_setting', true);        
-        $bookingStatuss     = get_post_meta($booking_id, 'wp_travel_engine_booking_status', true);        
+        $postStatus     = get_post_meta($booking_id, 'wp_travel_engine_booking_status', true);        
         $bookingId             = $booking_id;
         $fname              = $booking_metas['place_order']['booking']['fname'];
         $lname              = $booking_metas['place_order']['booking']['lname'];
@@ -407,8 +420,7 @@ class SAwptravelengine extends FormInterface
         $tripEndDate        = $booking_metas['place_order']['tenddate'];
         $Adult              = $booking_metas['place_order']['Adult'];
         $Child              = $booking_metas['place_order']['Child'];
-        $trip_package       = $booking_metas['place_order']['trip_package'];       
-        $postStatus            = !empty($_POST['wp_travel_engine_booking_status']) ? $_POST['wp_travel_engine_booking_status'] : $bookingStatuss;
+        $trip_package       = $booking_metas['place_order']['trip_package'];
 
         $find = array(
             '[booking_id]',
@@ -490,7 +502,7 @@ class SAwptravelengine extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('wp-travel-engine/wp-travel-engine.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -520,7 +532,7 @@ class SAwptravelengine extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {

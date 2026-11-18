@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Bookit calendar helper.
  *
@@ -12,7 +11,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -64,13 +63,22 @@ class BookitCalendar extends FormInterface
         $bookingStatus = $appointment->status;
         $booking_id    = $appointment->id;
 
-        $booking_start  = date('Y-m-d H:i:s', $appointment->start_time);
+        $booking_start = (new DateTimeImmutable('@' . $appointment->start_time))
+			->setTimezone(wp_timezone())
+			->format('Y-m-d H:i:s');
         $buyer_mob      = $appointment->customer_phone;
         $customerNotify = smsalert_get_option('customer_notify', 'smsalert_bcc_general', 'on');
         global $wpdb;
         $tableName       = $wpdb->prefix.'smsalert_booking_reminder';
         $source          = 'bookit-calendar';
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $booking_id and source = '$source'");
+        $booking_details = $wpdb->get_results($wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$booking_id,
+				$source
+			));
         if ($bookingStatus === 'approved' && $customerNotify === 'on') {
             if ($booking_details) {
                 $wpdb->update(
@@ -117,16 +125,28 @@ class BookitCalendar extends FormInterface
         $schedulerData = get_option('smsalert_bcc_reminder_scheduler');
 
         foreach ($schedulerData['cron'] as $sdata) {
-            $datetime = current_time('mysql');
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
 
-            $fromdate = date('Y-m-d H:i:s', strtotime('+'.($sdata['frequency'] * 60 - $cronFrequency).' minutes', strtotime($datetime)));
-
-            $todate = date('Y-m-d H:i:s', strtotime('+'.$cronFrequency.' minutes', strtotime($fromdate)));
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
 
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM '.$tableName." WHERE start_date > '".$fromdate."' AND start_date <= '".$todate."' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
             if ($rowsToPhone) {
                 // If we have new rows in the database
                 $customerMessage = $sdata['message'];
@@ -267,6 +287,7 @@ class BookitCalendar extends FormInterface
             $schedulerData  = array();
             $schedulerData['cron'][] = [
                 'frequency' => '1',
+				// translators: 1: Customer name, 2: Booking ID, 3: Store name, 4: Booking start time.
                 'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[customer_name]', '#[id]', '[store_name]', '[start_time]', PHP_EOL, PHP_EOL),
             ];
         }
@@ -313,7 +334,7 @@ class BookitCalendar extends FormInterface
 
             $checkboxMameId = 'smsalert_bcc_general[customer_bcc_notify_'.strtolower($vs).']';
             $textareaNameId = 'smsalert_bcc_message[customer_sms_bcc_body_'.strtolower($vs).']';
-
+            // translators: 1: Customer name, 2: Booking ID, 3: Store name.
             $defaultTemplate = sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[customer_name]', '[id]', '[store_name]', $vs, PHP_EOL, PHP_EOL);
 
             $textBody = smsalert_get_option('customer_sms_bcc_body_'.strtolower($vs), 'smsalert_bcc_message', $defaultTemplate);
@@ -350,7 +371,7 @@ class BookitCalendar extends FormInterface
             $currentVal     = smsalert_get_option('admin_bcc_notify_'.strtolower($vs), 'smsalert_bcc_general', 'on');
             $checkboxMameId = 'smsalert_bcc_general[admin_bcc_notify_'.strtolower($vs).']';
             $textareaNameId = 'smsalert_bcc_message[admin_sms_bcc_body_'.strtolower($vs).']';
-
+            // translators: 1: Store name.
             $defaultTemplate = sprintf(__('Hello admin, status of your booking with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL);
 
             $textBody = smsalert_get_option('admin_sms_bcc_body_'.strtolower($vs), 'smsalert_bcc_message', $defaultTemplate);
@@ -386,7 +407,7 @@ class BookitCalendar extends FormInterface
 
         if ($customerBccNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseBookitSmsBody($appointment, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // send msg to admin.
@@ -402,7 +423,7 @@ class BookitCalendar extends FormInterface
 
             if ($adminBccNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseBookitSmsBody($booking, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
 
@@ -431,7 +452,7 @@ class BookitCalendar extends FormInterface
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseBookitSmsBody($appointment, $customerMessage);
 
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -448,7 +469,7 @@ class BookitCalendar extends FormInterface
 
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseBookitSmsBody($appointment, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
 
@@ -476,8 +497,13 @@ class BookitCalendar extends FormInterface
         $staffName     = $data->staff_name;
         $staffPhone    = $data->staff_phone;
         $total         = $data->total;
-        $startTime     = date('M d,Y H:i', $data->start_time);
-        $endTime       = date('M d,Y H:i', $data->end_time);
+        $startTime = (new DateTimeImmutable('@' . $data->start_time))
+			->setTimezone(wp_timezone())
+			->format('M d,Y H:i');
+
+		$endTime = (new DateTimeImmutable('@' . $data->end_time))
+			->setTimezone(wp_timezone())
+			->format('M d,Y H:i');
         $id            = $data->id;
 
         $find = [
@@ -555,7 +581,7 @@ class BookitCalendar extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('bookit/bookit.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
 
@@ -589,7 +615,7 @@ class BookitCalendar extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
 
     }//end handle_failed_verification()

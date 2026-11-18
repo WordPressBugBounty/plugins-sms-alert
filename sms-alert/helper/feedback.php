@@ -11,18 +11,10 @@
  * @link     https://www.smsalert.co.in/
  */
 
-/**
- * Feedback helper.
- *
- * PHP version 5
- *
- * @category Handler
- * @package  SMSAlert
- * @author   SMS Alert <support@cozyvision.com>
- * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://www.smsalert.co.in/
- * Plugin_Feedback class
- */
+if (! defined('ABSPATH') ) {
+    exit;
+}
+
 class Plugin_Feedback
 {
 
@@ -162,7 +154,7 @@ class Plugin_Feedback
          * Email field with label. ( auto filled with admin email )
          */
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'deactivation-reason',
         'label'       => '',
         'type'        => 'radio',
@@ -181,7 +173,7 @@ class Plugin_Feedback
         ),
         ),
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'deactivation-reason-text',
         'label'       => 'Let us know why you are deactivating {plugin-name} so we can improve the plugin',
         'type'        => 'textarea',
@@ -191,7 +183,7 @@ class Plugin_Feedback
         'extra-class' => 'smsf-keep-hidden',
         ),
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'admin-email',
         'label'       => '',
         'type'        => 'hidden',
@@ -201,7 +193,7 @@ class Plugin_Feedback
         'extra-class' => '',
         ),
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'name',
         'label'       => '',
         'type'        => 'hidden',
@@ -211,7 +203,7 @@ class Plugin_Feedback
         'extra-class' => '',
         ),
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'store-name',
         'label'       => '',
         'type'        => 'hidden',
@@ -221,7 +213,7 @@ class Plugin_Feedback
         'extra-class' => '',
         ),
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'store-url',
         'label'       => '',
         'type'        => 'hidden',
@@ -231,7 +223,7 @@ class Plugin_Feedback
         'extra-class' => '',
         ),
 
-        rand() => array(
+        wp_rand() => array(
         'id'          => 'plugin-name',
         'label'       => '',
         'type'        => 'hidden',

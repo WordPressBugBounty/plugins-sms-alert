@@ -170,13 +170,13 @@ class SA_Metform extends FormInterface
             
             if (! empty($buyer_sms_content) && ! empty($buyer_sms_notify)) {
                 do_action(
-                    'sa_send_sms', $phone_field, 
+                    'smsalert_send_sms', $phone_field, 
                     self::parseSmsContent($buyer_sms_content, $form_data)
                 );
             }            
             if (! empty($admin_phone_number) && !empty($admin_sms_notify) ) {
                 do_action(
-                    'sa_send_sms', $admin_phone_number,
+                    'smsalert_send_sms', $admin_phone_number,
                     self::parseSmsContent($admin_sms_content, $form_data)
                 );
             }
@@ -205,7 +205,7 @@ class SA_Metform extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($user_login,$user_email,$phone_number)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         
     }

@@ -11,6 +11,10 @@
  * @link     https://www.smsalert.co.in/
  */
 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+ 
 if (! is_plugin_active('elementor/elementor.php')) {
     return; 
 }
@@ -164,7 +168,8 @@ class SAPopup
                                                            "id" => "df1545a", 
                                                            "elType" => "widget", 
                                                            "settings" => [
-                                                              "form_list" => $otp_template_style, 
+                                                              "form_list" => $otp_template_style,
+// translators: 1: Customer phone name.															  
                                                               "sa_ele_f_mobile_lbl" => sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'), 
                                                               "sa_ele_f_mobile_botton" => __('Validate OTP', 'sms-alert'),
                                                               "sa_ele_f_otp_resend"=> esc_html__('Didn\'t receive the code?', 'sms-alert'),
@@ -556,6 +561,7 @@ class SAPopup
             $close_class = 'back';
         }
         $otp_length             = esc_attr(SmsAlertUtility::get_otp_length());
+		// translators: 1: Customer phone.
         $sa_label        = ( ! empty($callback['sa_label']) ) ? $callback['sa_label'] :sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##');
         $placeholder     = ( ! empty($callback['placeholder']) ) ? $callback['placeholder'] : '';
         $edit_phone_label     = ( ! empty($callback['edit_phone_label']) ) ? $callback['edit_phone_label'] : esc_html__('Edit Number', 'sms-alert');
@@ -568,11 +574,11 @@ class SAPopup
         $sa_resend_otp   = ( ! empty($callback['sa_resend_otp']) ) ? $callback['sa_resend_otp'] :'Didn t receive the code?';
         $sa_resend_btns  = ( ! empty($callback['sa_resend_btns']) ) ? $callback['sa_resend_btns'] :'Resend';
         if ($otp_template_style == 'popup-4') {  
-            $number_label ='<div class="edit-user-phone"><a class="saeditphone" name="saeditphone"><span class="sa-edit-icon" title="'.$edit_phone_label.'"><svg class="edit-phone bi bi-pencil-fill" fill="currentColor" height="24" viewBox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"></path></svg></span><span>'.$edit_phone_label.'</span><a></div>'; 
-            $edit_phone_form = '<div class="sa-edit-phone"><div class="saeditmessage sa-hide">'.$sa_mobile_meaasege.'</div><form></form></div>';            
+            $number_label ='<div class="edit-user-phone"><a class="saeditphone" name="saeditphone"><span class="sa-edit-icon" title="'.esc_attr($edit_phone_label).'"><svg class="edit-phone bi bi-pencil-fill" fill="currentColor" height="24" viewBox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"></path></svg></span><span>'.esc_html($edit_phone_label).'</span><a></div>'; 
+            $edit_phone_form = '<div class="sa-edit-phone"><div class="saeditmessage sa-hide">'.esc_html($sa_mobile_meaasege).'</div><form></form></div>';            
         }                
         $content = '<div class="modal-content">
-		<div class="'.$close_class.'"><span></span></div><div class="modal-body"><div style="margin:1.7em 1.5em;">'.$edit_phone_form.'<div style="position:relative" class="sa-message">'.esc_attr($sa_label).'</span></div>'.$number_label.'</div>		
+		<div class="'.esc_attr($close_class).'"><span></span></div><div class="modal-body"><div style="margin:1.7em 1.5em;">'.$edit_phone_form.'<div style="position:relative" class="sa-message">'.esc_attr($sa_label).'</span></div>'.$number_label.'</div>		
 		<div class="smsalert_validate_field '.esc_attr($digit_class).'" style="margin:1.5em">       
 		<input type="number" class="otp-number '.esc_attr($hide_class).'" id="digit-1" name="digit-1" oninput="saGroup(this)" onkeyup="tabChange(1,this)" data-next="digit-2" style="margin-right: 5px!important;" data-max="1"  autocomplete="off"/>';
         

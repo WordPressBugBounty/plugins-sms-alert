@@ -53,7 +53,7 @@ class SAUpgrade
         if ($db_version <= '3.4.0' ) {
             smsalert_WC_Order_SMS::saCartActivate();
             if (! get_option('smsalert_activation_date') ) {
-                add_option('smsalert_activation_date', date('Y-m-d'));
+                add_option('smsalert_activation_date', current_datetime()->format('Y-m-d'));
             }
         }
         if ($db_version <= '3.3.7.2' ) {
@@ -98,17 +98,31 @@ class SAUpgrade
                 }
             }
         }
-        if ($db_version <= '3.5.3' && !SmsAlertUtility::isPlayground()) {
-            global $wpdb;
-            $reminder_table_name = $wpdb->prefix . "smsalert_booking_reminder";
-            $wpdb->query("ALTER TABLE $reminder_table_name ADD source varchar(50) NOT NULL DEFAULT 'woocommerce-bookings',ADD msg_sent TINYINT NOT NULL DEFAULT 0");
-        }
+        if ($db_version <= '3.5.3' && !SmsAlertUtility::isPlayground()) 
+		{
+			global $wpdb;
+			$reminder_table_name = $wpdb->prefix . 'smsalert_booking_reminder';
+			$columns = $wpdb->get_col("SHOW COLUMNS FROM `" . esc_sql($reminder_table_name) . "`", 0);
+			if (!in_array('source', $columns, true)) {
+				$wpdb->query(
+					"ALTER TABLE `" . esc_sql($reminder_table_name) . "`
+					ADD source varchar(50) NOT NULL DEFAULT 'woocommerce-bookings'"
+				);
+			}
+			if (!in_array('msg_sent', $columns, true)) {
+				$wpdb->query(
+					"ALTER TABLE `" . esc_sql($reminder_table_name) . "`
+					ADD msg_sent TINYINT NOT NULL DEFAULT 0"
+				);
+			}
+		}
 		$senderid = smsalert_get_option('smsalert_api', 'smsalert_gateway');
 		if ($db_version <= '3.7.5' && !SmsAlertUtility::isPlayground() && $senderid == 'ESTORE') {
             $sms_otp_send  = smsalert_get_option('sms_otp_send', 'smsalert_message');
 			if($sms_otp_send != '')
 			{
 				$output   = get_option('smsalert_message');
+				// translators: 1: OTP.
                 $output['sms_otp_send'] = sprintf(__('Your verification code for mobile verification is %1$s %2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[otp]', PHP_EOL, PHP_EOL);
                 update_option('smsalert_message', $output);
 			}

@@ -11,6 +11,9 @@
  * @link     https://www.smsalert.co.in/
  */
 
+if (! defined('ABSPATH') ) {
+    exit;
+}
 
 /**
  * Add smsalert phone button in ultimate form.
@@ -19,7 +22,8 @@
  *
  * @return stirng
  */
-function sa_extra_post_data( $data = null )
+
+function smsalert_extra_post_data( $data = null )
 {
     if (isset($_SESSION[ FormSessionVars::WC_DEFAULT_REG ])
         || isset($_SESSION[ FormSessionVars::CRF_DEFAULT_REG ])
@@ -38,16 +42,16 @@ function sa_extra_post_data( $data = null )
         || isset($_SESSION[ FormSessionVars::LEARNPRESS_DEFAULT_REG ])
         || isset($_SESSION[ FormSessionVars::USERSWP_FORM ])
     ) {
-        show_hidden_fields($_REQUEST);
+        smsalert_show_hidden_fields($_REQUEST);
     } elseif (( isset($_SESSION[ FormSessionVars::WC_SOCIAL_LOGIN ]) )
         && ! SmsAlertUtility::isBlank($data)
     ) {
-        show_hidden_fields($data);
+        smsalert_show_hidden_fields($data);
     } elseif (( isset($_SESSION[ FormSessionVars::TML_REG ])
         || isset($_SESSION[ FormSessionVars::WP_DEFAULT_REG ]) || isset($_SESSION[ FormSessionVars::BUDDYPRESS_DEFAULT_REG ]) )
         && ! SmsAlertUtility::isBlank($_POST)
     ) {
-        show_hidden_fields($_POST);
+        smsalert_show_hidden_fields($_POST);
     }
 }
 
@@ -60,7 +64,7 @@ function sa_extra_post_data( $data = null )
  *
  * @return stirng
  */
-function get_nestedkey_single_val( array $inputs, $field_key = '', &$output = array() )
+function smsalert_get_nestedkey_single_val( array $inputs, $field_key = '', &$output = array() )
 {
     foreach ( $inputs as $input_key => $input_val ) {
         if (! is_array($input_val) ) {
@@ -68,9 +72,9 @@ function get_nestedkey_single_val( array $inputs, $field_key = '', &$output = ar
             $output[ $index ] = $input_val;
         } else {
             if ('' !== $field_key ) {
-                get_nestedkey_single_val($input_val, $field_key . '[' . $input_key . ']', $output);
+                smsalert_get_nestedkey_single_val($input_val, $field_key . '[' . $input_key . ']', $output);
             } else {
-                get_nestedkey_single_val($input_val, $field_key . $input_key, $output);
+                smsalert_get_nestedkey_single_val($input_val, $field_key . $input_key, $output);
             }
         }
     }
@@ -83,11 +87,11 @@ function get_nestedkey_single_val( array $inputs, $field_key = '', &$output = ar
  *
  * @return stirng
  */
-function show_hidden_fields( $data )
+function smsalert_show_hidden_fields( $data )
 {
     $sa_fields = array( 'option', 'smsalert_customer_validation_otp_token', 'smsalert_otp_token_submit', 'user_login', 'user_email', 'register_nonce', 'option', 'register_tml_nonce', 'register_nonce', 'option', 'submit', 'smsalert_reset_password_btn', 'smsalert_user_newpwd', 'smsalert_user_cnfpwd' );
     $results   = array();
-    get_nestedkey_single_val($data, '', $results);
+    smsalert_get_nestedkey_single_val($data, '', $results);
     foreach ( $results as $fieldname => $result_val ) {
         if (! in_array($fieldname, $sa_fields, true) ) {
             if (! ( in_array($fieldname, array( 'woocommerce-login-nonce', 'woocommerce-reset-password-nonce' ), true) && '' === $result_val ) ) {

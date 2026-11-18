@@ -33,7 +33,7 @@ class SmsAlertConstants
     const ERROR_JSON_TYPE        = 'error';
     const SUCCESS_JSON_TYPE      = 'success';
     const USERPRO_VER_FIELD_META = 'verification_form';
-    const SA_VERSION             = '4.0.3';
+    const SA_VERSION             = '4.0.4';
     
     
     
@@ -69,8 +69,8 @@ class SmsAlertConstants
      */
     function defineGlobal()
     {
-        global $phoneLogic;
-        $phoneLogic = new PhoneLogic();
+        global $smsalert_phoneLogic;
+        $smsalert_phoneLogic = new PhoneLogic();
         define('SA_MOV_DIR', plugin_dir_path(dirname(__FILE__)));
         define('SA_MOV_URL', plugin_dir_url(dirname(__FILE__)));
         define('SA_MOV_CSS_URL', SA_MOV_URL . 'css/sms_alert_customer_validation_style.css');

@@ -1,3 +1,19 @@
+<?php
+/**
+ * Abandoned cart shortcode template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
 <div id="cart-exit-intent-form-content">
             <div id="cart-exit-intent-form-content-r">
                 <form>

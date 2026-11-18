@@ -9,38 +9,46 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$ninja_forms = NinjaForm::getNinjaForms();
-if (! empty($ninja_forms) ) {
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+$smsalert_ninja_forms = NinjaForm::getNinjaForms();
+if (! empty($smsalert_ninja_forms) ) {
     ?>
 <div class="cvt-accordion">
     <div class="accordion-section">
-    <?php foreach ( $ninja_forms as $ks => $vs ) { ?>
-        <div class="cvt-accordion-body-title" data-href="#accordion_<?php echo esc_attr($ks); ?>">
-            <input type="checkbox" name="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($ks); ?>]" id="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('ninja_admin_notification_' . $ks, 'smsalert_ninja_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label><?php echo esc_html(ucwords(str_replace('-', ' ', $vs))); ?></label>
+    <?php foreach ( $smsalert_ninja_forms as $smsalert_ks => $smsalert_vs ) { ?>
+        <div class="cvt-accordion-body-title" data-href="#accordion_<?php echo esc_attr($smsalert_ks); ?>">
+            <input type="checkbox" name="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($smsalert_ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('ninja_admin_notification_' . $smsalert_ks, 'smsalert_ninja_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label><?php echo esc_html(ucwords(str_replace('-', ' ', $smsalert_vs))); ?></label>
             <span class="expand_btn"></span>
         </div>
-        <div id="accordion_<?php echo esc_attr($ks); ?>" class="cvt-accordion-body-content">
+        <div id="accordion_<?php echo esc_attr($smsalert_ks); ?>" class="cvt-accordion-body-content">
             <table class="form-table">
                 <tr valign="top" style="position:relative">
                 <td>
-                <a href="admin.php?page=ninja-forms&form_id=<?php echo $ks;?>" title="Edit Form" target="_blank" class="alignright"><small><?php esc_html_e('Edit Form', 'sms-alert')?></small></a>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=ninja-forms&form_id=' . absint($smsalert_ks))); ?>" title="<?php esc_attr_e('Edit Form', 'sms-alert'); ?>" target="_blank" class="alignright">
+					<small><?php esc_html_e('Edit Form', 'sms-alert'); ?></small>
+				</a>
                 <div class="smsalert_tokens">
         <?php
-        $fields = NinjaForm::getNinjavariables($ks);
-        foreach ( $fields as $field ) {
-            if (! is_array($field) ) {
-                echo  "<a href='#' data-val='[" . esc_attr($field) . "]'>".esc_attr($field)."</a> | ";
+        $smsalert_fields = NinjaForm::getNinjavariables($smsalert_ks);
+        foreach ( $smsalert_fields as $smsalert_field ) {
+            if (! is_array($smsalert_field) ) {
+                echo  "<a href='#' data-val='[" . esc_attr($smsalert_field) . "]'>".esc_attr($smsalert_field)."</a> | ";
             } else {    
-                $field = isset($field['cells'][0]['fields'][0])?$field['cells'][0]['fields'][0]:'';
-                if ($field!='') {
-                    echo  "<a href='#' data-val='[" . esc_attr($field) . "]'>".esc_attr($field)."</a> | ";
+                $smsalert_field = isset($smsalert_field['cells'][0]['fields'][0])?$smsalert_field['cells'][0]['fields'][0]:'';
+                if ($smsalert_field!='') {
+                    echo  "<a href='#' data-val='[" . esc_attr($smsalert_field) . "]'>".esc_attr($smsalert_field)."</a> | ";
                 }
             }
         }
         ?>
                 </div>
-                <textarea data-parent_id="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('ninja_admin_notification_' . esc_attr($ks), 'smsalert_ninja_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?>><?php echo esc_textarea(smsalert_get_option('ninja_admin_sms_body_' . $ks, 'smsalert_ninja_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
-                <div id="menu_ninja_admin_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
+                <textarea data-parent_id="smsalert_ninja_general[ninja_admin_notification_<?php echo esc_attr($smsalert_ks); ?>]" name="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_ninja_message[ninja_admin_sms_body_<?php echo esc_attr($smsalert_ks); ?>]" <?php echo( ( smsalert_get_option('ninja_admin_notification_' . esc_attr($smsalert_ks), 'smsalert_ninja_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?>><?php 
+				// translators: 1: Store name.
+				echo esc_textarea(smsalert_get_option('ninja_admin_sms_body_' . $smsalert_ks, 'smsalert_ninja_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
+                <div id="menu_ninja_admin_<?php echo esc_attr($smsalert_ks); ?>" class="sa-menu-token" role="listbox"></div>
                 </td>
                 </tr>
             </table>

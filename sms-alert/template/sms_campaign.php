@@ -9,62 +9,65 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-    $username = smsalert_get_option('smsalert_name', 'smsalert_gateway');
-    $password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
-    $result    = SmsAlertcURLOTP::getTemplates($username, $password);
-    $templates = (array)json_decode($result, true);
-    $result = SmsAlertcURLOTP::getSenderids($username, $password);
-    $senderids = json_decode($result, true);
-    $result = json_decode(SmsAlertcURLOTP::getCredits(), true);
-    $routes = ($result['description']['routes']);
-    $phone = array();
-    $tokens = array();
-    $count = 0;
-    $phone_data = '';
-    $search_hide = 'display:none;';
-    $send_hide = 'display:block;';
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+    $smsalert_username = smsalert_get_option('smsalert_name', 'smsalert_gateway');
+    $smsalert_password = smsalert_get_option('smsalert_password', 'smsalert_gateway');
+    $smsalert_result    = SmsAlertcURLOTP::getTemplates($smsalert_username, $smsalert_password);
+    $smsalert_templates = (array)json_decode($smsalert_result, true);
+    $smsalert_result = SmsAlertcURLOTP::getSenderids($smsalert_username, $smsalert_password);
+    $smsalert_senderids = json_decode($smsalert_result, true);
+    $smsalert_result = json_decode(SmsAlertcURLOTP::getCredits(), true);
+    $smsalert_routes = ($smsalert_result['description']['routes']);
+    $smsalert_phone = array();
+    $smsalert_tokens = array();
+    $smsalert_count = 0;
+    $smsalert_phone_data = '';
+    $smsalert_search_hide = 'display:none;';
+    $smsalert_send_hide = 'display:block;';
 if ($type == 'order_status_data') {
-    $tokens = WooCommerceCheckOutForm::getOrderVariables();
-    $search_hide = 'display:block;';
-    $send_hide = 'display:none;';
+    $smsalert_tokens = WooCommerceCheckOutForm::getOrderVariables();
+    $smsalert_search_hide = 'display:block;';
+    $smsalert_send_hide = 'display:none;';
 }
     global $wpdb;
 if (! empty($post_ids) ) {
-    foreach ( $post_ids as $key => $post_id ) {
+    foreach ( $post_ids as $smsalert_key => $post_id ) {
 		$post_id = absint($post_id);
 		if (! $post_id || ! current_user_can('edit_user', $post_id)) {
 			continue;
 		}
         if ($type == 'orders_data') {
-            $tokens = WooCommerceCheckOutForm::getOrderVariables();
+            $smsalert_tokens = WooCommerceCheckOutForm::getOrderVariables();
             if (version_compare(WC_VERSION, '7.1', '<') ) {
-                  $user_phone = get_post_meta($post_id, '_billing_phone', true);
+                  $smsalert_user_phone = get_post_meta($post_id, '_billing_phone', true);
             } else {
                 $order    = wc_get_order($post_id);
-                $user_phone  = !empty($order->get_billing_phone())?$order->get_billing_phone():$order->get_shipping_phone(); 
+                $smsalert_user_phone  = !empty($order->get_billing_phone())?$order->get_billing_phone():$order->get_shipping_phone(); 
             }
-            $phone[] =$user_phone;
+            $smsalert_phone[] =$smsalert_user_phone;
         } elseif ($type == 'users_data') {
-            $tokens = array(
+            $smsalert_tokens = array(
             '[username]'      => 'Username',
             '[store_name]'    => 'Store Name',
             '[email]'         => 'Email',
             '[billing_phone]' => 'Billing Phone',
             '[shop_url]'      => 'Shop Url',
             );
-            $user_phone = get_user_meta($post_id, 'billing_phone', true); 
-            $phone[] =$user_phone;
+            $smsalert_user_phone = get_user_meta($post_id, 'billing_phone', true); 
+            $smsalert_phone[] =$smsalert_user_phone;
         } elseif ($type == 'abandoned_data') {
-            $tokens = SA_Abandoned_Cart::getAbandonCartvariables();
-            $table_name = $wpdb->prefix . SA_CART_TABLE_NAME;
-            $query = $wpdb->prepare(
-				"SELECT * FROM {$table_name} WHERE id = %d",
+            $smsalert_tokens = SA_Abandoned_Cart::getAbandonCartvariables();
+            $smsalert_table_name = $wpdb->prefix . SA_CART_TABLE_NAME;
+            $smsalert_results = $wpdb->get_row($wpdb->prepare(
+				"SELECT * FROM `" . esc_sql($smsalert_table_name) . "` WHERE id = %d",
 				$post_id
-			);
-			$results = $wpdb->get_row($query, ARRAY_A);
-            $phone[] =$results['phone'];
+			), ARRAY_A);
+            $smsalert_phone[] =$smsalert_results['phone'];
         } elseif ($type == 'subscribe_data') {  
-            $tokens = array(
+            $smsalert_tokens = array(
             '[item_name]'       => 'Product Name',
             '[name]'            => 'Name',
             '[subscribed_date]' => 'Date',
@@ -73,25 +76,30 @@ if (! empty($post_ids) ) {
             '[shop_url]'        => 'Shop Url',
             );
             global $wpdb;
-			$sql = $wpdb->prepare(
+            $smsalert_results = $wpdb->get_row($wpdb->prepare(
 				"SELECT P.post_title, P.post_status, P.post_content, PM.meta_value
 				 FROM {$wpdb->prefix}posts AS P
 				 INNER JOIN {$wpdb->prefix}postmeta AS PM 
 					ON P.ID = PM.post_id
 				 WHERE P.ID = %d",
 				$post_id
-			);
-            $results = $wpdb->get_row($sql, 'ARRAY_A');
-            $phone[] = $results['post_title'];
+			), ARRAY_A);
+            $smsalert_phone[] = $smsalert_results['post_title'];
         } 
     }
-    $phone_data = implode(',', $phone);
-    $count = count($phone);
+    $smsalert_phone_data = implode(',', $smsalert_phone);
+    $smsalert_count = count($smsalert_phone);
   
-} 
+}
+wp_register_script(
+    'custom-jquery',
+    SA_MOV_URL . 'js/chosen.jquery.min.js',
+    array(),
+    SmsAlertConstants::SA_VERSION,
+    true
+);
+wp_enqueue_script('custom-jquery'); 
 ?>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
 <style>
 #sendbox_section select,#sendbox_section input,#sendbox_section textarea{padding:8px;width:50%;margin-top:5px;}
 .sarow button{
@@ -106,15 +114,15 @@ if (! empty($post_ids) ) {
 </style>
     <div class="container">
         <h1 >SMS CAMPAIGN</h1>
-        <div id="search_section" style="<?php echo $search_hide; ?>">
+        <div id="search_section" style="<?php echo esc_attr($smsalert_search_hide); ?>">
        <p class="sarow">
         <label>Select Order Status<br>
             <select  name="order_statuses[]" size="10" data-placeholder="Choose Order Status"  id="order_statuses" multiple class="chosen-select">
             <?php 
-               $order_statuses = is_plugin_active('woocommerce/woocommerce.php') ? wc_get_order_statuses() : array();
-            foreach ( $order_statuses as $vs  => $order_status ) {
+               $smsalert_order_statuses = is_plugin_active('woocommerce/woocommerce.php') ? wc_get_order_statuses() : array();
+            foreach ( $smsalert_order_statuses as $smsalert_vs  => $smsalert_order_status ) {
                 ?>
-            <option value="<?php echo strtolower($vs);?>"><?php echo  $order_status;?></option>
+            <option value="<?php echo esc_attr(strtolower($smsalert_vs));?>"><?php echo  esc_html($smsalert_order_status);?></option>
                 <?php
             }
             ?>
@@ -126,10 +134,20 @@ if (! empty($post_ids) ) {
         </p>
         </div>
 		<?php
-		echo wp_nonce_field('sacampaign_wp_nonce', 'sacampaign_nonce', true, false);
+		echo wp_kses(
+			wp_nonce_field('sacampaign_wp_nonce', 'sacampaign_nonce', true, false),
+			array(
+				'input' => array(
+					'type'  => true,
+					'id'    => true,
+					'name'  => true,
+					'value' => true,
+				),
+			)
+		);
 		?>
         <!-- SEARCH DATA -->
-        <div id="send_section" style="<?php echo $send_hide; ?>">
+        <div id="send_section" style="<?php echo esc_attr($smsalert_send_hide); ?>">
             <div style="display:flex">
             <h3>Total record : <span class="trecord">0</span></h3>
             <a href="#" style="margin-top:20px; margin-left:10px; display:none;" onclick="resetSearch()" id="resetsearch"> modify search </a>                
@@ -140,10 +158,10 @@ if (! empty($post_ids) ) {
                     Senderid:<br>
                     <select id="senderid">
                    <?php
-                    if (!empty($senderids['status']) && $senderids['status'] == 'success') {
-                        foreach ($senderids['description'] as $key => $senderid) {
+                    if (!empty($smsalert_senderids['status']) && $smsalert_senderids['status'] == 'success') {
+                        foreach ($smsalert_senderids['description'] as $smsalert_key => $smsalert_senderid) {
                             ?>
-                            <option value="<?php  echo $senderid['Senderid']['sender'];?>"><?php  echo $senderid['Senderid']['sender'];?></option>
+                            <option value="<?php  echo esc_attr($smsalert_senderid['Senderid']['sender']);?>"><?php  echo esc_html($smsalert_senderid['Senderid']['sender']);?></option>
                            
                             <?php 
                         }
@@ -157,16 +175,16 @@ if (! empty($post_ids) ) {
                     </label>
                     </p>
                     <?php 
-                    if (count($routes)>1) {?>
+                    if (count($smsalert_routes)>1) {?>
                     <p class="sarow">
                         <label>
                         Route:<br>
                         <select id="route">
                         
                         <?php
-                        foreach ($routes as $key => $route) {
+                        foreach ($smsalert_routes as $smsalert_key => $smsalert_route) {
                             ?>
-                        <option value="<?php echo $route['route'];?>"><?php echo $route['route'];?></option>
+                        <option value="<?php echo esc_attr($smsalert_route['route']);?>"><?php echo esc_html($smsalert_route['route']);?></option>
                             <?php  
                         }
                         ?> 
@@ -175,16 +193,16 @@ if (! empty($post_ids) ) {
                     </p>
                         <?php
                     }
-                    if (!empty($templates['status']) && $templates['status'] == 'success') {
+                    if (!empty($smsalert_templates['status']) && $smsalert_templates['status'] == 'success') {
                         ?>
                     <p class="sarow">
                         <label>
                         Template:<br>
-                    <select name="templates" id="template" onchange="return selecttemplate(this);">
+                    <select name="templates" id="sms_template">
                     <option value="" disabled selected>Select Template...</option>
-                        <?php foreach ( $templates['description'] as $template ) {
+                        <?php foreach ( $smsalert_templates['description'] as $smsalert_template ) {
                             ?>
-                <option value="<?php echo esc_textarea($template['Smstemplate']['template']); ?>"><?php echo esc_attr($template['Smstemplate']['title']); ?></option>
+                <option value="<?php echo esc_attr($smsalert_template['Smstemplate']['template']); ?>"><?php echo esc_html($smsalert_template['Smstemplate']['title']); ?></option>
                             <?php
                         }
                         ?>            
@@ -197,8 +215,8 @@ if (! empty($post_ids) ) {
                     <p class="sarow">
                         <div class="smsalert_tokens">
                         <?php
-                        foreach ( $tokens as $vk => $vv ) {
-                            echo  "<a href='#' onclick='return false;' data-val='".esc_attr($vk)."'>".esc_attr($vv)."</a> | ";
+                        foreach ( $smsalert_tokens as $smsalert_vk => $smsalert_vv ) {
+                            echo  "<a href='#' onclick='return false;' data-val='".esc_attr($smsalert_vk)."'>".esc_html($smsalert_vv)."</a> | ";
                         }
                         ?>
                         </div>
@@ -206,7 +224,7 @@ if (! empty($post_ids) ) {
                     </p>
                     <p class="sarow">
                       <button type="button" id="send_sms"  onclick="sendsms()">Send SMS</button>
-                      <a href="<?php echo $_SERVER['HTTP_REFERER']; ?>" style="margin-top:20px; margin-left:10px;"> Go Back</a>
+                      <a href="<?php echo esc_url(!empty($_SERVER['HTTP_REFERER'])?sanitize_text_field(wp_unslash($_SERVER['HTTP_REFERER'])):''); ?>" style="margin-top:20px; margin-left:10px;"> Go Back</a>
                     </p>
                 <div id="success_message">
                 </div>
@@ -216,65 +234,66 @@ if (! empty($post_ids) ) {
         </div>
         </div>
                 <script>
-                var phone = '<?php echo $phone_data; ?>';      
-                var type = '<?php echo $type; ?>';      
-                var post_ids = '<?php echo implode(',', $post_ids); ?>';      
-                $('.trecord').text('(<?php echo $count; ?>)');
-                function selecttemplate(obj) 
-                { 
-                    jQuery('#sa_message').val(obj.value);
-                }
-                $(".chosen-select").chosen();
+                var phone = '<?php echo esc_js($smsalert_phone_data); ?>';      
+                var type = '<?php echo esc_js($type); ?>';      
+                var post_ids = '<?php echo esc_js(implode(',', $post_ids)); ?>';      
+                jQuery('.trecord').text('(<?php echo esc_js($smsalert_count); ?>)');
+				jQuery(document).on("change","#sms_template",function(){
+					jQuery('#sa_message').val(jQuery(this).val());
+				});
+				jQuery(document).ready(function(){
+                  jQuery(".chosen-select").chosen();
+				});
                 
                 function search_data(){
-                    var order_statuses = $('#order_statuses').val();
-                    var sacampaign_nonce = $('#sacampaign_nonce').val();
-                    $('#btn').html('Please Wait..');
+                    var order_statuses = jQuery('#order_statuses').val();
+                    var sacampaign_nonce = jQuery('#sacampaign_nonce').val();
+                    jQuery('#btn').html('Please Wait..');
                     jQuery.ajax({
-                        url: "<?php echo admin_url('admin-ajax.php'); ?>",
+                        url: "<?php echo esc_js(admin_url('admin-ajax.php')); ?>",
                         type:'POST',
                         data:'action=process_campaign&order_statuses='+order_statuses+'&sacampaign_nonce='+sacampaign_nonce+'&searchdata=',
                           
                          success : function(response) {
-                            $('#btn').html('SearchData');
+                            jQuery('#btn').html('SearchData');
                             if(response>0) 
                             {
-                            $('.trecord').text(response);
-                            $('#search_section').hide();
-                            $('#resetsearch').show();
-                            $('#send_section').show();
+                            jQuery('.trecord').text(response);
+                            jQuery('#search_section').hide();
+                            jQuery('#resetsearch').show();
+                            jQuery('#send_section').show();
                             }
                         }
                     });
                 }
                 
                 function resetSearch(){
-                 $('#search_section').show();
-                 $('#send_section').hide();
-                 $('#resetsearch').hide();
-                 $('.trecord').text(0);
+                 jQuery('#search_section').show();
+                 jQuery('#send_section').hide();
+                 jQuery('#resetsearch').hide();
+                 jQuery('.trecord').text(0);
                 }
 
                 function sendsms(){
-                    var senderid = $('#senderid').val();
-                    var sacampaign_nonce = $('#sacampaign_nonce').val();
-                    var route = ($('#route').val() != undefined)?$('#route').val():'';
-                    var template = $('#template').val();
-                    var message = $('#sa_message').val();
-                    var order_statuses = $('#order_statuses').val();
-                    $('#send_sms').css('disabled',true).html('Please Wait...');
+                    var senderid = jQuery('#senderid').val();
+                    var sacampaign_nonce = jQuery('#sacampaign_nonce').val();
+                    var route = (jQuery('#route').val() != undefined)?jQuery('#route').val():'';
+                    var template = jQuery('#sms_template').val();
+                    var message = jQuery('#sa_message').val();
+                    var order_statuses = jQuery('#order_statuses').val();
+                    jQuery('#send_sms').css('disabled',true).html('Please Wait...');
                     
                     jQuery.ajax({
-                        url: "<?php echo admin_url('admin-ajax.php'); ?>",
+                        url: "<?php echo esc_url(admin_url('admin-ajax.php')); ?>",
                         type:'POST',
                         data:'action=process_campaign&senderid='+senderid+'&route='+route+'&message='+message+'&phone='+phone+'&type='+type+'&post_ids='+post_ids+'&order_statuses='+order_statuses+'&sacampaign_nonce='+sacampaign_nonce,
                          success : function(response){
-                            $('#send_sms').css('disabled',false).html('Send SMS');
+                            jQuery('#send_sms').css('disabled',false).html('Send SMS');
                              if(response==1)
                              {
-                                $('#success_message').html(' <h3>Message sent successfully!</h3>').fadeOut(3e3,function(){jQuery("#success_message").html("")});
+                                jQuery('#success_message').html(' <h3>Message sent successfully!</h3>').fadeOut(3e3,function(){jQuery("#success_message").html("")});
                              }else{
-                                $('#error_message').html(' <h3>Something went wrong!</h3>').fadeOut(3e3,function(){jQuery("#error_message").html("")});
+                                jQuery('#error_message').html(' <h3>Something went wrong!</h3>').fadeOut(3e3,function(){jQuery("#error_message").html("")});
                              }
                         },
                         
@@ -295,9 +314,9 @@ if (! empty($post_ids) ) {
                 s.value = n + e + l
             } else alert("This version of Mozilla based browser does not support setSelectionRange")
         }        
-        $(document).on("click",".smsalert_tokens a",function(){
-            return insertAtCaret($(this).attr("data-val"),
-            $("#sa_message").attr("id"));
+        jQuery(document).on("click",".smsalert_tokens a",function(){
+            return insertAtCaret(jQuery(this).attr("data-val"),
+            jQuery("#sa_message").attr("id"));
         });
                
     </script>

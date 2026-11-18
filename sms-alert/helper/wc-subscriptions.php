@@ -38,7 +38,7 @@ class WCSubscription
     public function __construct()
     {
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
-        add_filter('sAlertDefaultSettings', array( $this, 'add_default_setting' ), 1);
+        add_filter('smsalertDefaultSettings', array( $this, 'add_default_setting' ), 1);
         $statuses = wcs_get_subscription_statuses();
         foreach ( $statuses as $ks => $order_status ) {
             $prefix = 'wc-';
@@ -155,7 +155,7 @@ class WCSubscription
 
             $check_box_name_id = 'smsalert_wcs_general[cust_subs_' . $vs . '_msg]';
             $text_area_name_id = 'smsalert_wcs_message[sms_body_cust_subs_' . $vs . '_msg]';
-
+            // translators: 1: Customer first name, 2: Subscription ID, 3: Store name, 4: Subscription status.
             $default_template = ( 'Created' === $order_status ) ? sprintf(__('Hello %1$s thank you for your subscription %2$s with %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', PHP_EOL, PHP_EOL) : sprintf(__('Hello %1$s, status of your subscription %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', '[subscription_status]', PHP_EOL, PHP_EOL);
             $text_body        = smsalert_get_option('sms_body_cust_subs_' . $vs . '_msg', 'smsalert_wcs_message', ( ( '' !== $default_template ) ? $default_template : '' ));
 
@@ -199,7 +199,7 @@ class WCSubscription
 
             $check_box_name_id = 'smsalert_wcs_general[admin_subs_' . $vs . '_msg]';
             $text_area_name_id = 'smsalert_wcs_message[sms_body_admin_subs_' . $vs . '_msg]';
-
+            // translators: 1: Store name, 2: Subscription ID, 3: Amount, 4: Subscription status.
             $default_template = ( 'Created' === $order_status ) ? sprintf(__('%1$s You have a new subscription %2$s for order value Rs. %3$s. Please check your admin dashboard for complete details.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]:', '#[subscription_id]', '[order_amount]', PHP_EOL, PHP_EOL) : sprintf(__('%1$s Status of subscription %2$s worth Rs. %3$s is changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[store_name]:', '#[subscription_id]', '[order_amount]', '[subscription_status]', PHP_EOL, PHP_EOL);
             $text_body        = smsalert_get_option('sms_body_admin_subs_' . $vs . '_msg', 'smsalert_wcs_message', ( ( '' !== $default_template ) ? $default_template : '' ));
 
@@ -238,10 +238,12 @@ class WCSubscription
             $scheduler_data = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '1',
+			// translators: 1: Customer first name, 2: Subscription ID, 3: Store name, 4: Renewal date.
             'message'   => sprintf(__('Hello %1$s, your subscription %2$s with %3$s is due for renewal on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', '[renewal_date]', PHP_EOL, PHP_EOL),
             );
             $scheduler_data['cron'][] = array(
             'frequency' => '2',
+			// translators: 1: Customer first name, 2: Subscription ID, 3: Store name, 4: Renewal date.
             'message'   => sprintf(__('Hello %1$s, your subscription %2$s with %3$s is due for renewal on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '#[subscription_id]', '[store_name]', '[renewal_date]', PHP_EOL, PHP_EOL),
             );
         }
@@ -305,7 +307,7 @@ class WCSubscription
             $smsalert_notification_subs_status_change_admin_msg = smsalert_get_option('admin_subs_' . $subs_status . '_msg', 'smsalert_wcs_general', 'on');
 
             if ('on' === $smsalert_notification_subs_status_change_admin_msg && '' !== $admin_message ) {
-                do_action('sa_send_sms', $sms_admin_phone, $admin_message);
+                do_action('smsalert_send_sms', $sms_admin_phone, $admin_message);
             }
 
             $customer_msg              = smsalert_get_option('sms_body_cust_subs_' . $subs_status . '_msg', 'smsalert_wcs_message', '');
@@ -317,7 +319,7 @@ class WCSubscription
 
             $smsalert_notification_subs_status_change_cust_msg = smsalert_get_option('cust_subs_' . $subs_status . '_msg', 'smsalert_wcs_general', 'on');
             if ('on' === $smsalert_notification_subs_status_change_cust_msg && '' !== $customer_msg ) {
-                do_action('sa_send_sms', $cust_no, $customer_msg);
+                do_action('smsalert_send_sms', $cust_no, $customer_msg);
             }
         }
     }
@@ -350,7 +352,7 @@ class WCSubscription
         $smsalert_notification_subs_renewal_admin_msg = smsalert_get_option('admin_subs_renewal_msg', 'smsalert_wcs_general', 'on');
 
         if ('on' === $smsalert_notification_subs_renewal_admin_msg && '' !== $admin_message ) {
-            do_action('sa_send_sms', $sms_admin_phone, $admin_message);
+            do_action('smsalert_send_sms', $sms_admin_phone, $admin_message);
         }
 
         $customer_msg              = smsalert_get_option('sms_body_cust_subs_renewal_msg', 'smsalert_wcs_message', '');
@@ -362,7 +364,7 @@ class WCSubscription
 
         $smsalert_notification_subs_renewal_cust_msg = smsalert_get_option('cust_subs_renewal_msg', 'smsalert_wcs_general', 'on');
         if ('on' === $smsalert_notification_subs_renewal_cust_msg && '' !== $customer_msg ) {
-            do_action('sa_send_sms', $cust_no, $customer_msg);
+            do_action('smsalert_send_sms', $cust_no, $customer_msg);
         }
     }
 
@@ -395,7 +397,7 @@ class WCSubscription
         $smsalert_notification_subs_create_admin_msg = smsalert_get_option('admin_subs_create_msg', 'smsalert_wcs_general', 'on');
 
         if ('on' === $smsalert_notification_subs_create_admin_msg && '' !== $admin_message ) {
-            do_action('sa_send_sms', $sms_admin_phone, $admin_message);
+            do_action('smsalert_send_sms', $sms_admin_phone, $admin_message);
         }
 
         $customer_msg              = smsalert_get_option('sms_body_cust_subs_create_msg', 'smsalert_wcs_message', '');
@@ -407,7 +409,7 @@ class WCSubscription
 
         $smsalert_notification_subs_create_cust_msg = smsalert_get_option('cust_subs_create_msg', 'smsalert_wcs_general', 'on');
         if ('on' === $smsalert_notification_subs_create_cust_msg && '' !== $customer_msg ) {
-            do_action('sa_send_sms', $cust_no, $customer_msg);
+            do_action('smsalert_send_sms', $cust_no, $customer_msg);
         }
     }
 
@@ -452,13 +454,24 @@ class WCSubscription
         $next_payment_date_dt = $subscription->get_date('next_payment');
         global $wpdb;
         $table_name           = $wpdb->prefix . 'smsalert_renewal_reminders';
-        $subscription_details = $wpdb->get_results("SELECT next_payment_date, notification_sent_date FROM $table_name WHERE subscription_id = $subscription_id ");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT next_payment_date, notification_sent_date
+				FROM `" . esc_sql($table_name) . "`
+				WHERE subscription_id = %d",
+				$subscription_id
+			)
+		);
         if ('active' === $subscription->get_status() && 'on' === $customer_notify && $next_payment_date_dt ) {
             $scheduler_data = get_option('smsalert_wc_renewal_scheduler');
             if (isset($scheduler_data['cron']) && ! empty($scheduler_data['cron']) ) {
                 foreach ( $scheduler_data['cron'] as $sdata ) {
-                    $next_payment_date    = date('Y-m-d', strtotime($next_payment_date_dt));
-                    $notify_days_before   = date('Y-m-d', strtotime('-' . $sdata['frequency'] . ' days', strtotime($next_payment_date)));
+                    $next_payment_date = (new DateTimeImmutable($next_payment_date_dt, wp_timezone()))
+						->format('Y-m-d');
+
+					$notify_days_before = (new DateTimeImmutable($next_payment_date, wp_timezone()))
+						->modify('-' . absint($sdata['frequency']) . ' days')
+						->format('Y-m-d');
                     if ($sdata['frequency'] > 0 && $sdata['message'] != '' ) {
                         if ($subscription_details ) {
                             $wpdb->update(
@@ -501,7 +514,14 @@ class WCSubscription
         $table_name           = $wpdb->prefix . 'smsalert_renewal_reminders';
         $today                = new DateTime();
         $today                = $today->format('Y-m-d');
-        $subscription_details = $wpdb->get_results("SELECT * FROM $table_name WHERE notification_sent_date = '$today'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($table_name) . "`
+				WHERE notification_sent_date = %s",
+				$today
+			)
+		);
         if ('on' === $customer_notify && $subscription_details ) {
             foreach ( $subscription_details as $subscription ) {
                 $subscription_id           = $subscription->subscription_id;
@@ -514,7 +534,7 @@ class WCSubscription
                 $cust_sms_data['sms_body'] = $customer_msg;
                 $cust_sms_data             = WooCommerceCheckOutForm::pharseSmsBody($cust_sms_data, wp_get_post_parent_id($subscription_id));
                 $customer_msg              = ( ! empty($cust_sms_data['sms_body']) ) ? $cust_sms_data['sms_body'] : '';
-                do_action('sa_send_sms', $user_phone, $customer_msg);
+                do_action('smsalert_send_sms', $user_phone, $customer_msg);
             }
         }
     }

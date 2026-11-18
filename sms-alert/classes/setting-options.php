@@ -89,7 +89,7 @@ class smsalert_Setting_Options
         self::smsalertDashboardSetup();
         self::resetOTPModalStyle();
         $current_user_is_admin = current_user_can('manage_options');
-        if (array_key_exists('option', $_GET) && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'smsalert-nonce' ) ) {
+        if (array_key_exists('option', $_GET) && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_GET['nonce'])), 'smsalert-nonce' ) ) {
             switch ( trim(sanitize_text_field(wp_unslash($_GET['option']))) ) {
             case 'smsalert-woocommerce-senderlist':
                 $user = isset($_GET['user']) ? sanitize_text_field(wp_unslash($_GET['user'])) : '';
@@ -172,8 +172,8 @@ class smsalert_Setting_Options
     private static function resetOTPModalStyle()
     {
 		$current_user_is_admin = current_user_can('manage_options');
-        if (!empty($_GET['action']) && $_GET['action']=='reset_style' && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( $_GET['nonce'], 'smsalert-nonce' ) ) {           
-            $post_name = trim(sanitize_text_field(wp_unslash($_GET['postname'])));            
+        if (!empty($_GET['action']) && $_GET['action']=='reset_style' && $current_user_is_admin && !empty($_GET['nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_GET['nonce'])), 'smsalert-nonce' ) ) {           
+            $post_name = !empty($_GET['postname'])?trim(sanitize_text_field(wp_unslash($_GET['postname']))):'';            
             $page = get_page_by_title($post_name, OBJECT, 'sms-alert');
             
             if (!empty($page)) {
@@ -202,13 +202,26 @@ class smsalert_Setting_Options
                 foreach ( $credits['description']['routes'] as $credit ) {
                     if (strtolower($credit['route']) === 'transactional' ) {
         global $current_user;
-        wp_get_current_user();						
+        wp_get_current_user();
+		$demo_url = add_query_arg(
+			array(
+				'utm_source'   => 'wordpress',
+				'utm_medium'   => 'sms_alert_plugin',
+				'utm_campaign' => 'free_trial',
+				'utm_content'  => 'top_banner',
+				'utm_keyword'  => smsalert_get_option('smsalert_name', 'smsalert_gateway'),
+				'email'        => $current_user->user_email,
+				'phone'        => '',
+				'cname'        => $current_user->user_firstname . ' ' . $current_user->user_lastname,
+			),
+			'https://www.chatondesk.com/request-demo/'
+		);		
         ?>
 		<div class="notice notice-warning is-dismissible">
 		<div class="e-notice__content">
 		<h3>Expand Your Messaging Capabilities with WhatsApp!</h3>
 		<p>As a valued SMS Alert customer, you already know the power of seamless communication. Now, take it a step further with our new WhatsApp messaging service—FREE for 7 days! Connect with your customers on the platform they prefer and enhance your outreach effortlessly.</p>
-        <p>Get started today and enjoy the same trusted service you rely on, now with WhatsApp. <a href="https://www.chatondesk.com/request-demo/?utm_source=wordpress&utm_medium=sms_alert_plugin&utm_campaign=free_trial&utm_content=top_banner&utm_keyword=<?php echo smsalert_get_option('smsalert_name', 'smsalert_gateway'); ?>&email=<?php echo $current_user->user_email; ?>&phone=&cname=<?php echo $current_user->user_firstname . ' ' . $current_user->user_lastname; ?>" class="button button-primary" target="_blank"><span>Get Started with Free Trial</span></a><a style="margin-left:20px;text-decoration: none" href="javascript:void(0)" id="smsalert-remind-later">Don't show it again</a></p>
+        <p>Get started today and enjoy the same trusted service you rely on, now with WhatsApp. <a href="<?php echo esc_url($demo_url); ?>" class="button button-primary" target="_blank"><span>Get Started with Free Trial</span></a><a style="margin-left:20px;text-decoration: none" href="javascript:void(0)" id="smsalert-remind-later">Don't show it again</a></p>
 			</div>
 		</div>		
       <?php
@@ -245,7 +258,8 @@ class smsalert_Setting_Options
     public static function showPlayGroundNotices()
     {
 		global $pagenow;
-		if ('admin.php' === $pagenow && 'sms-alert' === sanitize_text_field($_GET['page']) && $_SERVER['HTTP_HOST'] == 'playground.wordpress.net' ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This hook only displays admin notices; it does not process form submissions.
+		if ('admin.php' === $pagenow && !empty($_GET['page']) && ('sms-alert' === sanitize_text_field(wp_unslash($_GET['page']))) && !empty($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'] == 'playground.wordpress.net') ) {
 		$sandbox_mode = get_option('smsalert_sandbox_mode', 0);	
         ?>
 		<div class="notice notice-warning">
@@ -299,34 +313,34 @@ class smsalert_Setting_Options
         
         add_submenu_page('options-general.php', 'SMS ALERT', 'SMS Alert', 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('gf_edit_forms', __('SMS ALERT', 'gravityforms'), __('SMS Alert', 'gravityforms'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('gf_edit_forms', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('ultimatemember', __('SMS ALERT', 'ultimatemember'), __('SMS Alert', 'ultimatemember'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('ultimatemember', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('wpcf7', __('SMS ALERT', 'wpcf7'), __('SMS Alert', 'wpcf7'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('wpcf7', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('pie-register', __('SMS ALERT', 'pie-register'), __('SMS Alert', 'pie-register'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('pie-register', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('wpam-affiliates', __('SMS ALERT', 'affiliates-manager'), __('SMS Alert', 'affiliates-manager'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('wpam-affiliates', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('learn_press', __('SMS ALERT', 'learnpress'), __('SMS Alert', 'learnpress'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('learn_press', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('ninja-forms', __('SMS ALERT', 'ninja-forms'), __('SMS Alert', 'ninja-forms'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('ninja-forms', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
         
-        add_submenu_page('fluent_forms', __('SMS ALERT', 'fluent_forms'), __('SMS Alert', 'fluent_forms'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('fluent_forms', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
         
-        add_submenu_page('forminator', __('SMS ALERT', 'forminator'), __('SMS Alert', 'forminator'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('forminator', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('user-registration', __('SMS ALERT', 'user-registration'), __('SMS Alert', 'user-registration'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('user-registration', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
-        add_submenu_page('erforms-overview', __('SMS ALERT', 'erforms-overview'), __('SMS Alert', 'erforms-overview'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('erforms-overview', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
          add_submenu_page('options.php', 'Booking Calendar', __('Booking Calendar', 'sms-alert'), 'manage_options', 'booking-reminder', array( 'SAReminderlist', 'display_page' ));
-        add_submenu_page('wpforms-overview', __('SMS ALERT', 'wpforms-overview'), __('SMS Alert', 'wpforms-overview'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('wpforms-overview', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
 
         add_submenu_page('options.php', 'Abandoned Carts', __('Abandoned Carts', 'sms-alert'), 'manage_options', 'ab-cart', array( 'SA_Cart_Admin', 'display_page' ));
         add_submenu_page('options.php', 'Abandoned Carts', __('Abandoned Carts', 'sms-alert'), 'manage_options', 'ab-cart-reports', array( 'SA_Cart_Admin', 'display_reports_page' ));
         
-        add_submenu_page('wpbc', __('SMS ALERT', 'wpbc'), __('SMS Alert', 'wpbc'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
+        add_submenu_page('wpbc', __('SMS ALERT', 'sms-alert'), __('SMS Alert', 'sms-alert'), 'manage_options', 'sms-alert', __CLASS__ . '::settingsTab');
     }
 
     /**
@@ -418,7 +432,8 @@ class smsalert_Setting_Options
      */
     public static function saveSettings( $option )
     {
-        if (empty($_POST) ) {
+		$verify = check_ajax_referer('smsalert_wp_settings_nonce', 'smsalert_settings_nonce', false);
+        if (empty($_POST) || !$verify) {
             return false;
         }
 
@@ -494,8 +509,8 @@ class smsalert_Setting_Options
         'smsalert_edd_general'          => array(),
         );
 
-        $defaults = apply_filters('sAlertDefaultSettings', $defaults);
-        $_POST['smsalert_general']['checkout_payment_plans'] = isset($_POST['smsalert_general']['checkout_payment_plans']) ? maybe_serialize($_POST['smsalert_general']['checkout_payment_plans']) : array();
+        $defaults = apply_filters('smsalertDefaultSettings', $defaults);
+        $_POST['smsalert_general']['checkout_payment_plans'] = isset($_POST['smsalert_general']['checkout_payment_plans']) ? maybe_serialize(wp_unslash($_POST['smsalert_general']['checkout_payment_plans'])) : array();
         $options = array_replace_recursive($defaults, array_intersect_key($_POST, $defaults));
 
         foreach ( $options as $name => $value ) {
@@ -537,11 +552,17 @@ class smsalert_Setting_Options
         $has_booking_calendar                         = ( is_plugin_active('booking/wpdev-booking.php') ) ? true : false;
         $sms_admin_phone                              = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
         $group_auto_sync                              = smsalert_get_option('group_auto_sync', 'smsalert_general', '');
+		// translators: 1: Customer first name, 2: Order ID, 3: Store name.
         $sms_body_on_hold                             = smsalert_get_option('sms_body_on-hold', 'smsalert_message', sprintf(__('Hello %1$s, your order %2$s with %3$s has been put on hold, our team will contact you shortly with more details.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'));
+		// translators: 1: Customer first name, 2: Order ID, 3: Store name.
         $sms_body_processing                          = smsalert_get_option('sms_body_processing', 'smsalert_message', sprintf(__('Hello %1$s, thank you for placing your order %2$s with %3$s.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'));
+		// translators: 1: Customer first name, 2: Order ID, 3: Store name.
         $sms_body_completed                           = smsalert_get_option('sms_body_completed', 'smsalert_message', sprintf(__('Hello %1$s, your order %2$s with %3$s has been dispatched and shall deliver to you shortly.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]', PHP_EOL, PHP_EOL));
+		// translators: 1: Customer first name, 2: Order ID, 3: Store name.
         $sms_body_cancelled                           = smsalert_get_option('sms_body_cancelled', 'smsalert_message', sprintf(__('Hello %1$s, your order %2$s with %3$s has been cancelled due to some un-avoidable conditions. Sorry for the inconvenience caused.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'));
+		// translators: 1: Customer username, 2: Store name.
         $sms_body_registration_msg                    = smsalert_get_option('sms_body_registration_msg', 'smsalert_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
+		// translators: 1: otp.
         $sms_otp_send                                 = smsalert_get_option('sms_otp_send', 'smsalert_message', sprintf(__('Your verification code for mobile verification is %1$s %2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[otp]', PHP_EOL, PHP_EOL));
         $smsalert_notification_checkout_otp           = smsalert_get_option('buyer_checkout_otp', 'smsalert_general', 'on');
         $smsalert_notification_signup_otp             = smsalert_get_option('buyer_signup_otp', 'smsalert_general', 'on');
@@ -549,12 +570,12 @@ class smsalert_Setting_Options
         $smsalert_notification_reg_msg                = smsalert_get_option('registration_msg', 'smsalert_general', 'on');
         $smsalert_notification_out_of_stock_admin_msg = smsalert_get_option('admin_out_of_stock_msg', 'smsalert_general', 'on');
         $smsalert_allow_multiple_user                 = smsalert_get_option('allow_multiple_user', 'smsalert_general', '');
-        $admin_bypass_otp_login                       = maybe_unserialize(smsalert_get_option('admin_bypass_otp_login', 'smsalert_general', array( 'administrator' )));
+        $smsalert_admin_bypass_otp_login                       = maybe_unserialize(smsalert_get_option('admin_bypass_otp_login', 'smsalert_general', array( 'administrator' )));
         $checkout_show_otp_button                     = smsalert_get_option('checkout_show_otp_button', 'smsalert_general', 'off');
         $checkout_show_otp_guest_only                 = smsalert_get_option('checkout_show_otp_guest_only', 'smsalert_general', 'on');
 
         $checkout_show_country_code = smsalert_get_option('checkout_show_country_code', 'smsalert_general', 'off');
-		$disablePlayground     = SmsAlertUtility::isPlayground()?"disablePlayground":"";
+		$smsalert_disablePlayground     = SmsAlertUtility::isPlayground()?"disablePlayground":"";
         $enable_selected_country    = smsalert_get_option('enable_selected_country', 'smsalert_general', 'off');
         $enable_reset_password      = smsalert_get_option('reset_password', 'smsalert_general', 'off');
         $allow_otp_verification    = smsalert_get_option('allow_otp_verification', 'smsalert_general', 'off');
@@ -605,6 +626,17 @@ class smsalert_Setting_Options
             <div class="SMSAlert_box SMSAlert_settings_box">
                 <div class="SMSAlert_nav_tabs">
         <?php
+		echo wp_kses(
+			wp_nonce_field('smsalert_wp_settings_nonce', 'smsalert_settings_nonce', true, false),
+			array(
+				'input' => array(
+					'type'  => true,
+					'id'    => true,
+					'name'  => true,
+					'value' => true,
+				),
+			)
+		);
         $params = array(
          'hasWoocommerce'     => $has_woocommerce,
          'hasWPmembers'       => $has_w_p_members,
@@ -632,7 +664,7 @@ class smsalert_Setting_Options
          'hasWoocommerce'    => $has_woocommerce,
          'hasWPAM'           => $has_w_p_a_m,
          'hasEMBookings'     => $has_e_m_bookings,
-         'disablePlayground' => $disablePlayground
+         'smsalert_disablePlayground' => $smsalert_disablePlayground
         );
         get_smsalert_template('views/smsalert_general_tab.php', $params);
         ?>
@@ -648,7 +680,7 @@ class smsalert_Setting_Options
                 ?>
                     <div class="SMSAlert_nav_box SMSAlert_nav_<?php echo esc_attr(strtolower(str_replace(' ', '_', $tab['nav']))); ?>_box <?php echo esc_attr(strtolower(str_replace(' ', '_', $tab['nav'])));  ?>">
 					
-                         <div class="tabset <?php echo !in_array($tab['nav'],$not_disable)?$disablePlayground:''; ?>">
+                         <div class="tabset <?php echo esc_attr(!in_array($tab['nav'],$not_disable)?$smsalert_disablePlayground:''); ?>">
                             <ul>
                 <?php foreach ( $tab['inner_nav'] as $in_tab ) { ?>
                             <li>
@@ -672,7 +704,7 @@ class smsalert_Setting_Options
                     if (is_array($in_tab['tabContent']) ) {
                         get_smsalert_template($in_tab['filePath'], $in_tab['tabContent']);
                     } else {
-                        echo ( ! empty($in_tab['tabContent']) ) ? $in_tab['tabContent'] : '';
+                        echo ( ! empty($in_tab['tabContent']) ) ? wp_kses_post($in_tab['tabContent']) : '';
                     }
                     ?>
                                     <!--help links-->
@@ -710,7 +742,7 @@ class smsalert_Setting_Options
                 if (is_array($tab['tabContent']) ) {
                     get_smsalert_template($tab['filePath'], $tab['tabContent']);
                 } else {
-                    echo ( ! empty($tab['tabContent']) ) ? $tab['tabContent'] : '';
+                    echo ( ! empty($tab['tabContent']) ) ? wp_kses_post($tab['tabContent']) : '';
                 }
                 ?>
                             
@@ -767,8 +799,8 @@ class smsalert_Setting_Options
          'smsalert_allow_multiple_user'     => $smsalert_allow_multiple_user,
          'otp_for_roles'                    => $otp_for_roles,
          'off_excl_role'                    => $off_excl_role,
-         'admin_bypass_otp_login'           => $admin_bypass_otp_login,
-		  'disablePlayground'               => $disablePlayground
+         'smsalert_admin_bypass_otp_login'           => $smsalert_admin_bypass_otp_login,
+		  'smsalert_disablePlayground'               => $smsalert_disablePlayground
         );
 
         get_smsalert_template('views/otp-section-template.php', $params);
@@ -784,7 +816,7 @@ class smsalert_Setting_Options
                                 </div>
 								
                                 <div id="accordion_10" class="cvt-accordion-body-content" style="height:150px">
-                                    <table class="form-table <?php echo $disablePlayground; ?>">
+                                    <table class="form-table <?php echo esc_attr($smsalert_disablePlayground); ?>">
                                         <tr valign="top">
                                             <td class="td-heading" style="width:30%">
                                                 <input data-parent_id="smsalert_general[checkout_show_country_code]" type="checkbox" name="smsalert_general[enable_selected_country]" id="smsalert_general[enable_selected_country]" class="notify_box" <?php echo ( ( 'on' === $enable_selected_country ) ? "checked='checked'" : '' ); ?> parent_accordian="callbacks"/><label for="smsalert_general[enable_selected_country]"><?php esc_attr_e('Show only selected countries', 'sms-alert'); ?></label>
@@ -792,16 +824,20 @@ class smsalert_Setting_Options
                                             </td>                                        
                                             <td>
         <?php
-        $whitelist_country = (array) smsalert_get_option('whitelist_country', 'smsalert_general', null);
-        $content = '<select name="smsalert_general[whitelist_country][]" id="whitelist_country" multiple class="multiselect chosen-select" data-parent_id="smsalert_general[enable_selected_country]" parent_accordian="callbacks">';
-        foreach ( $whitelist_country as $key => $country_code ) {
-            $content .= '<option value="' . esc_attr($country_code) . '" selected="selected"></option>';
-        }
-        $content .= '</select>';
+		$whitelist_country = (array) smsalert_get_option('whitelist_country', 'smsalert_general', null);
+		?>
 
-        $content .= '<script>jQuery(function() {jQuery(".chosen-select").chosen({width: "100%"});});</script>';
-        echo $content;
-        ?>
+		<select name="smsalert_general[whitelist_country][]" id="whitelist_country" multiple class="multiselect chosen-select" data-parent_id="smsalert_general[enable_selected_country]" parent_accordian="callbacks">
+			<?php foreach ($whitelist_country as $country_code) : ?>
+				<option value="<?php echo esc_attr($country_code); ?>" selected="selected"></option>
+			<?php endforeach; ?>
+		</select>
+
+		<script>
+		jQuery(function() {
+			jQuery(".chosen-select").chosen({width: "100%"});
+		});
+		</script>
                                             </td>
                                         </tr>
           <tr valign="top">
@@ -811,15 +847,20 @@ class smsalert_Setting_Options
             </td>                                        
             <td>
             <?php
-            $allow_otp_country = (array) smsalert_get_option('allow_otp_country', 'smsalert_general', null);
-            $content = '<select name="smsalert_general[allow_otp_country][]" id="allow_otp_country" multiple class="multiselect chosen-select" data-parent_id="smsalert_general[allow_otp_verification]" parent_accordian="callbacks">';
-            foreach ( $allow_otp_country as $key => $country_code ) {
-                $content .= '<option value="' . esc_attr($country_code) . '" selected="selected"></option>';
-            }
-            $content .= '</select>';
-            $content .= '<script>jQuery(function() {jQuery(".chosen-select").chosen({width: "100%"});});</script>';
-            echo $content;
-            ?>
+			$allow_otp_country = (array) smsalert_get_option('allow_otp_country', 'smsalert_general', null);
+			?>
+
+			<select name="smsalert_general[allow_otp_country][]" id="allow_otp_country" multiple class="multiselect chosen-select" data-parent_id="smsalert_general[allow_otp_verification]" parent_accordian="callbacks">
+				<?php foreach ($allow_otp_country as $country_code) : ?>
+					<option value="<?php echo esc_attr($country_code); ?>" selected="selected"></option>
+				<?php endforeach; ?>
+			</select>
+
+			<script>
+			jQuery(function() {
+				jQuery(".chosen-select").chosen({width: "100%"});
+			});
+			</script>
             </td>
         </tr>                                
          <tr valign="top" >
@@ -834,7 +875,7 @@ class smsalert_Setting_Options
                             </div>
                         </div>    
                         <!--/--enable country code -->                        
-                        <div class="cvt-accordion <?php echo $disablePlayground; ?>" style="padding: 0px 10px 10px 10px;">
+                        <div class="cvt-accordion <?php echo esc_attr($smsalert_disablePlayground); ?>" style="padding: 0px 10px 10px 10px;">
                         <style>.top-border{border-top:1px dashed #b4b9be;}</style>
 						
                         <table class="form-table">
@@ -843,12 +884,24 @@ class smsalert_Setting_Options
                                 </td>
                                 <td>
         <?php
-        $default_country_code = smsalert_get_option('default_country_code', 'smsalert_general');
-        $content              = '<select name="smsalert_general[default_country_code]" id="default_country_code" onchange="choseMobPattern(this)">';
-        $content .= '<option value="' . esc_attr($default_country_code) . '" selected="selected">Loading...</option>';
-        $content .= '</select>';
-        echo $content;
-        ?>
+		$default_country_code = smsalert_get_option('default_country_code', 'smsalert_general');
+
+		$content = '<select name="smsalert_general[default_country_code]" id="default_country_code" onchange="choseMobPattern(this)">';
+		$content .= '<option value="' . esc_attr($default_country_code) . '" selected="selected">Loading...</option>';
+		$content .= '</select>';
+
+		echo wp_kses($content, array(
+			'select' => array(
+				'name'     => true,
+				'id'       => true,
+				'onchange' => true,
+			),
+			'option' => array(
+				'value'    => true,
+				'selected' => true,
+			),
+		));
+		?>
                                     <span class="tooltip" data-title="Default Country for mobile number format validation"><span class="dashicons dashicons-info"></span></span>
                                     <input type="hidden" name="smsalert_general[sa_mobile_pattern]" id="sa_mobile_pattern" value="<?php echo esc_attr($sa_mobile_pattern); ?>"/>
                                 </td>
@@ -944,7 +997,7 @@ class smsalert_Setting_Options
                 <?php
             }
             ?>
-                                    <span class="tooltip" data-title="<?php _e('Sync users to a Group in smsalert.co.in', 'sms-alert'); ?>"><span class="dashicons dashicons-info"></span></span>
+                                    <span class="tooltip" data-title="<?php esc_attr_e('Sync users to a Group in smsalert.co.in', 'sms-alert'); ?>"><span class="dashicons dashicons-info"></span></span>
                                     <span id="sync_status" style="opacity:0;margin-left: 20px;">
             <?php
             /* translators: %s: Number of contacts synced in group */
@@ -979,7 +1032,7 @@ class smsalert_Setting_Options
                                     <td>
             <?php
             if ($islogged ) {
-                echo '<h2><strong>'.__('SMS Credits', 'sms-alert').'</strong></h2>';
+                echo '<h2><strong>' . esc_html__('SMS Credits', 'sms-alert') . '</strong></h2>';
                 foreach ( $credits['description']['routes'] as $credit ) {
                     ?>
                                         <div class="col-lg-12 creditlist" >

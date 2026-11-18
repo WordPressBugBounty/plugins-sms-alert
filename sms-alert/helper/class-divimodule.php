@@ -61,7 +61,7 @@ class SMSAlertSelector extends ET_Builder_Module
         $forms = array(''=>'Select Form','1'=>'Signup With Mobile','2'=>'Login With Otp','3'=>'Share Cart Button');
         return [
         'form_id'    => [
-        'label'           => esc_html__('Form', 'wpforms-lite'),
+        'label'           => esc_html__('Form', 'sms-alert'),
         'type'            => 'select',
         'option_category' => 'basic_option',
         'toggle_slug'     => 'main_content',

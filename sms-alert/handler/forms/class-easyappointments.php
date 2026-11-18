@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Easy-appointments helper.
  *
@@ -12,7 +11,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -95,7 +94,14 @@ class SA_Easyappointments extends FormInterface
         $tableName       = $wpdb->prefix . 'smsalert_booking_reminder';
         $source          = 'easy-appointments';
         
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $bookingId and source = '$source'");
+        $booking_details = $wpdb->get_results($wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$bookingId,
+				$source
+			));
         
         if ($bookingStatus === 'confirmed' && $customerNotify === 'on') {
             
@@ -148,15 +154,28 @@ class SA_Easyappointments extends FormInterface
      
         foreach ($schedulerData['cron'] as $sdata) {
             
-            $datetime    = current_time('mysql');
-            $fromdate    = date('Y-m-d H:i:s', strtotime('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes', strtotime($datetime)));
-        
-            $todate      = date('Y-m-d H:i:s', strtotime('+' . $cronFrequency . ' minutes', strtotime($fromdate)));
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
+
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
             
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM ' . $tableName . " WHERE start_date > '" . $fromdate . "' AND start_date <= '" . $todate . "' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
                         
             if ($rowsToPhone) { // If we have new rows in the database
                
@@ -296,6 +315,7 @@ class SA_Easyappointments extends FormInterface
             $schedulerData  = array();
             $schedulerData['cron'][] = array(
                 'frequency' => '1',
+				// translators: 1: Customer name, 2: Appointment ID, 3: Store name, 4: Booking date.
                 'message'   => sprintf(__('Hello %1$s, your appointment %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '#[id]', '[store_name]', '[bookingdate]', PHP_EOL, PHP_EOL),
             );
         }
@@ -333,7 +353,7 @@ class SA_Easyappointments extends FormInterface
             $currentVal      = smsalert_get_option('customer_eap_notify_' . strtolower($vs), 'smsalert_eap_general', 'on');
             $checkboxNameId  = 'smsalert_eap_general[customer_eap_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_eap_message[customer_sms_eap_body_' . strtolower($vs) . ']';
-
+            // translators: 1: Customer name, 2: Appointment ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_eap_body_' . strtolower($vs), 'smsalert_eap_message', sprintf(__('Hello %1$s, status of your appointment #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '[id]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
             $textBody       = smsalert_get_option('customer_sms_eap_body_' . strtolower($vs), 'smsalert_eap_message', $defaultTemplate);
@@ -364,7 +384,7 @@ class SA_Easyappointments extends FormInterface
             $currentVal      = smsalert_get_option('admin_eap_notify_' . strtolower($vs), 'smsalert_eap_general', 'on');
             $checkboxNameId  = 'smsalert_eap_general[admin_eap_notify_' . strtolower($vs) . ']';
             $textareaNameId  = 'smsalert_eap_message[admin_sms_eap_body_' . strtolower($vs) . ']';
-
+            // translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_eap_body_' . strtolower($vs), 'smsalert_eap_message', sprintf(__('Hello admin, status of your appointment with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
 
@@ -433,7 +453,7 @@ class SA_Easyappointments extends FormInterface
             
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                 $buyerMessage = $this->parseSmsBody($appointmentId, $datas, $customerMessage);
-                do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
             }
             // Send msg to admin.
             $adminPhoneNumber = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -445,7 +465,7 @@ class SA_Easyappointments extends FormInterface
                 $adminPhoneNumber   = implode(',', $adminPhoneNumber);
                 if ($adminNotify === 'on' && $adminMessage !== '') {
                     $adminMessage   = $this->parseSmsBody($appointmentId, $datas, $adminMessage);
-                    do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                    do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
                 }
             }
         } 
@@ -584,7 +604,7 @@ class SA_Easyappointments extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('easy-appointments/main.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -614,13 +634,13 @@ class SA_Easyappointments extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if ((empty($extra_data['option']) === false) && $extra_data['option'] === 'smsalert-validate-otp-form') {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -646,7 +666,7 @@ class SA_Easyappointments extends FormInterface
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false ) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if ((empty($extraData['option']) === false ) && $extraData['option'] === 'smsalert-validate-otp-form') {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -674,7 +694,7 @@ class SA_Easyappointments extends FormInterface
     public function is_ajax_form_in_play($isAjax)
     {
         SmsAlertUtility::checkSession();
-        if ($_SESSION[$this->form_session_var] === true) {
+        if (!empty($_SESSION[$this->form_session_var]) && $_SESSION[$this->form_session_var] === true) {
             return true;
         } else {
             return $isAjax;

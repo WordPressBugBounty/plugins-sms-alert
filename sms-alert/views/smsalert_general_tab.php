@@ -1,4 +1,20 @@
-<div class="smsalert_wrapper cvt-accordion <?php echo $disablePlayground; ?>" style="padding: 5px 10px 10px 10px;">
+<?php
+/**
+ * Smsalert general tab template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
+<div class="smsalert_wrapper cvt-accordion <?php echo esc_attr($smsalert_disablePlayground); ?>" style="padding: 5px 10px 10px 10px;">
     <strong><?php echo wp_kses_post($smsalert_helper); ?></strong>
     <table class="form-table">
         <tr valign="top">
@@ -14,7 +30,17 @@
                 <input type="text" name="smsalert_gateway[smsalert_name]" id="smsalert_gateway[smsalert_name]" value="<?php echo esc_attr($smsalert_name); ?>" data-id="smsalert_name" class="<?php echo esc_attr($hidden); ?>">
                 <input type="hidden" name="action" value="save_sms_alert_settings" />
                 <?php
-                echo wp_nonce_field('wp_save_sms_alert_settings_nonce', 'save_sms_alert_settings_nonce', true, false);
+                echo wp_kses(
+					wp_nonce_field('wp_save_sms_alert_settings_nonce', 'save_sms_alert_settings_nonce', true, false),
+					array(
+						'input' => array(
+							'type'  => true,
+							'id'    => true,
+							'name'  => true,
+							'value' => true,
+						),
+					)
+				);
                 ?>
                 <span class="<?php echo esc_attr($hidden); ?>"><?php esc_html_e('your SMS Alert user name', 'sms-alert'); ?></span>
             </td>

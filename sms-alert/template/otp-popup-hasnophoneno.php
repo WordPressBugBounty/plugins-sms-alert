@@ -9,8 +9,12 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$otp_range     = __('Only digits within range 4-8 are allowed.', 'sms-alert');
-$send_otp     = __('Send OTP', 'sms-alert');
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+$smsalert_otp_range     = __('Only digits within range 4-8 are allowed.', 'sms-alert');
+$smsalert_send_otp     = __('Send OTP', 'sms-alert');
 echo '	<html>';
                 echo '<head>
 						<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -30,7 +34,7 @@ echo '	<html>';
 												' . esc_html__('Go Back', 'sms-alert') . '</a>
 										</div>
 										<div class="sa_customer_validation-modal-body center">
-											<div id="message">' . esc_html__($message, 'sms-alert') . '</div><br /> ';
+											<div id="message">' . esc_html($message) . '</div><br /> ';
 if (! SmsAlertUtility::isBlank($user_email) ) {
     echo '									<div class="sa_customer_validation-login-container">
 													<form name="f" id="validate_otp_form" method="post" action="">
@@ -47,14 +51,24 @@ if (! SmsAlertUtility::isBlank($user_email) ) {
 															name="smsalert_customer_validation_otp_token"  autofocus="true" placeholder="" 
 															id="smsalert_customer_validation_otp_token" required="true" 
 															class="sa_customer_validation-textbox" autofocus="true" pattern="[0-9]{4,8}" 
-															title="' . esc_attr($otp_range) . '"/>
+															title="' . esc_attr($smsalert_otp_range) . '"/>
 														</div>
 														<input type="button" hidden id="validate_otp" name="otp_token_submit" 
 															class="smsalert_otp_token_submit"  value="Validate" />
 														<input type="button" id="send_otp" class="smsalert_otp_token_submit" 
-															value="' . esc_attr($send_otp) . '" />';
-    sa_extra_post_data($usermeta);
-	echo wp_nonce_field('smsalert_wp_login_nonce', 'smsalert_login_nonce', true, false);
+															value="' . esc_attr($smsalert_send_otp) . '" />';
+    smsalert_extra_post_data($usermeta);
+	echo wp_kses(
+		wp_nonce_field('smsalert_wp_login_nonce', 'smsalert_login_nonce', true, false),
+		array(
+			'input' => array(
+				'type'  => true,
+				'id'    => true,
+				'name'  => true,
+				'value' => true,
+			),
+		)
+	);
     echo '										</form>
 												</div>';
 }

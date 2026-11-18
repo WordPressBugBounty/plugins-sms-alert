@@ -66,7 +66,14 @@ class Salonbooking extends FormInterface
         global $wpdb;
         $tableName       = $wpdb->prefix.'smsalert_booking_reminder';
         $source          = 'salon-booking';
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $booking_id and source = '$source'");
+        $booking_details = $wpdb->get_results($wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$booking_id,
+				$source
+			));
         if ($bookingStatus === 'sln-b-confirmed' && $customerNotify === 'on') {
             if ($booking_details) {
                 $wpdb->update(
@@ -112,15 +119,27 @@ class Salonbooking extends FormInterface
         $source        = 'salon-booking';
         $schedulerData = get_option('smsalert_sln_reminder_scheduler');        
         foreach ($schedulerData['cron'] as $sdata) {
-            $datetime = current_time('mysql');
-            $fromdate = date('Y-m-d H:i:s', strtotime('+'.($sdata['frequency'] * 60 - $cronFrequency).' minutes', strtotime($datetime)));
-        
-            $todate = date('Y-m-d H:i:s', strtotime('+'.$cronFrequency.' minutes', strtotime($fromdate)));
-            
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
+
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM '.$tableName." WHERE start_date > '".$fromdate."' AND start_date <= '".$todate."' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
             if ($rowsToPhone) {
                 // If we have new rows in the database
                 $customerMessage = $sdata['message'];
@@ -253,6 +272,7 @@ class Salonbooking extends FormInterface
             $schedulerData  = array();
             $schedulerData['cron'][] = [
                 'frequency' => '1',
+				// translators: 1: Customer first name, 2: Booking ID, 3: Store name, 4: Booking date.
                 'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[_sln_booking_firstname]', '#[ID]', '[store_name]', '[booking_date]', PHP_EOL, PHP_EOL),
             ];
         }
@@ -293,6 +313,7 @@ class Salonbooking extends FormInterface
             $currentVal = smsalert_get_option('customer_sln_notify_'.strtolower($ks), 'smsalert_sln_general', 'on');
             $checkboxMameId = 'smsalert_sln_general[customer_sln_notify_'.strtolower($ks).']';
             $textareaNameId = 'smsalert_sln_message[customer_sms_sln_body_'.strtolower($ks).']';
+			// translators: 1: Customer first name, 2: Booking ID, 3: Store name.
             $defaultTemplate = sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[firstname]', '[booking_id]', '[store_name]', $vs, PHP_EOL, PHP_EOL);
             $textBody = smsalert_get_option('customer_sms_sln_body_'.strtolower($ks), 'smsalert_sln_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When customer booking is '.ucwords($vs);
@@ -321,7 +342,7 @@ class Salonbooking extends FormInterface
             $currentVal     = smsalert_get_option('admin_sln_notify_'.strtolower($ks), 'smsalert_sln_general', 'on');
             $checkboxMameId = 'smsalert_sln_general[admin_sln_notify_'.strtolower($ks).']';
             $textareaNameId = 'smsalert_sln_message[admin_sms_sln_body_'.strtolower($ks).']';
-
+            // translators: 1: Booking ID, 3: Store name.
             $defaultTemplate = sprintf(__('Hello admin, status of your booking #%1$s with %2$s has been changed to %3$s. %4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[booking_id]', '[store_name]', $vs, PHP_EOL, PHP_EOL);
 
             $textBody = smsalert_get_option('admin_sms_sln_body_'.strtolower($ks), 'smsalert_sln_message', $defaultTemplate);
@@ -362,7 +383,7 @@ class Salonbooking extends FormInterface
             $customerNotify        = smsalert_get_option('customer_sln_notify_'.$bookingStatus, 'smsalert_sln_general', 'on'); 
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                 $buyerMessage = $this->parseSmsBody($post, $customerMessage, $id);
-                do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
             }
 
             // Send msg to admin.
@@ -379,7 +400,7 @@ class Salonbooking extends FormInterface
 
                 if ($adminNotify === 'on' && $adminMessage !== '') {
                     $adminMessage = $this->parseSmsBody($post, $adminMessage, $id);
-                    do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                    do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
                 }
             }    
      
@@ -397,7 +418,7 @@ class Salonbooking extends FormInterface
      */
     public function parseSmsBody($post, $content, $id)
     { 
-        if ($_REQUEST['action'] != 'salon') {
+        if (!empty($_REQUEST['action']) && $_REQUEST['action'] != 'salon') {
             global $post;
         }
         $meta = get_post_meta($id);    
@@ -469,7 +490,7 @@ class Salonbooking extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('salon-booking-system/salon.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
     }//end handleFormOptions()
@@ -502,7 +523,7 @@ class Salonbooking extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
 
     }//end handle_failed_verification()

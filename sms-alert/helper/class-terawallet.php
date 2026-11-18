@@ -38,7 +38,7 @@ class TeraWallet
     public function __construct()
     {
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('woo_wallet_transaction_recorded', array( $this, 'smsalertSendMsgWalletTransaction' ), 11, 4);
     }
 
@@ -88,9 +88,11 @@ class TeraWallet
     public static function getWcWoowalletTemplates()
     {
         $woo_wallet_credited_msg          = smsalert_get_option('woo_wallet_credited_msg', 'smsalert_general', 'on');
+		// translators: 1: Customer username, 2: Amount, 3: Wallet amount.
         $sms_body_woo_wallet_credited_msg = smsalert_get_option('sms_body_woo_wallet_credited_msg', 'smsalert_message', sprintf(__('Dear %1$s, %2$s has been credited to your wallet. Current wallet balance is : %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[username]', '[amount]', '[wallet_amount]', PHP_EOL, PHP_EOL));
 
         $woo_wallet_debited_msg          = smsalert_get_option('woo_wallet_debited_msg', 'smsalert_general', 'on');
+		// translators: 1: Customer username, 2: Amount, 3: Wallet amount.
         $sms_body_woo_wallet_debited_msg = smsalert_get_option('sms_body_woo_wallet_debited_msg', 'smsalert_message', sprintf(__('Dear %1$s, %2$s has been debited from your wallet. Current wallet balance is : %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[username]', '[amount]', '[wallet_amount]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -139,7 +141,7 @@ class TeraWallet
             $woo_wallet_credited_msg = smsalert_get_option('woo_wallet_credited_msg', 'smsalert_general', 'on');
             if ('on' === $woo_wallet_credited_msg && '' !== $message ) {
                 $user_phone = get_user_meta($user_id, 'billing_phone', true);
-                //do_action( 'sa_send_sms', $user_phone, $message );
+                //do_action( 'smsalert_send_sms', $user_phone, $message );
                 $obj             = array();
                 $obj['number']   = $user_phone;
                 $obj['sms_body'] = $message;
@@ -151,7 +153,7 @@ class TeraWallet
             $woo_wallet_debited_msg = smsalert_get_option('woo_wallet_debited_msg', 'smsalert_general', 'on');
             if ('on' === $woo_wallet_debited_msg && '' !== $message ) {
                 $user_phone = get_user_meta($user_id, 'billing_phone', true);
-                //do_action( 'sa_send_sms', $user_phone, $message );
+                //do_action( 'smsalert_send_sms', $user_phone, $message );
                 $obj             = array();
                 $obj['number']   = $user_phone;
                 $obj['sms_body'] = $message;

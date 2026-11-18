@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Booknetic helper.
  *
@@ -12,7 +11,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -138,7 +137,7 @@ class SMBooknetic extends FormInterface
 
             $checkboxNameId  = 'smsalert_bnc_general[customer_bnc_notify_' . strtolower($ks) . ']';
             $textareaNameId  = 'smsalert_bnc_message[customer_sms_bnc_body_' . strtolower($ks) . ']';
-
+            // translators: 1: Customer name, 2: Service name, 3: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_bnc_body_' . strtolower($ks), 'smsalert_bnc_message', sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[service_name]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
 
@@ -174,7 +173,7 @@ class SMBooknetic extends FormInterface
             $currentVal      = smsalert_get_option('admin_bnc_notify_' . strtolower($ks), 'smsalert_bnc_general', 'on');
             $checkboxNameId  = 'smsalert_bnc_general[admin_bnc_notify_' . strtolower($ks) . ']';
             $textareaNameId  = 'smsalert_bnc_message[admin_sms_bnc_body_' . strtolower($ks) . ']';
-
+            // translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_bnc_body_' . strtolower($ks), 'smsalert_bnc_message', sprintf(__('%1$s status of booking has been changed to %2$s.', 'sms-alert'), '[store_name]:', $vs));
 
 
@@ -225,7 +224,7 @@ class SMBooknetic extends FormInterface
         $customerNotify    = smsalert_get_option('customer_bnc_notify_' . $bookingStatus, 'smsalert_bnc_general', 'on');
         if (($customerNotify === 'on' && $customerMessage !== '' && $buyerNumber != '')) {
             $buyerMessage = $this->parseSmsBody($customerInfo, $appointmentData, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber,  $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber,  $buyerMessage);
         }
         
         // Send msg to admin.
@@ -238,7 +237,7 @@ class SMBooknetic extends FormInterface
             $adminPhoneNumber   = implode(',', $adminPhoneNumber);
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage   = $this->parseSmsBody($customerInfo, $appointmentData, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
     }
@@ -358,7 +357,7 @@ class SMBooknetic extends FormInterface
     {
 
         if (is_plugin_active('booknetic/init.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'add_tabs'), 10);
         }
     }
@@ -389,7 +388,7 @@ class SMBooknetic extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
        
     }

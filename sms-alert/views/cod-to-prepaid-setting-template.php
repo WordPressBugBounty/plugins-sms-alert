@@ -1,3 +1,19 @@
+<?php
+/**
+ * COD to prepaid template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
 <div class="cvt-accordion">
     <div class="accordion-section">        
         <div class="cvt-accordion-body-title" data-href="#accordion_Code_to_prepaid_cust_0">
@@ -6,42 +22,42 @@
         </div>
         <div id="accordion_Code_to_prepaid_cust_0" class="cvt-accordion-body-content">
             <?php
-            $count = 0;
-            $total_frequency = array();
-            foreach ( $templates as $template ) {
-                if ($template['text-body'] == '' ) {
+            $smsalert_count = 0;
+            $smsalert_total_frequency = array();
+            foreach ( $templates as $smsalert_template ) {
+                if ($smsalert_template['text-body'] == '' ) {
                     continue;
                 }
                 ?>
-            <table class="form-table cod_sche bottom-border" id="codscheduler_<?php echo esc_attr($count); ?>">
+            <table class="form-table cod_sche bottom-border" id="codscheduler_<?php echo esc_attr($smsalert_count); ?>">
                 <tr valign="top">
                     <th>
                         <label><?php esc_html_e('Send sms to  payment url', 'sms-alert'); ?></label>
                     </th>
                     <td>
                 <?php
-                $hours = $template['frequency'];
+                $smsalert_hours = $smsalert_template['frequency'];
                     
-                array_push($total_frequency, $hours);
+                array_push($smsalert_total_frequency, $smsalert_hours);
                     
-                if ('' === $hours ) {
-                    $hours = 60;
+                if ('' === $smsalert_hours ) {
+                    $smsalert_hours = 60;
                 }
                 ?>
-                        <select id="<?php echo esc_attr($template['selectNameId']); ?>" name="<?php echo esc_attr($template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" class="smsalert_cod_to_prepaid_scheduler">
-                            <option value='10' <?php selected($hours, 10); ?>><?php esc_html_e('After 10 minutes', 'sms-alert'); ?></option>
-                            <option value='20' <?php selected($hours, 20); ?>><?php esc_html_e('After 20 minutes', 'sms-alert'); ?></option>
-                            <option value='30' <?php selected($hours, 30); ?>><?php esc_html_e('After 30 minutes', 'sms-alert'); ?></option>
-                            <option value='60' <?php selected($hours, 60); ?>><?php esc_html_e('After 1 hour', 'sms-alert'); ?></option>
-                            <option value='120' <?php selected($hours, 120); ?>><?php esc_html_e('After 2 hours', 'sms-alert'); ?></option>
-                            <option value='180' <?php selected($hours, 180); ?>><?php esc_html_e('After 3 hours', 'sms-alert'); ?></option>
-                            <option value='240' <?php selected($hours, 240); ?>><?php esc_html_e('After 4 hours', 'sms-alert'); ?></option>
-                            <option value='300' <?php selected($hours, 300); ?>><?php esc_html_e('After 5 hours', 'sms-alert'); ?></option>
-                            <option value='360' <?php selected($hours, 360); ?>><?php esc_html_e('After 6 hours', 'sms-alert'); ?></option>
-                            <option value='720' <?php selected($hours, 720); ?>><?php esc_html_e('After 12 hours', 'sms-alert'); ?></option>
-                            <option value='1440' <?php selected($hours, 1440); ?>><?php esc_html_e('After 24 hours', 'sms-alert'); ?></option>
-                            <option value='2880' <?php selected($hours, 2880); ?>><?php esc_html_e('After 48 hours', 'sms-alert'); ?></option>
-                            <option value='0' <?php selected($hours, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
+                        <select id="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" name="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" class="smsalert_cod_to_prepaid_scheduler">
+                            <option value='10' <?php selected($smsalert_hours, 10); ?>><?php esc_html_e('After 10 minutes', 'sms-alert'); ?></option>
+                            <option value='20' <?php selected($smsalert_hours, 20); ?>><?php esc_html_e('After 20 minutes', 'sms-alert'); ?></option>
+                            <option value='30' <?php selected($smsalert_hours, 30); ?>><?php esc_html_e('After 30 minutes', 'sms-alert'); ?></option>
+                            <option value='60' <?php selected($smsalert_hours, 60); ?>><?php esc_html_e('After 1 hour', 'sms-alert'); ?></option>
+                            <option value='120' <?php selected($smsalert_hours, 120); ?>><?php esc_html_e('After 2 hours', 'sms-alert'); ?></option>
+                            <option value='180' <?php selected($smsalert_hours, 180); ?>><?php esc_html_e('After 3 hours', 'sms-alert'); ?></option>
+                            <option value='240' <?php selected($smsalert_hours, 240); ?>><?php esc_html_e('After 4 hours', 'sms-alert'); ?></option>
+                            <option value='300' <?php selected($smsalert_hours, 300); ?>><?php esc_html_e('After 5 hours', 'sms-alert'); ?></option>
+                            <option value='360' <?php selected($smsalert_hours, 360); ?>><?php esc_html_e('After 6 hours', 'sms-alert'); ?></option>
+                            <option value='720' <?php selected($smsalert_hours, 720); ?>><?php esc_html_e('After 12 hours', 'sms-alert'); ?></option>
+                            <option value='1440' <?php selected($smsalert_hours, 1440); ?>><?php esc_html_e('After 24 hours', 'sms-alert'); ?></option>
+                            <option value='2880' <?php selected($smsalert_hours, 2880); ?>><?php esc_html_e('After 48 hours', 'sms-alert'); ?></option>
+                            <option value='0' <?php selected($smsalert_hours, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
                         </select> 
                         
                         <a href="#" onclick="return false;" class="sa-delete-btn alignright"><span class="dashicons dashicons-dismiss"></span><?php esc_html_e('Remove', 'sms-alert'); ?></a>
@@ -51,23 +67,23 @@
                     <td colspan="2">
                         <div class="smsalert_tokens">
                 <?php
-                foreach ( $template['token'] as $vk => $vv ) {
-                    echo wp_kses_post(sprintf("<a href='#' data-val='%s'>%s</a> | ", $vk, $vv));
+                foreach ( $smsalert_template['token'] as $smsalert_vk => $smsalert_vv ) {
+                    echo wp_kses_post(sprintf("<a href='#' data-val='%s'>%s</a> | ", $smsalert_vk, $smsalert_vv));
                 }
                 ?>
-                <?php if (! empty($template['moreoption']) ) { ?>
+                <?php if (! empty($smsalert_template['moreoption']) ) { ?>
                                 <a href="<?php echo esc_url($url); ?>" class="thickbox search-token-btn">[...More]</a>
                 <?php } ?>
                         </div>
-                        <textarea name="<?php echo esc_attr($template['textareaNameId']); ?>" id="<?php echo esc_attr($template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" <?php echo( ( 'on' === $template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($template['text-body']); ?></textarea>
-                        <div id="menu_code_to_prepaid<?php echo $count ?>" class="sa-menu-token" role="listbox"></div>
+                        <textarea name="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" id="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" <?php echo( ( 'on' === $smsalert_template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($smsalert_template['text-body']); ?></textarea>
+                        <div id="menu_code_to_prepaid<?php echo esc_attr($smsalert_count) ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>
             </table>
-                <?php $count++; 
+                <?php $smsalert_count++; 
             } ?>
             <div style="padding: 10px 0px 0px 10px;">
-                <button class="button action" id="addNewpage" type="button" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>">
+                <button class="button action" id="addNewpage" type="button" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>">
                 <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Add New', 'sms-alert'); ?></button>
             </div>
         </div>
@@ -81,24 +97,24 @@
                             <select name="smsalert_cod_to_prepaid[order_status]" id="smsalert_cod_to_prepaid[order_status]" data-parent_id="smsalert_cod_to_prepaid[customer_notify]" style="width:80%">
                                 
                                 <?php
-                                $order_statuses = is_plugin_active('woocommerce/woocommerce.php') ? wc_get_order_statuses() : array();
+                                $smsalert_order_statuses = is_plugin_active('woocommerce/woocommerce.php') ? wc_get_order_statuses() : array();
     
     
-                                $order_status     = smsalert_get_option('order_status', 'smsalert_cod_to_prepaid', "wc-processing");
+                                $smsalert_order_status     = smsalert_get_option('order_status', 'smsalert_cod_to_prepaid', "wc-processing");
                                 
-                                foreach ( $order_statuses as $o_key => $status ) {
+                                foreach ( $smsalert_order_statuses as $smsalert_o_key => $smsalert_status ) {
                                     
                                     ?>
                                 <option 
                                     <?php 
                                     
-                                    if (strtolower($order_status)==strtolower($o_key)) {
+                                    if (strtolower($smsalert_order_status)==strtolower($smsalert_o_key)) {
                                         
                                         echo "selected";
                                     }
                                     ?>
                                 
-                                value="<?php echo esc_attr(strtr(strtolower($o_key), ' ', '-')); ?>"><?php echo esc_attr($status); ?></option>
+                                value="<?php echo esc_attr(strtr(strtolower($smsalert_o_key), ' ', '-')); ?>"><?php echo esc_attr($smsalert_status); ?></option>
                                 
                                 <?php } ?>
                             </select>
@@ -113,18 +129,18 @@
                             <select name="smsalert_cod_to_prepaid[checkout_payment_plans]" id="checkout_payment_plans" data-parent_id="smsalert_cod_to_prepaid[customer_notify]" style="width:80%">
                             
                                 <?php
-                                 $payment_plans = WC()->payment_gateways->payment_gateways();
+                                 $smsalert_payment_plans = WC()->payment_gateways->payment_gateways();
                                  
                                  
-                                 $checkout_payment_plans     = smsalert_get_option('checkout_payment_plans', 'smsalert_cod_to_prepaid', "cod");
+                                 $smsalert_checkout_payment_plans     = smsalert_get_option('checkout_payment_plans', 'smsalert_cod_to_prepaid', "cod");
                                  
                                  
-                                foreach ( $payment_plans as $payment_plan ) {
+                                foreach ( $smsalert_payment_plans as $smsalert_payment_plan ) {
                                     echo '<option ';
-                                    if ($payment_plan->id == $checkout_payment_plans) {
+                                    if ($smsalert_payment_plan->id == $smsalert_checkout_payment_plans) {
                                         echo( 'selected' );
                                     } 
-                                    echo( ' value="' . esc_attr($payment_plan->id) . '">' . esc_attr($payment_plan->title) . '</option>' );
+                                    echo( ' value="' . esc_attr($smsalert_payment_plan->id) . '">' . esc_attr($smsalert_payment_plan->title) . '</option>' );
 
                                 } ?>
                             </select>
@@ -170,7 +186,7 @@
         }
     });
     jQuery(document).ready(function(){
-        var frequency_arr = <?php echo json_encode($total_frequency) ?>;
+        var frequency_arr = <?php echo json_encode($smsalert_total_frequency) ?>;
         
         var frequency_sch = jQuery(".smsalert_cod_to_prepaid_scheduler").length;
         

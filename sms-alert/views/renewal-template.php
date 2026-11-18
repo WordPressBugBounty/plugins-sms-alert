@@ -9,38 +9,42 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$notify_id = !empty($templates[0]['notify_id']) ? $templates[0]['notify_id'] : 'renewal_reminder';
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+$smsalert_notify_id = !empty($templates[0]['notify_id']) ? $templates[0]['notify_id'] : 'renewal_reminder';
 ?>
 <div class="cvt-accordion">
     <div class="accordion-section">
-        <div class="cvt-accordion-body-title" data-href="#<?php echo esc_attr($notify_id); ?>">
+        <div class="cvt-accordion-body-title" data-href="#<?php echo esc_attr($smsalert_notify_id); ?>">
             <input type="checkbox" name="<?php echo esc_attr($templates[0]['checkboxNameId']); ?>" id="<?php echo esc_attr($templates[0]['checkboxNameId']); ?>" class="notify_box" <?php echo ( 'on' === $templates[0]['enabled'] ) ? "checked='checked'" : ''; ?> /><label><?php echo esc_attr($templates[0]['title']); ?></label>
             <span class="expand_btn"></span>
         </div>
-        <div id="<?php echo esc_attr($notify_id); ?>" class="cvt-accordion-body-content">
+        <div id="<?php echo esc_attr($smsalert_notify_id); ?>" class="cvt-accordion-body-content">
             <?php
-                $count = 0;
-            foreach ( $templates as $template ) {
+                $smsalert_count = 0;
+            foreach ( $templates as $smsalert_template ) {
                 ?>
-            <table class="form-table wc_renewal_sche bottom-border" id="scheduler_<?php echo esc_attr($count); ?>">
+            <table class="form-table wc_renewal_sche bottom-border" id="scheduler_<?php echo esc_attr($smsalert_count); ?>">
                 <tr valign="top">
                     <th>
                         <label><?php esc_html_e('Send Renewal Reminder', 'sms-alert'); ?></label>
                     </th>
                     <td>
                 <?php
-                $days = $template['frequency'];
-                if (empty($days) ) {
-                    $days = 1;
+                $smsalert_days = $smsalert_template['frequency'];
+                if (empty($smsalert_days) ) {
+                    $smsalert_days = 1;
                 }
                 ?>
-                        <select id="<?php echo esc_attr($template['selectNameId']); ?>" name="<?php echo esc_attr($template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>">
-                            <option value='1' <?php selected($days, 1); ?>><?php esc_html_e('Before 1 days', 'sms-alert'); ?></option>
-                            <option value='2' <?php selected($days, 2); ?>><?php esc_html_e('Before 2 days', 'sms-alert'); ?></option>
-                            <option value='3' <?php selected($days, 3); ?>><?php esc_html_e('Before 3 days', 'sms-alert'); ?></option>
-                            <option value='4' <?php selected($days, 4); ?>><?php esc_html_e('Before 4 days', 'sms-alert'); ?></option>
-                            <option value='5' <?php selected($days, 5); ?>><?php esc_html_e('Before 5 days', 'sms-alert'); ?></option>
-                            <option value='0' <?php selected($days, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
+                        <select id="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" name="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>">
+                            <option value='1' <?php selected($smsalert_days, 1); ?>><?php esc_html_e('Before 1 days', 'sms-alert'); ?></option>
+                            <option value='2' <?php selected($smsalert_days, 2); ?>><?php esc_html_e('Before 2 days', 'sms-alert'); ?></option>
+                            <option value='3' <?php selected($smsalert_days, 3); ?>><?php esc_html_e('Before 3 days', 'sms-alert'); ?></option>
+                            <option value='4' <?php selected($smsalert_days, 4); ?>><?php esc_html_e('Before 4 days', 'sms-alert'); ?></option>
+                            <option value='5' <?php selected($smsalert_days, 5); ?>><?php esc_html_e('Before 5 days', 'sms-alert'); ?></option>
+                            <option value='0' <?php selected($smsalert_days, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
                         </select>
                         <a href="#" onclick="return false;" class="sa-delete-btn alignright"><span class="dashicons dashicons-dismiss"></span><?php esc_html_e('Remove', 'sms-alert'); ?></a>
                     </td>
@@ -49,23 +53,23 @@ $notify_id = !empty($templates[0]['notify_id']) ? $templates[0]['notify_id'] : '
                     <td colspan="2">
                         <div class="smsalert_tokens">
                 <?php
-                foreach ( $template['token'] as $vk => $vv ) {
-                    echo  "<a href='#' data-val='".esc_attr($vk)."'>".esc_attr($vv)."</a> | ";
+                foreach ( $smsalert_template['token'] as $smsalert_vk => $smsalert_vv ) {
+                    echo  "<a href='#' data-val='".esc_attr($smsalert_vk)."'>".esc_attr($smsalert_vv)."</a> | ";
                 }
                 ?>
-                <?php if (! empty($template['moreoption']) ) { ?>
+                <?php if (! empty($smsalert_template['moreoption']) ) { ?>
                                 <a href="<?php echo esc_url($url); ?>" class="thickbox search-token-btn">[...More]</a>
                 <?php } ?>
                         </div>
-                        <textarea name="<?php echo esc_attr($template['textareaNameId']); ?>" id="<?php echo esc_attr($template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" <?php echo( ( 'on' === $template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($template['text-body']); ?></textarea>
+                        <textarea name="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" id="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" <?php echo( ( 'on' === $smsalert_template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($smsalert_template['text-body']); ?></textarea>
                         <div id="menu_renewal" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>
             </table>
-                <?php $count++; 
+                <?php $smsalert_count++; 
             } ?>
             <div style="padding: 10px 0px 0px 10px;">
-                <button class="button action addNew" type="button" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>"> <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Add New', 'sms-alert'); ?></button>
+                <button class="button action addNew" type="button" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>"> <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Add New', 'sms-alert'); ?></button>
             </div>
             </div>
         
@@ -73,7 +77,7 @@ $notify_id = !empty($templates[0]['notify_id']) ? $templates[0]['notify_id'] : '
     </div>
 <!-- /-cvt-accordion -->
 <script>
-    jQuery("#<?php echo $notify_id ?> .addNew").on("click", addReminder );
+    jQuery("#<?php echo esc_js($smsalert_notify_id) ?> .addNew").on("click", addReminder );
 
     function addReminder(){
         var notify_id = jQuery(this).parents(".cvt-accordion-body-content").attr("id");
@@ -91,7 +95,7 @@ $notify_id = !empty($templates[0]['notify_id']) ? $templates[0]['notify_id'] : '
     }
 
     //delete ab cart cron schedule
-    jQuery(document).on('click',"#<?php echo $notify_id ?> .sa-delete-btn",function(){
+    jQuery(document).on('click',"#<?php echo esc_js($smsalert_notify_id) ?> .sa-delete-btn",function(){
         var notify_id = jQuery(this).parents(".cvt-accordion-body-content").attr("id");
         var last_item     = (jQuery("#"+notify_id+" .wc_renewal_sche").length==1) ? true : false;
         if(last_item)

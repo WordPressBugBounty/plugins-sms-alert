@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -86,15 +86,27 @@ class SAMemberMouses extends FormInterface
     
         global $wpdb;
         $table_name           = $wpdb->prefix . 'smsalert_renewal_reminders';
-        $subscription_details = $wpdb->get_results("SELECT next_payment_date, notification_sent_date FROM $table_name WHERE subscription_id = $member_id and source = '$source'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT next_payment_date, notification_sent_date
+				FROM `" . esc_sql($table_name) . "`
+				WHERE subscription_id = %d
+				AND source = %s",
+				$member_id,
+				$source
+			)
+		);
         if ('Active' === $status_name && 'on' === $customer_notify && $next_payment_date_dt ) {
             $scheduler_data = get_option('smsalert_mm_renewal_scheduler');
             if (isset($scheduler_data['cron']) && ! empty($scheduler_data['cron']) ) {
                 foreach ( $scheduler_data['cron'] as $sdata ) {
                     
-                    $next_payment_date    = date('Y-m-d', strtotime($next_payment_date_dt));
-                
-                    $notify_days_before   = date('Y-m-d', strtotime('-' . $sdata['frequency'] . ' days', strtotime($next_payment_date)));
+                   $next_payment_date = (new DateTimeImmutable( $next_payment_date_dt, wp_timezone()))
+						->format('Y-m-d');
+
+					$notify_days_before = (new DateTimeImmutable($next_payment_date, wp_timezone()))
+						->modify('-' . (int) $sdata['frequency'] . ' days')
+						->format('Y-m-d');
                         
                     if ($sdata['frequency'] > 0 && $sdata['message'] != '' ) {
                       
@@ -149,7 +161,16 @@ class SAMemberMouses extends FormInterface
         $today                = new DateTime();
         $today                = $today->format('Y-m-d');
 
-        $subscription_details = $wpdb->get_results("SELECT * FROM $table_name WHERE notification_sent_date = '$today' and source = '$source'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($table_name) . "`
+				WHERE notification_sent_date = %s
+				AND source = %s",
+				$today,
+				$source
+			)
+		);
 
         if ('on' === $customer_notify && $subscription_details) {
             foreach ( $subscription_details as $subscription ) {
@@ -190,7 +211,7 @@ class SAMemberMouses extends FormInterface
                 $cust_sms_data['sms_body'] = $customer_msg;
                 
                 $customer_msg              = ( ! empty($cust_sms_data['sms_body']) ) ? $cust_sms_data['sms_body'] : ''; 
-                do_action('sa_send_sms', $user_phone, $customer_msg);
+                do_action('smsalert_send_sms', $user_phone, $customer_msg);
             }
         }
     } 
@@ -304,11 +325,13 @@ class SAMemberMouses extends FormInterface
             $scheduler_data  = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '1',
+			// translators: 1: Customer first name, 2: Member ID, 3: Store name, 4: Next payment date.
             'message'   => sprintf(__('Hello %1$s, your subscription %2$s with %3$s is due for renewal on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '#[member_id]', '[store_name]', '[next_payment_date]', PHP_EOL, PHP_EOL),
            
             );
             $scheduler_data['cron'][] = array(
             'frequency' => '2',
+			// translators: 1: Customer first name, 2: Member ID, 3: Store name, 4: Next payment date.
             'message'   => sprintf(__('Hello %1$s, your subscription %2$s with %3$s is due for renewal on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '#[member_id]', '[store_name]', '[next_payment_date]', PHP_EOL, PHP_EOL),
          
             );
@@ -347,6 +370,7 @@ class SAMemberMouses extends FormInterface
         $currentVal         = smsalert_get_option('customer_mm_notify_member_added', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_member_added]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_member_added]';
+			// translators: 1: Customer first name, 2: Member ID, 3: Store name, 4: Membership status.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_membership_status', 'smsalert_mm_message', sprintf(__('Hello %1$s, status of your membership #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[member_id]', '[store_name]', '[status_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_member_added', 'smsalert_mm_message', $defaultTemplate);
@@ -365,6 +389,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('customer_mm_notify_mm_status', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_mm_status]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_mm_status]';
+			// translators: 1: Customer first name, 2: Member ID, 3: Store name, 4: Membership status.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_mm_status', 'smsalert_mm_message', sprintf(__('Hello %1$s, status of your membership #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[member_id]', '[store_name]', '[status_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_mm_status', 'smsalert_mm_message', $defaultTemplate);
@@ -383,6 +408,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('customer_mm_notify_membership_level', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_membership_level]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_membership_level]';
+			// translators: 1: Customer first name, 2: Member ID, 3: Store name, 4: Membership level name.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_membership_level', 'smsalert_mm_message', sprintf(__('Hello %1$s, status of your membership #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[member_id]', '[store_name]', '[membership_level_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_membership_level', 'smsalert_mm_message', $defaultTemplate);
@@ -400,6 +426,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('customer_mm_notify_bundle_status', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_add_bundle]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_add_bundle]';
+			// translators: 1: Customer first name, 2: Bundle ID, 3: Store name, 4: Bundle name.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_bundle_status', 'smsalert_mm_message', sprintf(__('Hello %1$s, status of your bundle #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[bundle_id]', '[store_name]', '[bundle_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_add_bundle', 'smsalert_mm_message', $defaultTemplate);
@@ -417,6 +444,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('customer_mm_notify_bundle_status', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_bundle_status]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_bundle_status]';
+			// translators: 1: Customer first name, 2: Bundle ID, 3: Store name, 4: Bundle status name.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_bundle_status', 'smsalert_mm_message', sprintf(__('Hello %1$s, status of your bundle #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[bundle_id]', '[store_name]', '[bundle_status_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_bundle_status', 'smsalert_mm_message', $defaultTemplate);
@@ -435,6 +463,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('customer_mm_notify_mm_payment', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_mm_payment]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_mm_payment]';
+			// translators: 1: Customer first name, 2: Transaction ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_mm_payment', 'smsalert_mm_message', sprintf(__('Hello %1$s, payment status for your order #%2$s with %3$s has been changed to completed.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_transaction_id]', '[store_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_mm_payment', 'smsalert_mm_message', $defaultTemplate);
@@ -453,6 +482,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('customer_mm_notify_mm_payment_refund', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[customer_mm_notify_mm_payment_refund]';
             $textareaNameId  = 'smsalert_mm_message[customer_sms_mm_body_mm_payment_refund]';
+			// translators: 1: Customer first name, 2: Transaction ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_mm_body_mm_payment_refund', 'smsalert_mm_message', sprintf(__('Hello %1$s, payment status for your order #%2$s with %3$s has been changed to refunded.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_transaction_id]', '[store_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_mm_body_mm_payment_refund', 'smsalert_mm_message', $defaultTemplate);
@@ -479,6 +509,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('admin_mm_notify_member_added', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_member_added]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_member_added]';
+			// translators: 1: Store name, 2: Status name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_member_added', 'smsalert_mm_message', sprintf(__('Hello admin, status of your membership with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[status_name]', PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_member_added', 'smsalert_mm_message', $defaultTemplate);
@@ -497,6 +528,7 @@ class SAMemberMouses extends FormInterface
             $currentVal      = smsalert_get_option('admin_mm_notify_mm_status', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_mm_status]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_mm_status]';
+			// translators: 1: Store name, 2: Status name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_mm_status', 'smsalert_mm_message', sprintf(__('%1$s status of membership has been changed to %2$s.', 'sms-alert'), '[store_name]:', '[status_name]'));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_mm_status', 'smsalert_mm_message', $defaultTemplate);
@@ -512,6 +544,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('admin_mm_notify_membership_level', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_membership_level]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_membership_level]';
+			// translators: 1: Store name, 2: Membership level name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_membership_level', 'smsalert_mm_message', sprintf(__('%1$s status of membership has been changed to %2$s.', 'sms-alert'), '[store_name]:', '[membership_level_name]'));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_membership_level', 'smsalert_mm_message', $defaultTemplate);
@@ -529,6 +562,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('admin_mm_notify_add_bundle', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_add_bundle]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_add_bundle]';
+			// translators: 1: Store name, 2: Bundle status name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_bundle_status', 'smsalert_mm_message', sprintf(__('%1$s status of bundle has been changed to %2$s.', 'sms-alert'), '[store_name]:', '[bundle_status_name]'));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_add_bundle', 'smsalert_mm_message', $defaultTemplate);
@@ -546,6 +580,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('admin_mm_notify_bundle_status', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_bundle_status]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_bundle_status]';
+			// translators: 1: Store name, 2: Bundle status name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_bundle_status', 'smsalert_mm_message', sprintf(__('%1$s status of bundle has been changed to %2$s.', 'sms-alert'), '[store_name]:', '[bundle_status_name]'));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_bundle_status', 'smsalert_mm_message', $defaultTemplate);
@@ -562,6 +597,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('admin_mm_notify_mm_payment', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_mm_payment]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_mm_payment]';
+			// translators: 1: Store name, 2: Payment status name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_mm_payment', 'smsalert_mm_message', sprintf(__('%1$s status of membership has been changed to %2$s.', 'sms-alert'), '[store_name]:', '[status_name]'));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_mm_payment', 'smsalert_mm_message', $defaultTemplate);
@@ -578,6 +614,7 @@ class SAMemberMouses extends FormInterface
         $currentVal      = smsalert_get_option('admin_mm_notify_mm_payment_refund', 'smsalert_mm_general', 'on');
             $checkboxNameId  = 'smsalert_mm_general[admin_mm_notify_mm_payment_refund]';
             $textareaNameId  = 'smsalert_mm_message[admin_sms_mm_body_mm_payment_refund]';
+			// translators: 1: Store name, 2: Payment status name.
             $defaultTemplate = smsalert_get_option('admin_sms_mm_body_mm_payment_refund', 'smsalert_mm_message', sprintf(__('%1$s status of membership has been changed to %2$s.', 'sms-alert'), '[store_name]:', '[status_name]'));
 
             $textBody = smsalert_get_option('admin_sms_mm_body_mm_payment_refund', 'smsalert_mm_message', $defaultTemplate);
@@ -708,7 +745,7 @@ class SAMemberMouses extends FormInterface
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             
             $buyerMessage = $this->parseSmsBody($data, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
             // Send msg to admin.
             $adminPhoneNumber = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -720,7 +757,7 @@ class SAMemberMouses extends FormInterface
             $adminPhoneNumber   = implode(',', $adminPhoneNumber);
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage   = $this->parseSmsBody($data, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }  
     }
@@ -854,7 +891,7 @@ class SAMemberMouses extends FormInterface
     {
 
         if (is_plugin_active('membermouse/index.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -885,7 +922,7 @@ class SAMemberMouses extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         
     }
@@ -930,7 +967,7 @@ class SAMemberMouses extends FormInterface
     public function is_ajax_form_in_play($isAjax)
     {
         SmsAlertUtility::checkSession();
-        if ($_SESSION[$this->form_session_var] === true) {
+        if (!empty($_SESSION[$this->form_session_var]) && $_SESSION[$this->form_session_var] === true) {
             return true;
         } else {
             return $isAjax;

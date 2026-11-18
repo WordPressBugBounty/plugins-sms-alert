@@ -10,6 +10,9 @@
  * @link     https://www.smsalert.co.in/
  */
 
+if (! defined('ABSPATH') ) {
+    exit;
+}
 echo '<div style="background: #fafafa;background-color:#d45028;background-position:center top;background-repeat:repeat-x;font-family:Roboto,Helvetica Neue,Helvetica,Arial,sans-serif;font-size:16px;margin:0;padding:0 10px;">
     <table align="center" style="width:100%" border="0" cellspacing="0" cellpadding="0">
         <tbody>

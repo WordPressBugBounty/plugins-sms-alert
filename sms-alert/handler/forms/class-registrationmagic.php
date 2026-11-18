@@ -115,8 +115,10 @@ class SARegistrationMagicForm extends FormInterface
         $role                = ( ! empty($user->roles[0]) ) ? $user->roles[0] : '';
         $role_display_name   = ( ! empty($role) ) ? self::get_user_roles($role) : '';
         $smsalert_reg_notify = smsalert_get_option('wc_user_roles_' . $role, 'smsalert_signup_general', 'off');
+		// translators: 1: User name, 2: Store name.
         $sms_body_new_user   = smsalert_get_option('signup_sms_body_' . $role, 'smsalert_signup_message', sprintf(__('Hello %1$s, Thank you for registering with %2$s.', 'sms-alert'), '[username]', '[store_name]'));
         $smsalert_reg_admin_notify = smsalert_get_option('admin_registration_msg', 'smsalert_general', 'off');
+		// translators: 1: User name, 2: Store name.
         $sms_admin_body_new_user   = smsalert_get_option('sms_body_registration_admin_msg', 'smsalert_message', sprintf(__('Dear admin, %1$s has just signed up on %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
         $admin_phone_number        = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
         $store_name = trim(get_bloginfo());
@@ -133,7 +135,7 @@ class SARegistrationMagicForm extends FormInterface
             $billing_phone,
             );
             $sms_body_new_user = str_replace($search, $replace, $sms_body_new_user);
-            do_action('sa_send_sms', $billing_phone, $sms_body_new_user);
+            do_action('smsalert_send_sms', $billing_phone, $sms_body_new_user);
         }
 
         if ('on' === $smsalert_reg_admin_notify && ! empty($admin_phone_number) ) {
@@ -157,7 +159,7 @@ class SARegistrationMagicForm extends FormInterface
             $nos                     = explode(',', $admin_phone_number);
             $admin_phone_number      = array_diff($nos, array( 'postauthor', 'post_author' ));
             $admin_phone_number      = implode(',', $admin_phone_number);
-            do_action('sa_send_sms', $admin_phone_number, $sms_admin_body_new_user);
+            do_action('smsalert_send_sms', $admin_phone_number, $sms_admin_body_new_user);
         }
     }
     
@@ -182,7 +184,7 @@ class SARegistrationMagicForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
@@ -206,9 +208,9 @@ class SARegistrationMagicForm extends FormInterface
      * @return void
      */
     public function handle_post_verification( $redirect_to, $user_login, $user_email, $password, $phone_number, $extra_data )
-    {    
+    {   	
         SmsAlertUtility::checkSession();    
-        if (isset($_SESSION[ $this->form_session_var ]) || ((empty($_REQUEST['option']) === false ) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form')) {
+        if (isset($_SESSION[ $this->form_session_var ]) || (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] )) {
             
             $_SESSION['bp_mobile_verified'] = true;
         }

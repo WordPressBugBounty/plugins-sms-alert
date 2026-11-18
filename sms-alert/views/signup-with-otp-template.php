@@ -1,6 +1,22 @@
+<?php
+/**
+ * Signup with otp template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
 <div class="cvt-accordion" style="padding: 0px 10px 10px 10px;"><div class="accordion-section">
     <?php
-        $shortcodes = array(
+        $smsalert_shortcodes = array(
             array(
                 'label' => __('Signup With Mobile', 'sms-alert'),
                 'value' => 'sa_signupwithmobile',
@@ -23,32 +39,32 @@
             )
         );
 
-        foreach ( $shortcodes as $key => $shortcode ) {
+        foreach ( $smsalert_shortcodes as $smsalert_key => $smsalert_shortcode ) {
 
             echo '<table class="form-table">';
-            $id = 'smsalert_' . esc_attr($shortcode['value']) . '_short';
+            $id = 'smsalert_' . esc_attr($smsalert_shortcode['value']) . '_short';
             ?>
             <tr class="top-border">
                 <th scope="row">
-                    <label for="<?php echo esc_attr($id); ?>"><?php echo esc_attr($shortcode['label']); ?> </label>
+                    <label for="<?php echo esc_attr($id); ?>"><?php echo esc_attr($smsalert_shortcode['label']); ?> </label>
                 </th>
                 <td>
                     <div>
             <?php 
-            if ('sa_subscribe group_name=""'===$shortcode['value']) {
-                $groups = (array)json_decode(SmsAlertcURLOTP::groupList(), true);
+            if ('sa_subscribe group_name=""'===$smsalert_shortcode['value']) {
+                $smsalert_groups = (array)json_decode(SmsAlertcURLOTP::groupList(), true);
                 ?>
                                 <select name="smsalert_general[subscribe_group]" id="user_group">
                 <?php
-                if (!empty($groups)) {
-                    if (! is_array($groups['description']) || array_key_exists('desc', $groups['description']) ) {
+                if (!empty($smsalert_groups)) {
+                    if (! is_array($smsalert_groups['description']) || array_key_exists('desc', $smsalert_groups['description']) ) {
                         ?>
                                             <option value=""><?php esc_attr_e('SELECT', 'sms-alert'); ?></option>
                           <?php
                     } else {
-                        foreach ( $groups['description'] as $group ) {
+                        foreach ( $smsalert_groups['description'] as $smsalert_group ) {
                             ?>
-                                            <option value="<?php echo esc_attr($group['Group']['name']); ?>"><?php echo esc_attr($group['Group']['name']); ?></option>
+                                            <option value="<?php echo esc_attr($smsalert_group['Group']['name']); ?>"><?php echo esc_attr($smsalert_group['Group']['name']); ?></option>
                             <?php
                         }
                     }
@@ -58,11 +74,11 @@
                 <?php
             }
             ?>
-                        <input type="text" class="sa-shortcode-input" value="[<?php echo esc_attr($shortcode['value']); ?>]" readonly/>    <span class="dashicons dashicons-admin-page copy_shortcode" onclick="copyToClipboard('[<?php echo esc_attr($shortcode['value']); ?>]',this)" style="
+                        <input type="text" class="sa-shortcode-input" value="[<?php echo esc_attr($smsalert_shortcode['value']); ?>]" readonly/>    <span class="dashicons dashicons-admin-page copy_shortcode" onclick="copyToClipboard('[<?php echo esc_attr($smsalert_shortcode['value']); ?>]',this)" style="
                             margin-left: -25px;  cursor: pointer;"></span>
                         <span class="clip-msg" style="color:#da4722; margin-left: 1.5pc;"></span>
                         <?php 
-                        if ('sa_verify phone_selector="#phone" submit_selector= ".btn"'===$shortcode['value']) {
+                        if ('sa_verify phone_selector="#phone" submit_selector= ".btn"'===$smsalert_shortcode['value']) {
                             ?>
                         <!--optional attribute-->
                         <br/><br/>
@@ -74,7 +90,7 @@
                         <b>eg</b> : <code>[sa_verify phone_selector="#phone" submit_selector= ".btn"]</code></span>
                     <!--/-optional attribute-->
                             <?php
-                        } else if ('sa_signupwithmobile' === $shortcode['value']) {
+                        } else if ('sa_signupwithmobile' === $smsalert_shortcode['value']) {
                             ?>
                 <!--optional attribute-->
                         <br/><br/>
@@ -82,18 +98,18 @@
                         <ul>
                         <li><b>redirect_url</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - <?php esc_html_e('Set the redirect url', 'sms-alert'); ?></li> 
                         </ul>
-                        <b>eg</b> : <code>[sa_signupwithmobile redirect_url="<?php echo get_site_url();?>"]</code></span>                        
+                        <b>eg</b> : <code>[sa_signupwithmobile redirect_url="<?php echo esc_url(get_site_url());?>"]</code></span>                        
                     <!--/-optional attribute-->                
                             <?php	            
                         }
-                        if ('sa_loginwithotp' === $shortcode['value']) {
+                        if ('sa_loginwithotp' === $smsalert_shortcode['value']) {
                             ?>
                         <br/><br/>
                         <b><?php esc_html_e('Attributes', 'sms-alert'); ?></b><br />
                         <ul>
                         <li><b>redirect_url</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - <?php esc_html_e('Set the redirect url', 'sms-alert'); ?></li> 
                         </ul>
-                        <b>eg</b> : <code>[sa_loginwithotp redirect_url="<?php echo get_site_url();?>"]</code></span>            
+                        <b>eg</b> : <code>[sa_loginwithotp redirect_url="<?php echo esc_url(get_site_url());?>"]</code></span>            
                             <?php	            
                         }
                         ?>

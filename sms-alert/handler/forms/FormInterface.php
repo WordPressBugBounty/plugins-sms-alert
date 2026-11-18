@@ -59,7 +59,7 @@ abstract class FormInterface
         add_action('otp_verification_successful', array( $this, 'handle_post_verification' ), 10, 6);
 
         // Action calls handle_failed_verification function to handle failed successful OTP Validation.
-        add_action('otp_verification_failed', array( $this, 'handle_failed_verification' ), 10, 3);
+        add_action('otp_verification_failed', array( $this, 'handle_failed_verification' ), 10, 4);
 
         // Filter to call the is_ajax_form_in_play function of each form class to check if otp verification.
         // has been started for a form and if that form is of the type ajax. Should return TRUE or FALSE.
@@ -102,7 +102,7 @@ abstract class FormInterface
      *
      * @return void
      */
-    abstract public function handle_failed_verification( $user_login, $user_email, $phone_number);
+    abstract public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data);
 
     /**
      * Handle OTP form

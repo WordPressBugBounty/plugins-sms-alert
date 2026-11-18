@@ -288,7 +288,10 @@ class WPF_SmsAlert_Admin
                  'type'        => 'text',        
                  'section'     => 'setup',
                  'class'       => 'api_key hide',
-                 'desc'        => __('<a href="'. get_admin_url() .'admin.php?page=sms-alert" target="_blank">Login to SMS Alert</a>  to configure SMS Notifications', 'sms-alert'),
+                 // translators: %s: URL of the SMS Alert settings page. 
+				'desc' => sprintf(__('<a href="%s" target="_blank">Login to SMS Alert</a> to configure SMS Notifications', 'sms-alert'),
+					esc_url(get_admin_url() . 'admin.php?page=sms-alert')
+				 ),
                  );            
              } else {
                  $new_settings['group_auto_sync'] = array(
@@ -405,7 +408,7 @@ class WPF_SmsAlert_Admin
         if (false == $options['connection_configured'] && $islogged) {
             $options['connection_configured'] = true;        
             $options['crm']                   = 'smsalert';                
-            $options['group_name']            = sanitize_text_field($_POST['group_auto_sync']);    
+            $options['group_name']            = !empty($_POST['group_auto_sync'])?sanitize_text_field(wp_unslash($_POST['group_auto_sync'])):'';    
             wp_fusion()->settings->set_multiple($options);
             wp_send_json_success();
         }

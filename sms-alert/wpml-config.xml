@@ -1,0 +1,7 @@
+<wpml-config>
+    <admin-texts>
+        <key name="smsalert_message">
+            <key name="sms_body_*"/>
+        </key>
+    </admin-texts>
+</wpml-config>

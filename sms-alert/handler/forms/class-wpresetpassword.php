@@ -66,7 +66,7 @@ class WPResetPassword extends FormInterface
     public function routeData()
     {
 		SmsAlertUtility::checkSession();
-		if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-change-password-form') && isset($_SESSION[ $this->form_session_var ]) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 ) {
+		if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-change-password-form') && isset($_SESSION[ $this->form_session_var ]) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_session_var ]), 'validated') === 0 ) {
             $this->handleSmsalertChangedPwd($_POST);
         }
 		session_write_close();
@@ -106,8 +106,8 @@ class WPResetPassword extends FormInterface
         }
         if (! empty($error) ) {
             smsalertAskForResetPassword(
-                sanitize_text_field($_SESSION['user_login']),
-                sanitize_text_field($_SESSION['phone_number_mo']),
+                isset($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):'',
+                isset($_SESSION['phone_number_mo'])?sanitize_text_field($_SESSION['phone_number_mo']):'',
                 $error,
                 'phone',
                 false
@@ -116,7 +116,7 @@ class WPResetPassword extends FormInterface
 		if (empty($_SESSION['sa_rp_user_id'])) {
 			return;
 		}
-        $user    = get_user_by('ID', $_SESSION['sa_rp_user_id']);
+        $user    = get_user_by('ID', sanitize_text_field($_SESSION['sa_rp_user_id']));
 		if (! $user ) {
 			$this->unsetOTPSessionVariables();
 			return;
@@ -138,8 +138,8 @@ class WPResetPassword extends FormInterface
 			$this->unsetOTPSessionVariables();
 
 			smsalertAskForResetPassword(
-				sanitize_text_field($_SESSION['user_login']),
-				sanitize_text_field($_SESSION['phone_number_mo']),
+				isset($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):'',
+                isset($_SESSION['phone_number_mo'])?sanitize_text_field($_SESSION['phone_number_mo']):'',
 				__('Phone number verification failed. Please try again.', 'sms-alert'),
 				'phone',
 				false
@@ -148,7 +148,7 @@ class WPResetPassword extends FormInterface
 		}
         $this->unsetOTPSessionVariables();
         reset_password($user, $new_password);
-        wp_redirect(add_query_arg('password-reset', 'true', wc_get_page_permalink('myaccount')));
+        wp_safe_redirect(add_query_arg('password-reset', 'true', wc_get_page_permalink('myaccount')));
         exit;
     }
 
@@ -207,7 +207,7 @@ class WPResetPassword extends FormInterface
      */
     public function fetchPhoneAndStartVerification( $user, $key, $username, $password, $phone_number )
     {
-        if (( array_key_exists($this->form_session_var, $_SESSION) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 ) ) {
+        if (( array_key_exists($this->form_session_var, $_SESSION) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_session_var ]), 'validated') === 0 ) ) {
             return;
         }
 		$_SESSION['sa_rp_user_id'] = absint($user->data->ID);
@@ -223,7 +223,7 @@ class WPResetPassword extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
@@ -257,8 +257,8 @@ class WPResetPassword extends FormInterface
 		$_SESSION[ $this->form_session_var ] = 'validated';
 		$_SESSION['sa_rp_mobile'] = $phone_number;
         smsalertAskForResetPassword(
-            sanitize_text_field($_SESSION['user_login']),
-            sanitize_text_field($_SESSION['phone_number_mo']),
+            isset($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):'',
+            isset($_SESSION['phone_number_mo'])?sanitize_text_field($_SESSION['phone_number_mo']):'',
             __('Please change Your password', 'sms-alert'),
             'phone',
             false

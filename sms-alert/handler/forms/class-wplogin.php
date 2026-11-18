@@ -70,7 +70,7 @@ class WPLogin extends FormInterface
             return;
         }
         $enabled_login_popup = smsalert_get_option('otp_in_popup', 'smsalert_general', 'on');
-        $is_admin_login = (is_login()) ? true : false;
+		$is_admin_login = !empty($_SERVER['SCRIPT_NAME'])?(false !== strpos(wp_login_url(), sanitize_text_field(wp_unslash($_SERVER['SCRIPT_NAME'])))):false;
         $this->routeData();
         $enable_login_with_admin_otp = smsalert_get_option('login_with_admin_otp', 'smsalert_general');
         $enabled_login_with_otp = smsalert_get_option('login_with_otp', 'smsalert_general');
@@ -215,14 +215,14 @@ class WPLogin extends FormInterface
             }
         }
         if (isset($_REQUEST['username']) ) {
-            global $phoneLogic;
+            global $smsalert_phoneLogic;
             $phone_number = ! empty($_REQUEST['username']) ? sanitize_text_field(wp_unslash($_REQUEST['username'])) : '';
             $billing_phone = SmsAlertcURLOTP::checkPhoneNos($phone_number);
             if (SmsAlertUtility::isBlank($phone_number)) {
                 wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter phone number.', 'sms-alert'), 'error'));
             } else if (! $billing_phone ) {
 
-                $message = str_replace('##phone##', $phone_number, $phoneLogic->_get_otp_invalid_format_message());
+                $message = str_replace('##phone##', $phone_number, $smsalert_phoneLogic->_get_otp_invalid_format_message());
 
                 wp_send_json(SmsAlertUtility::_create_json_response($message, 'error'));
             }
@@ -269,7 +269,7 @@ class WPLogin extends FormInterface
     public function smsalertDisplayLoginWithOtp($form = null, $args=array())
     {
         if ($form == null || is_array($form) || $form == 'login') {
-            echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . __('Login with OTP', 'sms-alert') . '" style="width: 100%;box-sizing: border-box;display:block">' . __('Login with OTP', 'sms-alert') . '</button></div>';
+            echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . esc_attr__('Login with OTP', 'sms-alert') . '" style="width: 100%;box-sizing: border-box;display:block">' . esc_html__('Login with OTP', 'sms-alert') . '</button></div>';
 			add_action('wp_footer', array( $this, 'addLoginwithotpShortcode' ), 15);
             if (is_plugin_active('google-captcha/google-captcha.php')) {
                 gglcptch_add_scripts();
@@ -284,7 +284,7 @@ class WPLogin extends FormInterface
      */
     function showLoginWithOtpAdmin()
     {        
-        echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . __('Login with OTP', 'sms-alert') . '" style="box-sizing: border-box">' . __('Login with OTP', 'sms-alert') . '</button></div>';
+        echo '<div class="lwo-container"><div class="sa_or">OR</div><button type="button" class="button sa_myaccount_btn" name="sa_myaccount_btn_login" value="' . esc_attr__('Login with OTP', 'sms-alert') . '" style="box-sizing: border-box">' . esc_html__('Login with OTP', 'sms-alert') . '</button></div>';
         add_action('login_footer', array( $this, 'addAdminLoginWithOtpShortcode' ), 15);
           
     }
@@ -310,13 +310,13 @@ class WPLogin extends FormInterface
         $enabled_login_popup    = smsalert_get_option('otp_in_popup', 'smsalert_general', 'on');
         $default_login_otp      = smsalert_get_option('buyer_login_otp', 'smsalert_general');
         if ('on' === $enabled_login_popup && 'on' === $default_login_otp) {
-            $unique_class    = 'sa-class-'.mt_rand(1, 100);
+            $unique_class    = 'sa-class-'.wp_rand(1, 100);
             echo '<script>
 				jQuery("form.xoo-el-form-login").each(function () 
 				{
 					if(!jQuery(this).hasClass("sa-login-form"))
 					{
-					jQuery(this).addClass("'.$unique_class.' sa-login-form");
+					jQuery(this).addClass("'.esc_js($unique_class).' sa-login-form");
 					}		
 				});				
 		    </script>';    
@@ -335,13 +335,13 @@ class WPLogin extends FormInterface
         $enabled_login_popup    = smsalert_get_option('otp_in_popup', 'smsalert_general', 'on');
         $default_login_otp      = smsalert_get_option('buyer_login_otp', 'smsalert_general');
         if ('on' === $enabled_login_popup && 'on' === $default_login_otp) {
-            $unique_class    = 'sa-class-'.mt_rand(1, 100);
+            $unique_class    = 'sa-class-'.wp_rand(1, 100);
             echo '<script>	
 				jQuery("form.login").each(function () 
 				{
 					if(!jQuery(this).hasClass("sa-login-form"))
 					{
-					jQuery(this).addClass("'.$unique_class.' sa-login-form");
+					jQuery(this).addClass("'.esc_js($unique_class).' sa-login-form");
 					}		
 				});
 		    </script>';
@@ -358,13 +358,13 @@ class WPLogin extends FormInterface
         $enabled_login_popup    = smsalert_get_option('otp_in_popup', 'smsalert_general', 'on');
         $default_login_otp      = smsalert_get_option('buyer_login_otp', 'smsalert_general');
         if ('on' === $enabled_login_popup && 'on' === $default_login_otp) {
-            $unique_class    = 'sa-class-'.mt_rand(1, 100);
+            $unique_class    = 'sa-class-'.wp_rand(1, 100);
             echo '<script>
 				jQuery("form[name=loginpopopform]").each(function () 
 				{
 					if(!jQuery(this).hasClass("sa-login-form"))
 					{
-					jQuery(this).addClass("'.$unique_class.' sa-login-form");
+					jQuery(this).addClass("'.esc_js($unique_class).' sa-login-form");
 					}		
 				});			
 			</script>';
@@ -462,7 +462,7 @@ class WPLogin extends FormInterface
         do_action('wp_login', $user->user_login, $user);
         $redirect = SmsAlertUtility::isBlank($extra_data) ? site_url() : $extra_data;
         $redirect        = apply_filters('woocommerce_login_redirect', $redirect, $user);
-        wp_redirect($redirect);
+        wp_safe_redirect($redirect);
         exit;
     }
 	
@@ -516,7 +516,7 @@ class WPLogin extends FormInterface
 			return;
 		}
 		
-		$user_info    = get_user_by('ID', $_SESSION['sa_login_user_id']);
+		$user_info    = get_user_by('ID', sanitize_text_field($_SESSION['sa_login_user_id']));
         $user_login   = ( $user_info ) ? $user_info->data->user_login : '';
 
 		if (($login_with_otp_enabled || $login_with_admin_otp_enabled) && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) && ! empty($_SESSION['sa_login_mobile']) && ($_SESSION['sa_login_mobile'] === $phone_number)) {
@@ -550,7 +550,7 @@ class WPLogin extends FormInterface
         $login_with_otp_enabled = ( smsalert_get_option('login_with_otp', 'smsalert_general') === 'on' ) ? true : false;
 		$phone_number = ! empty($_REQUEST['username']) ? sanitize_text_field(wp_unslash($_REQUEST['username'])) : '';
 		$phone_number  = SmsAlertcURLOTP::checkPhoneNos($phone_number);
-		$user_info    = !empty($_SESSION['sa_login_user_id'])?get_user_by('ID', $_SESSION['sa_login_user_id']):'';
+		$user_info    = !empty($_SESSION['sa_login_user_id'])?get_user_by('ID', sanitize_text_field($_SESSION['sa_login_user_id'])):'';
         $user_login   = ( $user_info ) ? $user_info->data->user_login : '';
         if ($login_with_otp_enabled && empty($password) && ! empty($user_login) && ! empty($_SESSION['login_otp_success']) && ! empty($_SESSION['sa_login_mobile']) && ($_SESSION['sa_login_mobile'] === $phone_number) ) {
 			if (! $this->isVerifiedPhoneForUser($user_info)) {
@@ -569,7 +569,7 @@ class WPLogin extends FormInterface
             $this->loginWpUser($user_info, $redirect);
         }
 
-        if (( is_array($_SESSION) && array_key_exists($this->form_session_var, $_SESSION) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 ) && ! empty($_POST['sa_phone_number']) ) {
+        if (( is_array($_SESSION) && array_key_exists($this->form_session_var, $_SESSION) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_session_var ]), 'validated') === 0 ) && ! empty($_POST['sa_phone_number']) ) {
             update_user_meta($user->data->ID, $this->phone_number_key, sanitize_text_field(wp_unslash($_POST['sa_phone_number'])));
             $this->unsetOTPSessionVariables();
         }
@@ -651,7 +651,18 @@ class WPLogin extends FormInterface
         $wocc_ph    = SmsAlertcURLOTP::checkPhoneNos($username, false);
         $wth_pls_ph = '+' . $wcc_ph;
 
-        $results = $wpdb->get_results("SELECT `user_id` FROM {$wpdb->base_prefix}usermeta WHERE `meta_key` = '$key' AND `meta_value` in('$wcc_ph','$wocc_ph','$wth_pls_ph')");
+        $results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT `user_id`
+				 FROM `{$wpdb->base_prefix}usermeta`
+				 WHERE `meta_key` = %s
+				 AND `meta_value` IN (%s, %s, %s)",
+				$key,
+				$wcc_ph,
+				$wocc_ph,
+				$wth_pls_ph
+			)
+		);
         return $results;
     }
 
@@ -692,8 +703,8 @@ class WPLogin extends FormInterface
      */
     public function fetchPhoneAndStartVerification( $user, $key, $username, $password, $phone_number )
     {
-        if (( array_key_exists($this->form_session_var, $_SESSION) && strcasecmp($_SESSION[ $this->form_session_var ], 'validated') === 0 )
-            || ( array_key_exists($this->form_session_var2, $_SESSION) && strcasecmp($_SESSION[ $this->form_session_var2 ], 'validated') === 0 ) 
+        if (( array_key_exists($this->form_session_var, $_SESSION) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_session_var ]), 'validated') === 0 )
+            || ( array_key_exists($this->form_session_var2, $_SESSION) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_session_var2 ]), 'validated') === 0 ) 
         ) {
             return;
         }
@@ -743,7 +754,7 @@ class WPLogin extends FormInterface
             return;
         }
 
-        if (strcmp($_SESSION['phone_number_mo'], $data['billing_phone']) && isset($data['billing_phone']) ) {
+        if (!empty($_SESSION['phone_number_mo']) && strcmp(sanitize_text_field($_SESSION['phone_number_mo']), $data['billing_phone']) && isset($data['billing_phone']) ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error'));
         } else {
             do_action('smsalert_validate_otp', 'phone');
@@ -759,7 +770,7 @@ class WPLogin extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) && ! isset($_SESSION[ $this->form_session_var2 ]) && ! isset($_SESSION[ $this->form_session_var3 ]) ) {

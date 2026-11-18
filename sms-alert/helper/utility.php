@@ -341,14 +341,21 @@ class SmsAlertUtility
      */
     public static function checkCompatibility()
     {
-        $path = session_save_path();
-        $obj  = array();
-        if (is_writable($path) ) {
-            $obj[] = "Yes, session path $path is writable.";
+        global $wp_filesystem;
 
-        } else {
-            $obj[] = "No, session path $path is not writable.";
-        }
+		$path = session_save_path();
+		$obj  = array();
+
+		if ( ! $wp_filesystem ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		if ( $wp_filesystem && $wp_filesystem->is_writable($path) ) {
+			$obj[] = "Yes, session path $path is writable.";
+		} else {
+			$obj[] = "No, session path $path is not writable.";
+		}
 
         if ($this->sa_is_curl_installed() ) {
             $obj[] = 'Curl is enabled.';

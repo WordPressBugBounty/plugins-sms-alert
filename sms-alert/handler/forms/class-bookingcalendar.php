@@ -71,13 +71,22 @@ class BookingCalendar extends FormInterface
                   return;
             }
             $booking_status = $booking['approved'];
-            $booking_start=date('Y-m-d H:i:s', strtotime($booking['booking_date']));
+            $booking_start = (new DateTimeImmutable($booking['booking_date'], wp_timezone()))->format('Y-m-d H:i:s');
             $buyer_mob     = $booking['formdata']['phone1'];
             $customer_notify = smsalert_get_option('customer_notify', 'smsalert_bc_general', 'on');
             global $wpdb;
             $table_name           = $wpdb->prefix . 'smsalert_booking_reminder';
             $source = 'booking-calendar';
-            $booking_details = $wpdb->get_results("SELECT * FROM $table_name WHERE booking_id = $booking_id and source = '$source'");
+            $booking_details = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($table_name) . "`
+					WHERE booking_id = %d
+					AND source = %s",
+					$booking_id,
+					$source
+				)
+			);
             if ('1' === $booking_status && 'on' === $customer_notify ) {
                 if ($booking_details ) {
                     $wpdb->update(
@@ -124,16 +133,28 @@ class BookingCalendar extends FormInterface
 
         foreach ( $scheduler_data['cron'] as $sdata ) {
 
-            $datetime = current_time('mysql');
-            
-            $fromdate = date('Y-m-d H:i:s', strtotime('+' . ( $sdata['frequency']*60 - $cron_frequency ) . ' minutes', strtotime($datetime)));
-            
-            $todate = date('Y-m-d H:i:s', strtotime('+' . $cron_frequency . ' minutes', strtotime($fromdate)));
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cron_frequency) . ' minutes')
+				->format('Y-m-d H:i:s');
+
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cron_frequency . ' minutes')
+				->format('Y-m-d H:i:s');
             
             $rows_to_phone = $wpdb->get_results(
-                'SELECT * FROM ' . $table_name . " WHERE start_date > '" . $fromdate . "' AND start_date <= '" . $todate . "' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($table_name) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
             if ($rows_to_phone ) { // If we have new rows in the database
 
                    $customer_message = $sdata['message'];
@@ -315,6 +336,7 @@ class BookingCalendar extends FormInterface
             $scheduler_data  = array();
             $scheduler_data['cron'][] = array(
             'frequency' => '1',
+			// translators: 1: Customer name, 2: Booking ID, 3: Store name, 4: Booking date.
             'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '#[booking_id]', '[store_name]', '[date]', PHP_EOL, PHP_EOL),
             );
         }
@@ -359,15 +381,18 @@ class BookingCalendar extends FormInterface
 
             $checkbox_name_id = 'smsalert_bc_general[customer_bc_notify_' . strtolower($vs) . ']';
             $textarea_name_id = 'smsalert_bc_message[customer_sms_bc_body_' . strtolower($vs) . ']';
-			
 			$default_templates = array(
-                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_PENDING' => sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to pending.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL),
-                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_APPROVED' => sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to confirmed.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL),
+				// translators: 1: Customer name, 2: Store name.
+                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_PENDING' =>sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to pending.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL),
+				// translators: 1: Customer name, 2: Store name.
+                'DEFAULT_BOOKING_CALENDAR_CUSTOMER_APPROVED' =>sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to confirmed.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL),
+				// translators: 1: Customer name, 2: Store name.
                 'DEFAULT_BOOKING_CALENDAR_CUSTOMER_TRASH' => sprintf(__('Hello %1$s, status of your booking with %2$s has been changed to rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[store_name]', PHP_EOL, PHP_EOL)
 			);
 			
             $default_template = !empty($default_templates['DEFAULT_BOOKING_CALENDAR_CUSTOMER_' . strtoupper($vs)])?$default_templates['DEFAULT_BOOKING_CALENDAR_CUSTOMER_' . strtoupper($vs)]:'';
-
+            
+			// translators: 1: Username, 2: Store name. 
             $text_body = smsalert_get_option('customer_sms_bc_body_' . strtolower($vs), 'smsalert_bc_message', ( ( '' !== $default_template ) ? $default_template : sprintf(__('Congratulation %1$s, you have become an instructor with %2$s.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL) ));
 
             $templates[ $ks ]['title']          = 'When customer booking is ' . ucwords($vs);
@@ -437,7 +462,7 @@ class BookingCalendar extends FormInterface
 
             if ('on' === $customer_bc_notify && '' !== $customer_message ) {
                 $buyer_message = $this->parseSmsBody($booking, $customer_message);
-                do_action('sa_send_sms', $buyer_number, $buyer_message);
+                do_action('smsalert_send_sms', $buyer_number, $buyer_message);
             }
 
             // send msg to admin.
@@ -454,7 +479,7 @@ class BookingCalendar extends FormInterface
 
                 if ('on' === $admin_bc_notify && '' !== $admin_message ) {
                     $admin_message = $this->parseSmsBody($booking, $admin_message);
-                    do_action('sa_send_sms', $admin_phone_number, $admin_message);
+                    do_action('smsalert_send_sms', $admin_phone_number, $admin_message);
                 }
             }
         }
@@ -492,7 +517,7 @@ class BookingCalendar extends FormInterface
 
             if (( 'on' === $customer_bc_approved_notify && '' !== $customer_message ) || ( 'on' === $customer_bc_pending_notify && '' !== $customer_message ) ) {
                 $buyer_message = $this->parseSmsBody($booking, $customer_message);
-                do_action('sa_send_sms', $buyer_number, $buyer_message);
+                do_action('smsalert_send_sms', $buyer_number, $buyer_message);
             }
 
             // send msg to admin.
@@ -515,12 +540,12 @@ class BookingCalendar extends FormInterface
 
                 if ('on' === $smsalert_bc_admin_pending_notify && '' !== $admin_message && '0' === $is_approve_or_pending ) {
                     $admin_message = $this->parseSmsBody($booking, $admin_message);
-                    do_action('sa_send_sms', $admin_phone_number, $admin_message);
+                    do_action('smsalert_send_sms', $admin_phone_number, $admin_message);
                 }
 
                 if ('on' === $smsalert_bc_admin_approve_notify && '' !== $admin_message && '1' === $is_approve_or_pending ) {
                     $admin_message = $this->parseSmsBody($booking, $admin_message);
-                    do_action('sa_send_sms', $admin_phone_number, $admin_message);
+                    do_action('smsalert_send_sms', $admin_phone_number, $admin_message);
                 }
             }
         }
@@ -564,7 +589,7 @@ class BookingCalendar extends FormInterface
 
                 if ('on' === $admin_bc_notify && '' !== $admin_message ) {
                     $admin_message = $this->parseSmsBody($booking, $admin_message);
-                    do_action('sa_send_sms', $admin_phone_number, $admin_message);
+                    do_action('smsalert_send_sms', $admin_phone_number, $admin_message);
                 }
             }
         }
@@ -586,7 +611,7 @@ class BookingCalendar extends FormInterface
         $visitor      = $data['formdata']['visitors1'];
         $phone        = $data['formdata']['phone1'];
         $details      = $data['formdata']['details1'];
-        $booking_date = date('M d,Y H:i', strtotime($data['booking_date']));
+        $booking_date = (new DateTimeImmutable($data['booking_date'], wp_timezone()))->format('M d,Y H:i');
         $booking_id   = $data['booking_id'];
 
         $find = array(
@@ -641,7 +666,7 @@ class BookingCalendar extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('booking/wpdev-booking.php') ) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
         }
     }
@@ -667,13 +692,13 @@ class BookingCalendar extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($user_login,$user_email,$phone_number)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -699,7 +724,7 @@ class BookingCalendar extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

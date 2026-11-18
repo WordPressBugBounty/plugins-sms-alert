@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -81,13 +81,21 @@ class Restaurantreservation extends FormInterface
         }
         $bookingStatus = $booking->post_status;
         $bookingId     = $booking->ID;
-        $bookingStart  = date('Y-m-d H:i:s', strtotime($booking->date));
+        $bookingStart = (new DateTimeImmutable($booking->date, wp_timezone()))
+           ->format('Y-m-d H:i:s');
         $buyerMob      = $booking->phone;
         $customerNotify = smsalert_get_option('customer_notify', 'smsalert_rr_general', 'on');
         global $wpdb;
         $tableName           = $wpdb->prefix . 'smsalert_booking_reminder';
         $source = 'restaurant-reservation';
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $bookingId and source = '$source'");
+        $booking_details = $wpdb->get_results($wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$bookingId,
+				$source
+			));
         if ($bookingStatus === 'confirmed' && $customerNotify === 'on') {
             if ($booking_details) {
                 $wpdb->update(
@@ -133,17 +141,27 @@ class Restaurantreservation extends FormInterface
         $schedulerData = get_option('smsalert_rr_reminder_scheduler');
 
         foreach ($schedulerData['cron'] as $sdata) {
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
 
-            $datetime = current_time('mysql');
-
-            $fromdate = date('Y-m-d H:i:s', strtotime('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes', strtotime($datetime)));
-
-            $todate   = date('Y-m-d H:i:s', strtotime('+' . $cronFrequency . ' minutes', strtotime($fromdate)));
-
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM ' . $tableName . " WHERE start_date > '" . $fromdate . "' AND start_date <= '" . $todate . "' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
             if ($rowsToPhone) { // If we have new rows in the database
 
                 $customerMessage = $sdata['message'];
@@ -285,6 +303,7 @@ class Restaurantreservation extends FormInterface
             $schedulerData  = array();
             $schedulerData['cron'][] = array(
                 'frequency' => '1',
+				// translators: 1: User name, 2: Booking ID, 3: Store name, 4: Booking date.
                 'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '#[booking_id]', '[store_name]', '[date]', PHP_EOL, PHP_EOL),
             );
         }
@@ -328,7 +347,7 @@ class Restaurantreservation extends FormInterface
 
             $checkboxNameId = 'smsalert_rr_general[customer_rr_notify_' . strtolower($vs) . ']';
             $textareaNameId = 'smsalert_rr_message[customer_sms_rr_body_' . strtolower($vs) . ']';
-
+            // translators: 1: User name, 2: Booking ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_rr_body_' . strtolower($vs), 'smsalert_rr_message', sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '[booking_id]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_rr_body_' . strtolower($vs), 'smsalert_rr_message', $defaultTemplate);
@@ -363,7 +382,7 @@ class Restaurantreservation extends FormInterface
             $currentVal     = smsalert_get_option('admin_rr_notify_' . strtolower($vs), 'smsalert_rr_general', 'on');
             $checkboxNameId = 'smsalert_rr_general[admin_rr_notify_' . strtolower($vs) . ']';
             $textareaNameId = 'smsalert_rr_message[admin_sms_rr_body_' . strtolower($vs) . ']';
-
+            // translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_rr_body_' . strtolower($vs), 'smsalert_rr_message', sprintf(__('Hello admin, status of your booking with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
 
@@ -396,7 +415,7 @@ class Restaurantreservation extends FormInterface
 
         if ($customerRrNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseSmsBody($booking, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -413,7 +432,7 @@ class Restaurantreservation extends FormInterface
 
             if ('on' === $adminRrNotify && '' !== $adminMessage) {
                 $adminMessage = $this->parseSmsBody($booking, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
     }
@@ -451,7 +470,7 @@ class Restaurantreservation extends FormInterface
         $customerNotify = smsalert_get_option('customer_rr_notify_' . $bookingStatus, 'smsalert_rr_general', 'on');
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseSmsBody($booking, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -469,7 +488,7 @@ class Restaurantreservation extends FormInterface
 
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($booking, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
     }//end sendsmsBookingUpdate()
@@ -491,7 +510,8 @@ class Restaurantreservation extends FormInterface
         $requestTime  = $data->request_time;
         
         $requestDate  = $data->request_date;
-        $date         = date('M d,Y H:i', strtotime($data->date));
+        $date = (new DateTimeImmutable($data->date, wp_timezone()))
+           ->format('M d,Y H:i');
         $party        = $data->party;
         $postStatus   = $data->post_status;
 
@@ -550,7 +570,7 @@ class Restaurantreservation extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('restaurant-reservations/restaurant-reservations.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }//end handleFormOptions()
@@ -580,13 +600,13 @@ class Restaurantreservation extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -614,7 +634,7 @@ class Restaurantreservation extends FormInterface
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false ) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if (! empty($extraData['option']) && 'smsalert-validate-otp-form' === $extraData['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -645,7 +665,7 @@ class Restaurantreservation extends FormInterface
     public function is_ajax_form_in_play($isAjax)
     {
         SmsAlertUtility::checkSession();
-        if ($_SESSION[$this->form_session_var] === true) {
+        if (!empty($_SESSION[$this->form_session_var]) && $_SESSION[$this->form_session_var] === true) {
             return true;
         } else {
             return $isAjax;

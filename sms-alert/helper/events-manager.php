@@ -34,7 +34,7 @@ class SmsAlertEMBooking
     public function __construct()
     {
         include_once WP_PLUGIN_DIR . '/events-manager/classes/em-booking.php';
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('em_bookings_added', array( $this, 'sendSmsWpbcBookingCreated' )); // Booking Hook.
         add_filter('em_booking_set_status', array( $this, 'sendSmsWpbcBookingModify' ), 1, 2); // Changing Status Hook.
         add_action('sa_addTabs', array( $this, 'addTabs' ), 10);
@@ -117,6 +117,7 @@ class SmsAlertEMBooking
             $text_body = smsalert_get_option(
                 'embk_sms_body_' . $vs,
                 'smsalert_embk_message',
+				// translators: 1: Booking name, 2: Booking ID, 3: Event name, 4: Store name, 5: Booking status.
                 sprintf(__('Hello %1$s, status of your booking %2$s%3$s with %4$s has been changed to %5$s.%6$sPowered by%7$swww.smsalert.co.in', 'sms-alert'), '[#_BOOKINGNAME]', '[#_BOOKINGID]', '[#_EVENTNAME]', '[store_name]', '[#_BOOKINGSTATUS]', PHP_EOL, PHP_EOL)
             );
 
@@ -151,6 +152,7 @@ class SmsAlertEMBooking
             $text_body = smsalert_get_option(
                 'embk_admin_sms_body_' . $vs,
                 'smsalert_embk_message',
+				// translators: 1: Store name, 2: Booking ID, 3: Booking status.
                 sprintf(__('%1$s: status of booking %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[#_BOOKINGID]', '[#_BOOKINGSTATUS]', PHP_EOL, PHP_EOL)
             );
 
@@ -248,12 +250,12 @@ class SmsAlertEMBooking
                 $buyer_message = smsalert_get_option('embk_sms_body_' . $booking_status[ $current_booking ], 'smsalert_embk_message', '');
 
                 $buyer_message = str_replace('[#_BOOKINGSTATUS]', $booking_status[ $current_booking ], $buyer_message);
-                do_action('sa_send_sms', $buyer_phone_number, self::parseSmsBody($buyer_message, $booking));
+                do_action('smsalert_send_sms', $buyer_phone_number, self::parseSmsBody($buyer_message, $booking));
             }
             if (smsalert_get_option('embk_admin_notification_' . $booking_status[ $current_booking ], 'smsalert_embk_general') === 'on' && '' !== $admin_phone_number ) {
                 $admin_message = smsalert_get_option('embk_admin_sms_body_' . $booking_status[ $current_booking ], 'smsalert_embk_message', '');
                 $admin_message = str_replace('[#_BOOKINGSTATUS]', $booking_status[ $current_booking ], $admin_message);
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsBody($admin_message, $booking));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsBody($admin_message, $booking));
             }
         } else {
             echo 'wpdev_booking not found';
@@ -282,7 +284,7 @@ class SmsAlertEMBooking
             if (smsalert_get_option('embk_admin_notification_' . $booking_status[ $current_booking ], 'smsalert_embk_general') === 'on' && '' !== $admin_phone_number ) {
                 $admin_message = smsalert_get_option('embk_admin_sms_body_' . $booking_status[ $current_booking ], 'smsalert_embk_message', '');
                 $admin_message = str_replace('[#_BOOKINGSTATUS]', $booking_status[ $current_booking ], $admin_message);
-                do_action('sa_send_sms', $admin_phone_number, self::parseSmsBody($admin_message, $booking));
+                do_action('smsalert_send_sms', $admin_phone_number, self::parseSmsBody($admin_message, $booking));
             }
         } else {
             echo 'wpdev_booking not found';

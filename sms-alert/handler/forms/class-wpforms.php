@@ -88,16 +88,16 @@ class WpForm extends FormInterface
      */
     public function saUpdateBillingPhone($billing_phone, $user_id)
     {        
-        $form_id = !empty($_POST['wpforms']['id'])?$_POST['wpforms']['id']:'';
+        $form_id = !empty($_POST['wpforms']['id'])?sanitize_text_field(wp_unslash($_POST['wpforms']['id'])):'';
         if ($form_id != '') {
             $form_data = wpforms()->get('form')->get($form_id, ['content_only' => true,]);
             if (!empty($form_data['settings']['smsalert']['visitor_phone'])) {
                 $phone_field     = $form_data['settings']['smsalert']['visitor_phone'];
                 $phone_field_id  = preg_replace('/[^0-9]/', '', $phone_field);
                 $phone = '';
-                if (! empty($phone_field_id) ) {
+                if (! empty($phone_field_id) && !empty($_POST['wpforms']['complete']) ) {
                     $datas = array();            
-                    foreach ($_POST['wpforms']['complete'] as $key => $field ) {                    
+                    foreach (map_deep(wp_unslash($_POST['wpforms']['complete'])) as $key => $field ) {                    
                         $datas[ '{field_id="' . $key . '"}' ] = $field['value'];                 
                         if ($phone_field_id == $key ) {
                                $phone = $field['value'];                        
@@ -182,11 +182,11 @@ class WpForm extends FormInterface
      */
     public function processFormFields( $phone, $data )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $phone);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
+            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
         }
         
@@ -226,7 +226,7 @@ class WpForm extends FormInterface
      */      
     public function wpfDevProcessFilter( $field, $form_data )
     {
-        $unique_class    = 'sa-class-'.mt_rand(1, 100);
+        $unique_class    = 'sa-class-'.wp_rand(1, 100);
         $user_authorize  = new smsalert_Setting_Options();
         $islogged        = $user_authorize->is_user_authorised();
         $phone_field     = !empty($form_data['settings']['smsalert']['visitor_phone'])?$form_data['settings']['smsalert']['visitor_phone']:'';
@@ -337,6 +337,7 @@ class WpForm extends FormInterface
             __('Admin Message', 'sms-alert'),
             array(
             'rows'      => 6,
+			// translators: 1: Store name.
             'default'   => sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL),
             'smarttags' => array(
             'type' => 'all',
@@ -368,6 +369,7 @@ class WpForm extends FormInterface
             __('Visitor Message', 'sms-alert'),
             array(
             'rows'      => 6,
+			// translators: 1: Store name.
             'default'   => sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]'),
             'smarttags' => array(
             'type' => 'all',
@@ -379,7 +381,7 @@ class WpForm extends FormInterface
         $admin_number = isset($form_data['settings']['smsalert']['admin_number'])?$form_data['settings']['smsalert']['admin_number']:'';    
         echo '</div>';
         echo "<script>
-		var adminnumber = '" . $admin_number . "';
+		var adminnumber = '" . esc_js($admin_number) . "';
 		var tagInput1 	= new TagsInput({
 			selector: 'wpforms-panel-field-smsalert-admin_number',
 			duplicate : false,
@@ -443,9 +445,9 @@ class WpForm extends FormInterface
                         $phone = $field['value'];
                     }
                 }
-                do_action('sa_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
+                do_action('smsalert_send_sms', $phone, self::parseSmsContent($visitor_message, $datas));
                 if (! empty($admin_number) ) {
-                    do_action('sa_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
+                    do_action('smsalert_send_sms', $admin_number, self::parseSmsContent($admin_message, $datas));
                 }
             }
         }
@@ -472,13 +474,13 @@ class WpForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -509,7 +511,7 @@ class WpForm extends FormInterface
 		{
           $_SESSION['sa_wf_form_verified'.$extra_data['id']] = true;
 		}
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

@@ -83,7 +83,7 @@ class UsersWpForm extends FormInterface
     public function uwpSiteRegistrationErrors( $errors, $form_type, $data )
     {
         SmsAlertUtility::checkSession();
-        $user_phone = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
+        $user_phone = ( ! empty($data['billing_phone']) ) ? $data['billing_phone'] : '';
         if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {        
             return $errors;
         }
@@ -91,17 +91,13 @@ class UsersWpForm extends FormInterface
             unset($_SESSION['sa_userf_mobile_verified']);
             return $errors;
         }
-        $verify = check_ajax_referer('uwp-register-nonce', 'uwp_register_nonce', false);
-        if (!$verify) {
-            return new WP_Error('registration-error-invalid-nonce', __('Sorry, nonce did not verify.', 'sms-alert'));
-        }
         if (is_wp_error($errors) ) {
             return $errors;
         }
-        $username = ! empty($_REQUEST['username']) ? sanitize_text_field(wp_unslash($_REQUEST['username'])) : '';
-        $email    = ! empty($_REQUEST['email']) ? sanitize_text_field(wp_unslash($_REQUEST['email'])) : '';
-        $password = ! empty($_REQUEST['password']) ? sanitize_text_field(wp_unslash($_REQUEST['password'])) : '';
-        if (isset($_REQUEST['option']) && 'smsalert_register_with_otp' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        $username = ! empty($data['username']) ? $data['username'] : '';
+        $email    = ! empty($data['email']) ? $data['email'] : '';
+        $password = ! empty($data['password']) ? $data['password'] : '';
+        if (isset($data['sa_option']) && 'smsalert_register_with_otp' === $data['sa_option'] ) {
             SmsAlertUtility::initialize_transaction($this->form_session_var2);
         } else {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
@@ -134,12 +130,15 @@ class UsersWpForm extends FormInterface
      */
     public function processFormFields( $username, $email, $errors, $password )
     {
-        global $phoneLogic;
+		if (!empty($_POST['uwp_register_nonce']) && ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['uwp_register_nonce'])), 'uwp-register-nonce' ) ) {
+			return $errors;
+		}
+        global $smsalert_phoneLogic;
         $phone_no  = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
         $phone_num = preg_replace('/[^0-9]/', '', $phone_no);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            return new WP_Error('billing_phone_error', str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()));
+            return new WP_Error('billing_phone_error', str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message()));
         }
         smsalert_site_challenge_otp($username, $email, $errors, $phone_num, 'phone', $password);
     }
@@ -159,6 +158,7 @@ class UsersWpForm extends FormInterface
             if (wp_doing_ajax() ) {
                 $id .= '_ajax';
             }
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- AUI input method generates the form field HTML.
             echo aui()->input(
                 array(
                 'type'        => 'text',
@@ -167,7 +167,7 @@ class UsersWpForm extends FormInterface
                 'name'        => 'billing_phone',
                 'value'       => '',
                 'placeholder' => 'Phone *',
-                'label'       => esc_html__('Phone', 'userswp'),
+                'label'       => esc_html__('Phone', 'sms-alert'),
                 )
             );
             echo '<input type="hidden" name="register" value="Register">';
@@ -191,7 +191,7 @@ class UsersWpForm extends FormInterface
         $inline_script ='document.addEventListener("DOMContentLoaded", function() {';
         if ($this->popup_enabled && 'register' === $form_type ) {
             echo do_shortcode('[sa_verify phone_selector="#billing_phone" submit_selector= ".uwp_register_submit"]');
-            $uniqueNo = rand();
+            $uniqueNo = wp_rand();
             $this->addSmsalertModal();
             $inline_script .= 'if (jQuery(".uwp-auth-modal").hasClass("show") || jQuery(".uwp-auth-modal").hasClass("in")){
             add_smsalert_button(".uwp_register_submit","#billing_phone","'.$uniqueNo.'");
@@ -210,7 +210,7 @@ class UsersWpForm extends FormInterface
             }';
         } elseif ('on' === $enabled_login_with_otp && 'login' === $form_type ) {
             $this->addLoginWithOtpPopup();
-            $uniqueNo = rand();
+            $uniqueNo = wp_rand();
             $inline_script .= 'if (!jQuery(".uwp-login-class .lwo-container button").hasClass("sa_myaccount_btn"))
             {
                 jQuery(".uwp-login-form").addClass("login");    
@@ -255,7 +255,7 @@ class UsersWpForm extends FormInterface
 			}';
         }
         if ('login' === $form_type && 'on' === $default_login_otp && 'on' === $enabled_login_popup && 'on' !== $default_login_form) {
-            $uniqueNo = rand();
+            $uniqueNo = wp_rand();
             $inline_script .= 'if (jQuery(".uwp-auth-modal").hasClass("show") || jQuery(".uwp-auth-modal").hasClass("in")){
             add_smsalert_button(".uwp_login_submit","","'.$uniqueNo.'");
             jQuery(document).on("click", "#sa_verify_'.$uniqueNo.'",function(event){
@@ -345,7 +345,7 @@ class UsersWpForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) && ! isset($_SESSION[ $this->form_session_var2 ]) ) {

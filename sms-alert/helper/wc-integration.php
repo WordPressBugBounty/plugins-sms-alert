@@ -279,13 +279,18 @@ class SAShipmentIntegration
         if (in_array($order_status, $order_status_settings, true)  ) {
 			
 			$default_templates = array(
+			    // translators: 1: Customer first name, 2: Order ID, 3: Store name.
 			    'DEFAULT_BUYER_SMS_PROCESSING'         => sprintf(__('Hello %1$s, thank you for placing your order %2$s with %3$s.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+				// translators: 1: Customer first name, 2: Order ID, 3: Store name.
                 'DEFAULT_BUYER_SMS_COMPLETED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been dispatched and shall deliver to you shortly.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]', PHP_EOL, PHP_EOL),
+				// translators: 1: Customer first name, 2: Order ID, 3: Store name.
                 'DEFAULT_BUYER_SMS_ON_HOLD'            => sprintf(__('Hello %1$s, your order %2$s with %3$s has been put on hold, our team will contact you shortly with more details.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+				// translators: 1: Customer first name, 2: Order ID, 3: Store name.
                 'DEFAULT_BUYER_SMS_CANCELLED'          => sprintf(__('Hello %1$s, your order %2$s with %3$s has been cancelled due to some un-avoidable conditions. Sorry for the inconvenience caused.', 'sms-alert'), '[billing_first_name]', '#[order_id]', '[store_name]'),
+				// translators: 1: Customer first name.
 				'DEFAULT_BUYER_SMS_PENDING'            => sprintf(__('Hello %s, you are just one step away from placing your order, please complete your payment, to proceed.', 'sms-alert'), '[billing_first_name]')
 			);
-
+            // translators: 1: Customer first name, 2: Order ID, 3: Store name, 4: Order status.
             $default_buyer_sms = !empty($default_templates['DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($order_status))])?$default_templates['DEFAULT_BUYER_SMS_' . str_replace(' ', '_', strtoupper($order_status))]:sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL);
 			
             $buyer_sms_body             = smsalert_get_option('sms_body_' . $order_status, 'smsalert_message', $default_buyer_sms);
@@ -298,7 +303,7 @@ class SAShipmentIntegration
 
             $buyer_sms_data = $this->replaceWcAdvshipmentTrackingno(array('sms_body'=>$buyer_sms_body), $order_id);
             $buyer_sms_data             = WooCommerceCheckOutForm::pharseSmsBody($buyer_sms_data, $order_id);
-            do_action('sa_send_sms', $buyer_no, $buyer_sms_data['sms_body']);
+            do_action('smsalert_send_sms', $buyer_no, $buyer_sms_data['sms_body']);
         }
     }
 }
@@ -508,7 +513,14 @@ class SAraffleTicket
         if (is_plugin_active('raffle-ticket-generator/raffle-ticket-generator.php') ) {
 			global $wpdb;
 			$table_name   = $wpdb->prefix . 'wooraffle_tickets_customer_to_tickets';
-			$raffledatas  = $wpdb->get_results ( "SELECT * FROM $table_name WHERE order_id = $order_id" );		
+			$raffledatas  = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($table_name) . "`
+					WHERE order_id = %d",
+					$order_id
+				)
+			);		
 			$ticketnumber = array();
 			foreach ( $raffledatas as $rafflevalues ) {
 				$ticketnumber[] =$rafflevalues->ticket_number;
@@ -698,7 +710,7 @@ class SAWCAuctions
         add_action('woocommerce_simple_auctions_outbid', array( $this, 'sendSmsOutbidder' ), 10, 1);
         add_action('woocommerce_simple_auctions_place_bid', array( $this, 'sendSmsBidder' ), 10, 1);
         add_action('woocommerce_simple_auctions_place_bid', array( $this, 'sendAdminSmsOnPlacebid' ), 10, 1);
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
     }
 
@@ -852,7 +864,7 @@ class SAWCAuctions
             }
 
             $outbider_phone = get_user_meta($outbiddeduser_id, 'billing_phone', true);
-            do_action('sa_send_sms', $outbider_phone, $this->replaceTokenWcTemplates($message, $product_id, $outbiddeduser_id));
+            do_action('smsalert_send_sms', $outbider_phone, $this->replaceTokenWcTemplates($message, $product_id, $outbiddeduser_id));
         }
     }
 
@@ -874,7 +886,7 @@ class SAWCAuctions
             $current_bidder_id = $product_data->get_auction_current_bider();
 
             $cur_bidder_phone = get_user_meta($current_bidder_id, 'billing_phone', true);
-            do_action('sa_send_sms', $cur_bidder_phone, $this->replaceTokenWcTemplates($message, $product_id, $current_bidder_id));
+            do_action('smsalert_send_sms', $cur_bidder_phone, $this->replaceTokenWcTemplates($message, $product_id, $current_bidder_id));
         }
     }
 
@@ -898,7 +910,7 @@ class SAWCAuctions
             $product_id         = $datas['product_id'];
             $product_data       = wc_get_product($product_id);
             $current_bidder_id  = $product_data->get_auction_current_bider();
-            do_action('sa_send_sms', $admin_phone_number, $this->replaceTokenWcTemplates($admin_sms_content, $product_id, $current_bidder_id));
+            do_action('smsalert_send_sms', $admin_phone_number, $this->replaceTokenWcTemplates($admin_sms_content, $product_id, $current_bidder_id));
         }
     }
 
@@ -996,8 +1008,9 @@ class SAWCDokan
 
         $enabled = smsalert_get_option('multivendor_notification_approved', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
+			// translators: 1: User name, 2: Store name.
             $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
-            do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
+            do_action('smsalert_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
 
@@ -1018,8 +1031,9 @@ class SAWCDokan
 
         $enabled = smsalert_get_option('multivendor_notification_rejected', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
+			// translators: 1: User name, 2: Store name.
             $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
-            do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
+            do_action('smsalert_send_sms', $author_no, $this->parseSmsBody($content, $user_id));
         }
     }
 
@@ -1106,8 +1120,9 @@ class SAWCFM
 
         $enabled = smsalert_get_option('multivendor_notification_approved', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
+			// translators: 1: User name, 2: Store name.
             $content = smsalert_get_option('multivendor_sms_body_approved', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
-            do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $member_id));
+            do_action('smsalert_send_sms', $author_no, $this->parseSmsBody($content, $member_id));
         }
     }
 
@@ -1129,8 +1144,9 @@ class SAWCFM
 
         $enabled = smsalert_get_option('multivendor_notification_rejected', 'smsalert_general');
         if ('on' === $enabled && ! empty($author_no) ) {
+			// translators: 1: User name, 2: Store name.
             $content = smsalert_get_option('multivendor_sms_body_rejected', 'smsalert_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
-            do_action('sa_send_sms', $author_no, $this->parseSmsBody($content, $member_id));
+            do_action('smsalert_send_sms', $author_no, $this->parseSmsBody($content, $member_id));
         }
     }
 
@@ -1317,12 +1333,14 @@ class SAReminderlist
     public static function reminderCartCount()
     {
             global $wpdb;
-        $source=isset($_REQUEST['source'])?$_REQUEST['source']:'';
+        $source=isset($_REQUEST['source'])?sanitize_text_field(wp_unslash($_REQUEST['source'])):'';
             $table_name  = $wpdb->prefix . 'smsalert_booking_reminder';
             $total_items = $wpdb->get_var(
-                "SELECT COUNT(id) FROM $table_name where
-				source='".$source."'" 
-            );
+				$wpdb->prepare(
+					"SELECT COUNT(id) FROM `" . esc_sql($table_name) . "` WHERE source = %s",
+					$source
+				)
+			);
             return $total_items;
     }
          /**
@@ -1338,14 +1356,14 @@ class SAReminderlist
             global $wpdb, $pagenow;
             $table_name = $wpdb->prefix . 'smsalert_booking_reminder';
             $wp_list_table = new SA_Admin_Reminder_Table();
-            $source=isset($_REQUEST['source'])?$_REQUEST['source']:'';
+            $source=isset($_REQUEST['source'])?sanitize_text_field(wp_unslash($_REQUEST['source'])):'';
             $wp_list_table->prepareItems($source);
                 
             // Output table contents
             $deleted = false;
         if ('delete' === $wp_list_table->current_action() ) {
-            if (is_array($_REQUEST['id']) ) { // If deleting multiple lines from table
-                $deleted_row_count = count($_REQUEST['id']);
+            if (!empty($_REQUEST['id']) && is_array($_REQUEST['id']) ) { // If deleting multiple lines from table
+                $deleted_row_count = count(wp_unslash($_REQUEST['id']));
             } else { // If a single row is deleted
                     $deleted_row_count = 1;
             }
@@ -1356,7 +1374,7 @@ class SAReminderlist
                         <h1>Booking Reminder</h1>
                         <h2 id="heading-for-admin-notice-display"></h2>
             <?php
-            if ('admin.php' === $pagenow && 'booking-reminder' === $_GET['page'] ) {
+            if ('admin.php' === $pagenow && !empty($_GET['page']) && 'booking-reminder' === $_GET['page'] ) {
                 if ($deleted ) {
                     ?>
                                         <div class="updated below-h2" id="message"><p>Items deleted:  <?php echo esc_attr($deleted_row_count); ?></p></div>
@@ -1370,7 +1388,7 @@ class SAReminderlist
                                 </p>
                 <?php } else { ?>
                                 <form method="GET">
-                                        <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>"/>
+                                        <input type="hidden" name="page" value="<?php echo !empty($_REQUEST['page'])?esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))):''; ?>"/>
                                 <?php $wp_list_table->display(); ?>
                                 </form>
                                 <?php
@@ -1480,7 +1498,7 @@ class SA_Admin_Reminder_Table extends WP_List_Table
          */
     function column_phone( $item )
     {
-            $req_page = sanitize_text_field(wp_unslash($_REQUEST['page']));
+            $req_page = !empty($_REQUEST['page'])?sanitize_text_field(wp_unslash($_REQUEST['page'])):'';
             $actions  = array(
                     'delete' => sprintf('<a href="?page=%s&action=delete&id=%s">%s</a>', $req_page, $item['id'], __('Delete', 'sms-alert')),
             );
@@ -1552,15 +1570,15 @@ class SA_Admin_Reminder_Table extends WP_List_Table
     {
         global $wpdb;
         $table_name = $wpdb->prefix . 'smsalert_booking_reminder'; // do not forget about tables prefix
-		$verify = !empty($_REQUEST['_wpnonce'])?wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural'] ):false;
+		$verify = !empty($_REQUEST['_wpnonce'])?wp_verify_nonce( sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'bulk-' . $this->_args['plural'] ):false;
         if ('delete' === $this->current_action() && $verify ) {
-            $ids = isset($_REQUEST['id']) ? smsalert_sanitize_array($_REQUEST['id']) : array();
+            $ids = isset($_REQUEST['id']) ? smsalert_sanitize_array(wp_unslash($_REQUEST['id'])) : array();
             if (! empty($ids) ) {
                 if (is_array($ids) ) { // Bulk booking reminder deletion
                     foreach ( $ids as $key => $id ) {
                         $wpdb->query(
                             $wpdb->prepare(
-                                "DELETE FROM $table_name
+                                "DELETE FROM `" . esc_sql($table_name) . "`
                                 WHERE id = %d",
                                 intval($id)
                             )
@@ -1570,7 +1588,7 @@ class SA_Admin_Reminder_Table extends WP_List_Table
                         $id = $ids;
                         $wpdb->query(
                             $wpdb->prepare(
-                                "DELETE FROM $table_name
+                                "DELETE FROM `" . esc_sql($table_name) . "`
                             WHERE id = %d",
                                 intval($id)
                             )
@@ -1604,11 +1622,16 @@ class SA_Admin_Reminder_Table extends WP_List_Table
             $sortable              = $this->get_sortable_columns();
             $this->_column_headers = array( $columns, $hidden, $sortable ); // here we configure table headers, defined in our methods
             $this->processBulkAction(); // process bulk action if any
-            $total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name WHERE source='".$source."'");// will be used in pagination settings
+            $total_items = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(id) FROM `" . esc_sql($table_name) . "` WHERE source = %s",
+					$source
+				)
+			);// will be used in pagination settings
             // prepare query params, as usual current page, order by and order direction
-            $paged   = isset($_REQUEST['paged']) ? max(0, intval(sanitize_text_field($_REQUEST['paged'])) - 1) : 0;
-            $orderby = ( isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns())) ) ? sanitize_text_field($_REQUEST['orderby']) : 'start_date';
-            $order   = ( isset($_REQUEST['order']) && in_array($_REQUEST['order'], array( 'asc', 'desc' )) ) ? sanitize_text_field($_REQUEST['order']) : 'desc';
+            $paged   = isset($_REQUEST['paged']) ? max(0, intval(sanitize_text_field(wp_unslash($_REQUEST['paged']))) - 1) : 0;
+            $orderby = ( isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns())) ) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : 'start_date';
+            $order   = ( isset($_REQUEST['order']) && in_array($_REQUEST['order'], array( 'asc', 'desc' )) ) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'desc';
             // configure pagination
             $this->set_pagination_args(
                 array(
@@ -1618,7 +1641,22 @@ class SA_Admin_Reminder_Table extends WP_List_Table
                     )
             );
             // define $items array
-               $this->items = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE source='".$source."' ORDER BY $orderby $order LIMIT %d OFFSET %d", $per_page, $paged * $per_page), ARRAY_A);
+			$allowed_orderby = array( 'id', 'booking_id', 'phone', 'source', 'msg_sent', 'start_date' );
+
+				$orderby = in_array( $orderby, $allowed_orderby, true ) ? $orderby : 'id';
+				$order   = ( 'ASC' === strtoupper( $order ) ) ? 'ASC' : 'DESC';
+                $this->items = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT * FROM `" . esc_sql($table_name) . "`
+						WHERE source = %s
+						ORDER BY `{$orderby}` {$order}
+						LIMIT %d OFFSET %d",
+						$source,
+						$per_page,
+						$paged * $per_page
+					),
+					ARRAY_A
+				);
     }
 }
 

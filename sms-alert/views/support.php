@@ -1,3 +1,19 @@
+<?php
+/**
+ * Support template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
 <div class="cvt-accordion" style="padding: 0px 10px 10px 10px;">
     <table class="form-table">
         <tr valign="top">

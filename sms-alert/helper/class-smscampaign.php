@@ -41,6 +41,8 @@ class SmsCampaign
             add_filter('handle_bulk_actions-users', array( $this, 'usersSendsms' ), 10, 3);
             add_filter('bulk_actions-edit-shop_order', array( $this, 'addOrdersAction' ), 1);
             add_filter('handle_bulk_actions-edit-shop_order', array( $this, 'ordersSendsms' ), 10, 3);
+			add_filter('bulk_actions-woocommerce_page_wc-orders', array($this, 'addOrdersAction'),1);
+			add_filter('handle_bulk_actions-woocommerce_page_wc-orders',array($this, 'ordersSendsms'),10,3);
             add_action('wp_ajax_process_campaign', array( $this, 'processCampaign' ));
             add_action('wp_ajax_nopriv_process_campaign', array( $this, 'processCampaign' ));
             add_action('admin_menu', array( $this, 'smscampaignMenu'));
@@ -63,15 +65,30 @@ class SmsCampaign
      * @return array
      */
     public function saSmscampaign()
-    {
-        $params =array(
-        'post_ids'=> array(),
-        'type'=> 'order_status_data',
-                
-        );
-        echo get_smsalert_template('template/sms_campaign.php', $params, true);
-        exit();
-    }
+	{
+		if (isset($_GET['post_ids'], $_GET['type'])) {
+
+			$post_ids = array_filter(
+				array_map(
+					'absint',
+					explode(',', sanitize_text_field(wp_unslash($_GET['post_ids'])))
+				)
+			);
+
+			$params = array(
+				'post_ids' => $post_ids,
+				'type'     => sanitize_text_field(wp_unslash($_GET['type'])),
+			);
+		} else {
+			$params = array(
+				'post_ids' => array(),
+				'type'     => 'order_status_data',
+			);
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Template generates the campaign form HTML.
+		echo get_smsalert_template('template/sms_campaign.php', $params, true);
+	}
     
     /**
      * Add send sms action at user listing page.
@@ -98,16 +115,16 @@ class SmsCampaign
      */
     public function usersSendsms($redirect_to, $doaction, $post_ids)
     {
-
         if ('sa_user_sendsms' === $doaction ) {
-            $params =array(
-            'post_ids'=> $post_ids,
-            'type'=> 'users_data',
-                
-            );
-            echo get_smsalert_template('template/sms_campaign.php', $params, true);
-            exit();
+			$redirect_to = add_query_arg(
+				array(
+					'post_ids' => implode(',', array_map('absint', $post_ids)),
+					'type'     => 'users_data',
+				),
+				admin_url('admin.php?page=sa-smscampaign')
+			);
         }
+		return $redirect_to;
     }
     
     /**
@@ -137,14 +154,15 @@ class SmsCampaign
     {
 
         if ('sa_order_sendsms' === $doaction ) {
-            $params =array(
-            'post_ids'=> $post_ids,
-            'type'=> 'orders_data',
-                
-            );
-            echo get_smsalert_template('template/sms_campaign.php', $params, true);
-            exit();
+            $redirect_to = add_query_arg(
+				array(
+					'post_ids' => implode(',', array_map('absint', $post_ids)),
+					'type'     => 'orders_data',
+				),
+				admin_url('admin.php?page=sa-smscampaign')
+			);
         }
+		return $redirect_to;
     }
     
     /**
@@ -154,16 +172,16 @@ class SmsCampaign
      */
     public function processCampaign()
     {
-		if(current_user_can('manage_options') && wp_verify_nonce( $_POST['sacampaign_nonce'], 'sacampaign_wp_nonce' ))
+		if(current_user_can('manage_options') && !empty($_POST['sacampaign_nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['sacampaign_nonce'])), 'sacampaign_wp_nonce' ))
         {
-			$order_statuses = isset($_POST['order_statuses']) ? sanitize_text_field($_POST['order_statuses']) : '';
-			$searchdata = isset($_POST['searchdata']) ? sanitize_text_field($_POST['searchdata']) : '';
-			$senderid = isset($_POST['senderid']) ? sanitize_text_field($_POST['senderid']) : '';
-			$route = isset($_POST['route']) ? sanitize_text_field($_POST['route']) : '';
-			$message = isset($_POST['message']) ? sanitize_text_field($_POST['message']) : '';
-			$phone = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
-			$type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : '';
-			$post_ids = isset($_POST['post_ids']) ? sanitize_text_field($_POST['post_ids']) : '';
+			$order_statuses = isset($_POST['order_statuses']) ? sanitize_text_field(wp_unslash($_POST['order_statuses'])) : '';
+			$searchdata = isset($_POST['searchdata']) ? sanitize_text_field(wp_unslash($_POST['searchdata'])) : '';
+			$senderid = isset($_POST['senderid']) ? sanitize_text_field(wp_unslash($_POST['senderid'])) : '';
+			$route = isset($_POST['route']) ? sanitize_text_field(wp_unslash($_POST['route'])) : '';
+			$message = isset($_POST['message']) ? sanitize_text_field(wp_unslash($_POST['message'])) : '';
+			$phone = isset($_POST['phone']) ? sanitize_text_field(wp_unslash($_POST['phone'])) : '';
+			$type = isset($_POST['type']) ? sanitize_text_field(wp_unslash($_POST['type'])) : '';
+			$post_ids = isset($_POST['post_ids']) ? sanitize_text_field(wp_unslash($_POST['post_ids'])) : '';
 			
 			
 			if (!empty($order_statuses) && !empty($searchdata)) {

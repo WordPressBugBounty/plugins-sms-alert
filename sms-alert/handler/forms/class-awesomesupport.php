@@ -108,10 +108,11 @@ class SaAwesomeSupport extends FormInterface
             'placeholder' => __('Phone', 'sms-alert'),
             'sanitize'    => 'sanitize_text_field',
             'desc'          => $billling_phone_desc,
-            'default'      => ( isset($_SESSION["wpas_registration_form"]["billling_phone"]) && $_SESSION["wpas_registration_form"]["billling_phone"] ) ? $_SESSION["wpas_registration_form"]["billling_phone"] : ""
+            'default'      => isset($_SESSION["wpas_registration_form"]["billling_phone"]) ? sanitize_text_field($_SESSION["wpas_registration_form"]["billling_phone"]) : ""
             )
             ) 
         );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WPAS_Custom_Field generates HTML markup; individual field output must be escaped by its field type.
         echo $mobile->get_output();
     }
     
@@ -126,7 +127,7 @@ class SaAwesomeSupport extends FormInterface
     public function saUpdateBillingPhone($billing_phone, $user_id)
     {
         if (! empty($_POST['wpas_billling_phone'])) {
-            return  $_POST['wpas_billling_phone'];
+            return  sanitize_text_field(wp_unslash($_POST['wpas_billling_phone']));
         }
         return $billing_phone;
     }
@@ -153,8 +154,8 @@ class SaAwesomeSupport extends FormInterface
               return $data;
         }
         if (!$update ) {
-            $password = ( ! empty($_REQUEST['wpas_password']) ) ?sanitize_text_field(wp_unslash($_REQUEST['wpas_password'])) : '';           
-            $userEmail = ( ! empty($_REQUEST['wpas_email']) ) ?sanitize_text_field(wp_unslash($_REQUEST['wpas_email'])) : '';
+            $password = ( ! empty($userdata['user_pass']) ) ?$userdata['user_pass'] : '';           
+            $userEmail = ( ! empty($userdata['user_email']) ) ?$userdata['user_email'] : '';
             if (isset($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option']) === 'smsalert_wpas_form_otp')) {
                 SmsAlertUtility::initialize_transaction($this->form_session_var);
             } else {
@@ -183,11 +184,11 @@ class SaAwesomeSupport extends FormInterface
      */    
     public function processFormFields($userEmail,$password,$phone)
     {
-        global $phoneLogic;        
+        global $smsalert_phoneLogic;        
         $extra_data= null;
         $phone = preg_replace('/[^0-9]/', '', $phone);
         if (! isset($phone) || ! SmsAlertUtility::validatePhoneNumber($phone)) {
-            return new WP_Error('billing_phone_error', str_replace('##phone##', SmsAlertcURLOTP::checkPhoneNos($phone), $phoneLogic->_get_otp_invalid_format_message()));
+            return new WP_Error('billing_phone_error', str_replace('##phone##', SmsAlertcURLOTP::checkPhoneNos($phone), $smsalert_phoneLogic->_get_otp_invalid_format_message()));
         }       
         smsalert_site_challenge_otp('test', $userEmail, $password, $phone, 'phone', $extra_data); 
     
@@ -280,7 +281,7 @@ class SaAwesomeSupport extends FormInterface
             $checkboxMameId = 'smsalert_ast_general[customer_ast_notify_'.strtolower($ks).']';
             
             $textareaNameId = 'smsalert_ast_message[customer_sms_ast_body_'.strtolower($ks).']';
-            
+            // translators: 1: Client first name, 2: Ticket ID, 3: Store name.
             $defaultTemplate = sprintf(__('Hello %1$s, status of your ticket #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[client_first_name]', '[ticket_id]', '[store_name]', $vs, PHP_EOL, PHP_EOL);
             
             $textBody = smsalert_get_option('customer_sms_ast_body_'.strtolower($ks), 'smsalert_ast_message', $defaultTemplate);
@@ -313,7 +314,7 @@ class SaAwesomeSupport extends FormInterface
             $currentVal     = smsalert_get_option('admin_ast_notify_'.strtolower($ks), 'smsalert_ast_general', 'on');
             $checkboxMameId = 'smsalert_ast_general[admin_ast_notify_'.strtolower($ks).']';
             $textareaNameId = 'smsalert_ast_message[admin_sms_ast_body_'.strtolower($ks).']';
-
+            // translators: 1: Store name, 2: Ticket ID.
             $defaultTemplate = sprintf(__('%1$s: Your ticket #%2$s is %3$s. %4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[ticket_id]', $vs, PHP_EOL, PHP_EOL);
 
             $textBody = smsalert_get_option('admin_sms_ast_body_'.strtolower($ks), 'smsalert_ast_message', $defaultTemplate);
@@ -420,7 +421,7 @@ class SaAwesomeSupport extends FormInterface
             $customerNotify        = smsalert_get_option('customer_ast_notify_'.$ticketStatus, 'smsalert_ast_general', 'on');
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                 $buyerMessage = $this->parseSmsBody($data, $customerMessage, $ticket_id);
-                do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
             }
             // Send msg to admin.
             $adminPhoneNumber     = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -436,7 +437,7 @@ class SaAwesomeSupport extends FormInterface
 
                 if ($adminNotify === 'on' && $adminMessage !== '') {
                     $adminMessage = $this->parseSmsBody($data, $adminMessage, $ticket_id);
-                    do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                    do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
                 } 
             }
         }
@@ -509,7 +510,7 @@ class SaAwesomeSupport extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('awesome-support/awesome-support.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
     }//end handleFormOptions()
@@ -542,7 +543,7 @@ class SaAwesomeSupport extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ])) {

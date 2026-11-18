@@ -9,13 +9,19 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$admin_message = ( isset($values['admin_message']) ) ? trim($values['admin_message']) : sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL);
-$visitor_msg = ( isset($values['visitor_message']) ) ? $values['visitor_message'] :sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]');
-$results = Formidable::getFormFields($values['id']);
-$enable_otp = isset($values['smsalert_enable_otp'])?$values['smsalert_enable_otp']:'';
-$enable_message = isset($values['smsalert_enable_message'])?$values['smsalert_enable_message']:'';
-$admin_number = isset($values['admin_number'])?$values['admin_number']:'';
-$visitor_phone = isset($values['visitor_phone'])?$values['visitor_phone']:'';
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+// translators: 1: Store name. 
+$smsalert_admin_message = ( isset($smsalert_values['admin_message']) ) ? trim($smsalert_values['admin_message']) : sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL);
+// translators: 1: Store name.
+$smsalert_visitor_msg = ( isset($smsalert_values['visitor_message']) ) ? $smsalert_values['visitor_message'] :sprintf(__('Hello user, thank you for contacting with %1$s.', 'sms-alert'), '[store_name]');
+$smsalert_results = Formidable::getFormFields($smsalert_values['id']);
+$smsalert_enable_otp = isset($smsalert_values['smsalert_enable_otp'])?$smsalert_values['smsalert_enable_otp']:'';
+$smsalert_enable_message = isset($smsalert_values['smsalert_enable_message'])?$smsalert_values['smsalert_enable_message']:'';
+$smsalert_admin_number = isset($smsalert_values['admin_number'])?$smsalert_values['admin_number']:'';
+$smsalert_visitor_phone = isset($smsalert_values['visitor_phone'])?$smsalert_values['visitor_phone']:'';
 ?>
 <div class="frm_grid_container">
 <span>
@@ -23,13 +29,13 @@ $visitor_phone = isset($values['visitor_phone'])?$values['visitor_phone']:'';
 <a href="https://kb.smsalert.co.in/knowledgebase/integrate-with-formidable-forms/" target="_blank" class="btn-outline"><span class="dashicons dashicons-format-aside"></span> Documentation</a></span>
 <p class="frm6 frm_form_field">
     <label for="enable_message" class="frm_inline_block">
-        <input type="checkbox" name="options[smsalert_enable_message]" id="enable_message" value="1" <?php checked($enable_message, 1); ?> />
+        <input type="checkbox" name="options[smsalert_enable_message]" id="enable_message" value="1" <?php checked($smsalert_enable_message, 1); ?> />
         <?php esc_html_e('Enable Message', 'sms-alert'); ?>
     </label>
     </p>
     <p class="frm6 frm_form_field">
     <label for="enable_otp" class="frm_inline_block">
-        <input type="checkbox" name="options[smsalert_enable_otp]" id="enable_otp" value="1" <?php checked($enable_otp, 1); ?> />
+        <input type="checkbox" name="options[smsalert_enable_otp]" id="enable_otp" value="1" <?php checked($smsalert_enable_otp, 1); ?> />
         <?php esc_html_e('Enable Mobile Verification', 'sms-alert'); ?>
     </label>
     </p>
@@ -38,11 +44,11 @@ $visitor_phone = isset($values['visitor_phone'])?$values['visitor_phone']:'';
             Select Phone Field        </label>
     <select name="options[visitor_phone]" id="visitor_phone">
     <?php
-    if (!empty($results)) {
-        foreach ($results as $result) {
+    if (!empty($smsalert_results)) {
+        foreach ($smsalert_results as $smsalert_result) {
             ?>
-            <option value="<?php echo $result->id; ?>" <?php echo ($result->id==$visitor_phone)?'selected':''; ?>>
-            <?php echo $result->name; ?>
+            <option value="<?php echo esc_attr($smsalert_result->id); ?>" <?php echo ($smsalert_result->id==$smsalert_visitor_phone)?'selected':''; ?>>
+            <?php echo esc_html($smsalert_result->name); ?>
         </option>
             <?php
         }
@@ -57,15 +63,15 @@ $visitor_phone = isset($values['visitor_phone'])?$values['visitor_phone']:'';
             <div class="tokens">
             <div class="smsalerttokens">
     <?php
-    if (!empty($results)) {
-        foreach ( $results as $form_field ) {
-            echo  "<a href='#' data-val='[" . esc_attr($form_field->name.'_'.$form_field->id) . "]'>".esc_attr(ucwords(str_replace('-', ' ', $form_field->name)))."</a> | ";
+    if (!empty($smsalert_results)) {
+        foreach ( $smsalert_results as $smsalert_form_field ) {
+            echo  "<a href='#' data-val='[" . esc_attr($smsalert_form_field->name.'_'.$smsalert_form_field->id) . "]'>".esc_attr(ucwords(str_replace('-', ' ', $smsalert_form_field->name)))."</a> | ";
         }
     }
     ?>
     </div>
     <p class="frm12 frm_form_field">
-        <textarea id="visitor_message" name="options[visitor_message]" cols="50" rows="4"><?php echo $visitor_msg; ?>
+        <textarea id="visitor_message" name="options[visitor_message]" cols="50" rows="4"><?php echo esc_textarea($smsalert_visitor_msg); ?>
 </textarea>
     </p>
 </div>
@@ -80,21 +86,21 @@ $visitor_phone = isset($values['visitor_phone'])?$values['visitor_phone']:'';
             <div class="tokens">
     <div class="smsalerttokens">
     <?php
-    if (!empty($results)) {
-        foreach ( $results as $form_field ) {
-            echo  "<a href='#' data-val='[" . esc_attr($form_field->name.'_'.$form_field->id) . "]'>".esc_attr(ucwords(str_replace('-', ' ', $form_field->name)))."</a> | ";
+    if (!empty($smsalert_results)) {
+        foreach ( $smsalert_results as $smsalert_form_field ) {
+            echo  "<a href='#' data-val='[" . esc_attr($smsalert_form_field->name.'_'.$smsalert_form_field->id) . "]'>".esc_attr(ucwords(str_replace('-', ' ', $smsalert_form_field->name)))."</a> | ";
         }
     }
     ?>
     </div>
     <p class="frm12 frm_form_field">
-        <textarea id="admin_message" name="options[admin_message]" cols="50" rows="4"><?php echo $admin_message; ?>
+        <textarea id="admin_message" name="options[admin_message]" cols="50" rows="4"><?php echo esc_textarea($smsalert_admin_message); ?>
 </textarea>
     </p>
 </div>
 </div>
 <script>
-var adminnumber = '<?php echo $admin_number; ?>';
+var adminnumber = '<?php echo esc_js($smsalert_admin_number); ?>';
 var tagInput1     = new TagsInput({
     selector: 'admin_number',
     duplicate : false,

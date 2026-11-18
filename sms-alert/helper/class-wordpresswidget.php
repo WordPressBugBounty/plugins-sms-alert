@@ -11,16 +11,10 @@
  * @link     https://www.smsalert.co.in/
  */
 
-/**
- * PHP version 5
- *
- * @category HELPER
- * @package  SMSAlert
- * @author   SMS Alert <support@cozyvision.com>
- * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://www.smsalert.co.in/
- * SMSAlertWidgets
- */
+if (! defined('ABSPATH') ) {
+    exit;
+}
+
 class SMSAlertWidgets extends \WP_Widget
 {
     /**
@@ -51,10 +45,12 @@ class SMSAlertWidgets extends \WP_Widget
         if (!$selectedForm) {
             return;
         }
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WordPress widget wrapper HTML.
         echo isset($args['before_widget'])?$args['before_widget']:'';
         if ($selectedForm != '') {
             echo ($selectedForm==1)?do_shortcode("[sa_signupwithmobile]"):(($selectedForm==2)?do_shortcode("[sa_loginwithotp]"):do_shortcode("[sa_sharecart]"));
         }
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WordPress widget wrapper HTML.
         echo isset($args['after_widget'])?$args['after_widget']:'';
 
     }
@@ -72,17 +68,17 @@ class SMSAlertWidgets extends \WP_Widget
         $forms = array(''=>'Select Form','1'=>'Signup With Mobile','2'=>'Login With Otp','3'=>'Share Cart Button');
         ?>
         
-        <label for="<?php echo $this->get_field_id('sa_shortcode'); ?>">Form:
-            <select style="margin-bottom: 12px;" class='widefat' id="<?php echo $this->get_field_id('sa_shortcode'); ?>"
-                    name="<?php echo $this->get_field_name('sa_shortcode'); ?>" type="text"
+        <label for="<?php echo esc_attr($this->get_field_id('sa_shortcode')); ?>">Form:
+            <select style="margin-bottom: 12px;" class='widefat' id="<?php echo esc_attr($this->get_field_id('sa_shortcode')); ?>"
+                    name="<?php echo esc_attr($this->get_field_name('sa_shortcode')); ?>" type="text"
             >
                 <?php
                 foreach ($forms as $key=>$item) {
                     ?>
                     <option <?php if ($key == $selectedForm) {
                         echo 'selected';
-    } ?> value='<?php echo $key; ?>'>
-                        <?php echo $item; ?>
+    } ?> value='<?php echo esc_attr($key); ?>'>
+                        <?php echo esc_html($item); ?>
                     </option>
                     <?php
                 }

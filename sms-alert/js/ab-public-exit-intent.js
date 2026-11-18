@@ -58,7 +58,8 @@
                        var data = {
                             action            :    'save_data',
                             ab_cart_phone    :    cart_mobile,
-                            smsalert_abcart_nonce    :    smsalert_abcart_nonce
+                            smsalert_abcart_nonce    :    smsalert_abcart_nonce,
+							is_exit_intent: '1'
                     }
 
                     timer = setTimeout(

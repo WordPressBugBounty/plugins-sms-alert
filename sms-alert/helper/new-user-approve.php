@@ -33,7 +33,7 @@ class NewUserApprove
      */
     public function __construct()
     {
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('new_user_approve_user_approved', array( $this, 'sendSmsApproved' ), 1);
         add_action('new_user_approve_user_denied', array( $this, 'sendSmsDenied' ), 1);
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
@@ -88,6 +88,7 @@ class NewUserApprove
         $current_val      = smsalert_get_option('approved_notify', 'smsalert_nua_general', 'on');
         $checkbox_name_id = 'smsalert_nua_general[approved_notify]';
         $textarea_name_id = 'smsalert_nua_message[approved_notify]';
+		// translators: 1: Username, 2: Store name.
         $text_body        = smsalert_get_option('approved_notify', 'smsalert_nua_message', sprintf(__('Dear %1$s, your account with %2$s has been approved.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -104,6 +105,7 @@ class NewUserApprove
         $current_val      = smsalert_get_option('denied_notify', 'smsalert_nua_general', 'on');
         $checkbox_name_id = 'smsalert_nua_general[denied_notify]';
         $textarea_name_id = 'smsalert_nua_message[denied_notify]';
+		// translators: 1: Username, 2: Store name.
         $text_body        = smsalert_get_option('denied_notify', 'smsalert_nua_message', sprintf(__('Dear %1$s, your account with %2$s has been rejected.%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', PHP_EOL, PHP_EOL));
 
         $templates['deny']['title']          = 'When account is Deny';
@@ -133,7 +135,7 @@ class NewUserApprove
         $smsalert_nua_approved_message = smsalert_get_option('approved_notify', 'smsalert_nua_message', '');
 
         if ('on' === $smsalert_nua_approved_notify && '' !== $smsalert_nua_approved_message ) {
-            do_action('sa_send_sms', $phone, $this->parseSmsBody($user_id, $smsalert_nua_approved_message));
+            do_action('smsalert_send_sms', $phone, $this->parseSmsBody($user_id, $smsalert_nua_approved_message));
         }
     }
 
@@ -154,7 +156,7 @@ class NewUserApprove
         $smsalert_nua_denied_message = smsalert_get_option('denied_notify', 'smsalert_nua_message', '');
 
         if ('on' === $smsalert_nua_denied_notify && '' !== $smsalert_nua_denied_message ) {
-            do_action('sa_send_sms', $phone, $this->parseSmsBody($user_id, $smsalert_nua_denied_message));
+            do_action('smsalert_send_sms', $phone, $this->parseSmsBody($user_id, $smsalert_nua_denied_message));
         }
     }
 

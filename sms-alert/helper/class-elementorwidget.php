@@ -13,17 +13,10 @@
 
 use Elementor\Plugin as Elementor;
 
-/**
- * PHP version 5
- *
- * @category Handler
- * @package  SMSAlert
- * @author   SMS Alert <support@cozyvision.com>
- * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://www.smsalert.co.in/
- *
- * ElementorWidget class
- */
+if (! defined('ABSPATH') ) {
+    exit;
+}
+
 class ElementorWidget
 {
     private $app = null;

@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -141,7 +141,7 @@ class WpLoyalty extends FormInterface
 
         $checkboxNameId  = 'smsalert_wpl_general[customer_wpl_notify_points]';
         $textareaNameId  = 'smsalert_wpl_message[customer_sms_wpl_body_points]';
-
+        // translators: 1: Store name, 2: Loyalty points, 3: Total loyalty points. 
         $defaultTemplate = smsalert_get_option('customer_sms_wpl_body_points', 'smsalert_wpl_message', sprintf(__('%1$s: %2$s store credits added in your account! Total store credits are %3$s. %4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[points]', '[total_points]', PHP_EOL, PHP_EOL));
 
 
@@ -159,7 +159,7 @@ class WpLoyalty extends FormInterface
 
         $checkboxNameId  = 'smsalert_wpl_general[customer_wpl_notify_rewards]';
         $textareaNameId  = 'smsalert_wpl_message[customer_sms_wpl_body_rewards]';
-
+        // translators: 1: Customer first name, 2: Loyalty points, 3: Total loyalty points. 
         $defaultTemplate = smsalert_get_option('customer_sms_wpl_body_rewards', 'smsalert_wpl_message', sprintf(__('Dear %1$s, %2$s loyalty points has been debited from your account.Your total points : %3$s. %4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[points]', '[total_points]', PHP_EOL, PHP_EOL));
 
 
@@ -349,7 +349,7 @@ class WpLoyalty extends FormInterface
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseSmsBody($points, $data, $customerMessage);
                 
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
         
     }
@@ -435,7 +435,7 @@ class WpLoyalty extends FormInterface
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseSmsBody($points, $data, $customerMessage);
           
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
     }
     /**
@@ -512,7 +512,7 @@ class WpLoyalty extends FormInterface
     {
 
         if (is_plugin_active('wp-loyalty-rules/wp-loyalty-rules.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -543,7 +543,7 @@ class WpLoyalty extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
     
     }

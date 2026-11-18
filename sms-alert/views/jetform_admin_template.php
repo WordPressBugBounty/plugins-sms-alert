@@ -9,31 +9,39 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-$Jet_forms = JetForm::getJetformForms();
-if (! empty($Jet_forms) ) {
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
+$smsalert_Jet_forms = JetForm::getJetformForms();
+if (! empty($smsalert_Jet_forms) ) {
     ?>
 <div class="cvt-accordion">
     <div class="accordion-section">
-    <?php foreach ( $Jet_forms as $ks => $vs ) { ?>
-        <div class="cvt-accordion-body-title" data-href="#accordion_<?php echo esc_attr($ks); ?>">
-            <input type="checkbox" name="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($ks); ?>]" id="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('jetform_admin_notification_' . $ks, 'smsalert_jetform_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label><?php echo esc_html(ucwords(str_replace('-', ' ', $vs))); ?></label>
+    <?php foreach ( $smsalert_Jet_forms as $smsalert_ks => $smsalert_vs ) { ?>
+        <div class="cvt-accordion-body-title" data-href="#accordion_<?php echo esc_attr($smsalert_ks); ?>">
+            <input type="checkbox" name="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($smsalert_ks); ?>]" class="notify_box" <?php echo ( ( smsalert_get_option('jetform_admin_notification_' . $smsalert_ks, 'smsalert_jetform_general', 'on') === 'on' ) ? "checked='checked'" : '' ); ?>/><label><?php echo esc_html(ucwords(str_replace('-', ' ', $smsalert_vs))); ?></label>
             <span class="expand_btn"></span>
         </div>
-        <div id="accordion_<?php echo esc_attr($ks); ?>" class="cvt-accordion-body-content">
+        <div id="accordion_<?php echo esc_attr($smsalert_ks); ?>" class="cvt-accordion-body-content">
             <table class="form-table">
                 <tr valign="top" style="position:relative">
                 <td>
-                <a href="post.php?post=<?php echo $ks;?>&action=edit" title="Edit Form" target="_blank" class="alignright"><small><?php esc_html_e('Edit Form', 'sms-alert')?></small></a>
+                <a href="<?php echo esc_url(admin_url('post.php?post=' . absint($smsalert_ks) . '&action=edit')); ?>" title="<?php esc_attr_e('Edit Form', 'sms-alert'); ?>" target="_blank" class="alignright">
+					<small><?php esc_html_e('Edit Form', 'sms-alert'); ?></small>
+				</a>
                 <div class="smsalert_tokens">
         <?php
-        $fields = JetForm::getJetformVariables($ks);
-        foreach ( $fields as $key=>$value ) {
-            echo  "<a href='#' data-val='[" . esc_attr($key) . "]'>".esc_attr($value)."</a> | ";
+        $smsalert_fields = JetForm::getJetformVariables($smsalert_ks);
+        foreach ( $smsalert_fields as $smsalert_key=>$smsalert_value ) {
+            echo  "<a href='#' data-val='[" . esc_attr($smsalert_key) . "]'>".esc_attr($smsalert_value)."</a> | ";
         }
         ?>
                 </div>                
-                <textarea data-parent_id="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($ks); ?>]" name="smsalert_jetform_message[jetform_admin_sms_body_<?php echo esc_attr($ks); ?>]" id="smsalert_jetform_message[jetformt_admin_sms_body_<?php echo esc_attr($ks); ?>]" <?php echo( ( smsalert_get_option('jetform_admin_notification_' . esc_attr($ks), 'smsalert_jetform_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea(smsalert_get_option('jetform_admin_sms_body_' . $ks, 'smsalert_jetform_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
-                <div id="menu_jetform_admin_<?php echo esc_attr($ks); ?>" class="sa-menu-token" role="listbox"></div>
+                <textarea data-parent_id="smsalert_jetform_general[jetform_admin_notification_<?php echo esc_attr($smsalert_ks); ?>]" name="smsalert_jetform_message[jetform_admin_sms_body_<?php echo esc_attr($smsalert_ks); ?>]" id="smsalert_jetform_message[jetformt_admin_sms_body_<?php echo esc_attr($smsalert_ks); ?>]" <?php echo( ( smsalert_get_option('jetform_admin_notification_' . esc_attr($smsalert_ks), 'smsalert_jetform_general', 'on') === 'on' ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php 
+				// translators: 1: Store name.
+				echo esc_textarea(smsalert_get_option('jetform_admin_sms_body_' . $smsalert_ks, 'smsalert_jetform_message', sprintf(__('Dear admin, you have a new enquiry from %1$s.%2$sPowered by%3$swww.smsalert.co.in', 'sms-alert'), '[store_name]', PHP_EOL, PHP_EOL))); ?></textarea>
+                <div id="menu_jetform_admin_<?php echo esc_attr($smsalert_ks); ?>" class="sa-menu-token" role="listbox"></div>
                 </td>
                 </tr>
             </table>

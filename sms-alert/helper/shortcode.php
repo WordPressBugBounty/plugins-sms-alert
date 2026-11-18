@@ -41,7 +41,7 @@ class SAVerify
         if (! $islogged ) {
             return;
         }
-        add_action('otp_verification_failed', array( $this, 'handle_failed_verification' ), 10, 3);
+        add_action('otp_verification_failed', array( $this, 'handle_failed_verification' ), 10, 4);
         add_action('otp_verification_successful', array( $this, 'handle_post_verification' ), 10, 6);
         add_action('wp_enqueue_scripts', array( $this, 'enqueue_otp_js_script' ));
         add_action('login_enqueue_scripts', array( $this, 'enqueue_otp_js_script' ));
@@ -57,6 +57,7 @@ class SAVerify
      */
     public static function add_shortcode_popup_html()
     {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- OTP popup template generates HTML.
         echo stripslashes(get_smsalert_template('template/otp-popup.php', array(), true));
     }
 
@@ -76,7 +77,7 @@ class SAVerify
         $password_selector = ( ! empty($callback['pwd_selector']) ) ? esc_js($callback['pwd_selector']) : '';
         $placeholder       = ( ! empty($callback['placeholder']) ) ? esc_js($callback['placeholder']) : '';
         
-        $uniqueNo            = rand();
+        $uniqueNo            = wp_rand();
         if (! empty($submit_selector) && ! preg_match('/[#.]/', $submit_selector) ) {
             $submit_selector = '[name=' . $submit_selector . ']';
         }
@@ -184,11 +185,11 @@ class SAVerify
      *
      * @return string
      */
-    public function shortcode_otp_validate( $data )
+    /* public function shortcode_otp_validate( $data )
     {
 
         do_action('smsalert_validate_otp', 'smsalert_customer_validation_otp_token');
-    }
+    } */
 
     /**
      * Send otp shortcode function.
@@ -199,7 +200,7 @@ class SAVerify
      */
     public function _send_otp_shortcode_ajax_verify( $getdata )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         SmsAlertUtility::checkSession();
         SmsAlertUtility::initialize_transaction($this->formSessionVar);
 
@@ -211,7 +212,7 @@ class SAVerify
             if (SmsAlertUtility::isBlank($getdata['user_phone'])) {
                 $message = __('Please enter phone number.', 'sms-alert');
             } else {
-                $message = str_replace('##phone##', $getdata['user_phone'], $phoneLogic->_get_otp_invalid_format_message());
+                $message = str_replace('##phone##', $getdata['user_phone'], $smsalert_phoneLogic->_get_otp_invalid_format_message());
             }
             wp_send_json(SmsAlertUtility::_create_json_response($message, SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
@@ -227,14 +228,13 @@ class SAVerify
      *
      * @return string
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
-    
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->formSessionVar ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field($_REQUEST['option']) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -260,7 +260,7 @@ class SAVerify
         if (! isset($_SESSION[ $this->formSessionVar ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && 'smsalert-validate-otp-form' === sanitize_text_field($_REQUEST['option']) ) {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -305,6 +305,7 @@ class SAVerify
             'allow_otp_countries' => smsalert_get_option('allow_otp_country', 'smsalert_general'),
             'allow_otp_verification' => smsalert_get_option('allow_otp_verification', 'smsalert_general', 'off'),
             'otp_in_popup'        => smsalert_get_option('otp_in_popup', 'smsalert_general', 'on'),
+            'rest_url'                => rest_url('smsalert/v1/validate-otp'),
             'site_url'                => $site_url,
             'ajax_url'          => admin_url('admin-ajax.php'),
             'is_checkout'             => ( ( function_exists('is_checkout') && is_checkout() ) ? true : false ),

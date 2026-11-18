@@ -85,7 +85,7 @@ class UltimateMemberRegistrationForm extends FormInterface
         
         add_action('um_after_form_fields', array( $this, 'addCountryCode' ), 10, 1);
         SmsAlertUtility::checkSession(); 
-        if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-um-reset-pwd-action') && isset($_SESSION[ $this->form_session_var2 ]) && strcasecmp($_SESSION[ $this->form_session_var2 ], 'validated') === 0 ) {
+        if (! empty($_REQUEST['option']) && (sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-um-reset-pwd-action') && isset($_SESSION[ $this->form_session_var2 ]) && strcasecmp(sanitize_text_field($_SESSION[ $this->form_session_var2 ]), 'validated') === 0 ) {
             $this->handleSmsalertChangedPwd($_POST);
             wp_enqueue_style('wpv_sa_common_style', SA_MOV_CSS_URL, array(), SmsAlertConstants::SA_VERSION, false);
         }
@@ -93,7 +93,7 @@ class UltimateMemberRegistrationForm extends FormInterface
         if (! empty($_REQUEST['sa_um_reset_pwd']) ) {
             add_filter('um_before_form_is_loaded', array( $this, 'myBeforeForm' ), 10, 1);
         }
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('um_after_user_status_is_changed', array( $this, 'sendSmsStatusChanged' ), 10, 2);
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
     }
@@ -170,6 +170,7 @@ class UltimateMemberRegistrationForm extends FormInterface
             $current_val      = smsalert_get_option($status, 'smsalert_um_general', 'on');
             $checkbox_name_id = 'smsalert_um_general['.$status.']';
             $textarea_name_id = 'smsalert_um_message['.$status.']';
+			// translators: 1: User name, 2: Store name, 3: Account status.
             $text_body        = smsalert_get_option($status, 'smsalert_um_message', sprintf(__('Dear %1$s, your account status with %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[username]', '[store_name]', '[status]', PHP_EOL, PHP_EOL));
 
             $templates[$status]['title']          = 'When Account Status is '.$label;
@@ -213,7 +214,7 @@ class UltimateMemberRegistrationForm extends FormInterface
             $status,
             );
             $sms_body = str_replace($search, $replace, $smsalert_um_msg);
-            do_action('sa_send_sms', $phone, $sms_body);
+            do_action('smsalert_send_sms', $phone, $sms_body);
         }
     }
 
@@ -228,8 +229,8 @@ class UltimateMemberRegistrationForm extends FormInterface
      */
     public function saUpdateBillingPhone( $billing_phone, $user_id )
     {
-        if (isset($_POST['form_id']) && isset($_POST['billing_phone-'.$_POST['form_id']])) {
-            return ( ! empty($billing_phone) ) ? $billing_phone : $_POST['billing_phone-'.$_POST['form_id']];
+        if (isset($_POST['form_id']) && isset($_POST['_wpnonce']) && isset($_POST['billing_phone-'.$_POST['form_id']]) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'um_register_form' . sanitize_text_field(wp_unslash($_POST['form_id'])) )) {
+            return ( ! empty($billing_phone) ) ? $billing_phone : (!empty($_POST['form_id']) && !empty($_POST['billing_phone-'.$_POST['form_id']])?sanitize_text_field(wp_unslash($_POST['billing_phone-'.$_POST['form_id']])):'');
         }
         return $billing_phone;
     }
@@ -281,38 +282,48 @@ class UltimateMemberRegistrationForm extends FormInterface
             $error = __('Passwords do not match.', 'sms-alert');
         }
         if (! empty($error) ) {
-            smsalertAskForResetPassword($_SESSION['user_login'], $_SESSION['phone_number_mo'], $error, 'phone', false);
+            smsalertAskForResetPassword((!empty($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):''), (!empty($_SESSION['phone_number_mo'])?sanitize_text_field($_SESSION['phone_number_mo']):''), $error, 'phone', false);
         }
-
-        $user = get_user_by('login', $_SESSION['user_login']);
-
+		if (empty($_SESSION['sa_um_user_id'])) {
+			return;
+		}
+		
+		$user    = get_user_by('ID', sanitize_text_field($_SESSION['sa_um_user_id']));
 		if (! $user ) {
 			$this->unsetOTPSessionVariables();
 			return;
 		}
 
-		$verified_phone = isset($_SESSION['phone_number_mo'])
-			? SmsAlertcURLOTP::checkPhoneNos(sanitize_text_field($_SESSION['phone_number_mo']))
+		$verified_phone = isset($_SESSION['sa_um_mobile'])
+			? SmsAlertcURLOTP::checkPhoneNos(sanitize_text_field($_SESSION['sa_um_mobile']))
 			: '';
 
-		$account_phone = get_user_meta($user->ID, $this->phone_number_key, true);
+		
+        $account_phone = get_user_meta(
+			$user->ID,
+			$this->phone_number_key,
+			true
+		);
 		$account_phone = SmsAlertcURLOTP::checkPhoneNos($account_phone);
 
 		if (empty($verified_phone) || empty($account_phone) || $verified_phone !== $account_phone) {
 			$this->unsetOTPSessionVariables();
 
 			smsalertAskForResetPassword(
-				sanitize_text_field($_SESSION['user_login']),
-				sanitize_text_field($_SESSION['phone_number_mo']),
+				isset($_SESSION['user_login'])
+			?sanitize_text_field($_SESSION['user_login']):'',
+				isset($_SESSION['phone_number_mo'])
+			?sanitize_text_field($_SESSION['phone_number_mo']):'',
 				__('Phone number verification failed. Please try again.', 'sms-alert'),
 				'phone',
 				false
 			);
 			return;
 		}
+		$this->unsetOTPSessionVariables();
         reset_password($user, $new_password);
-        $this->unsetOTPSessionVariables();
-        exit(wp_redirect(esc_url(add_query_arg('sa_um_reset_pwd', true, um_get_core_page('password-reset')))));
+		wp_safe_redirect(add_query_arg('sa_um_reset_pwd', true, um_get_core_page('password-reset')));
+        exit;
     }
 
     /**
@@ -349,7 +360,7 @@ class UltimateMemberRegistrationForm extends FormInterface
      */
     public function myBeforeForm( $args )
     {
-        echo '<p class="um-notice success"><i class="um-icon-ios-close-empty" onclick="jQuery(this).parent().fadeOut();"></i>' . __('Password Changed Successfully.', 'sms-alert') . '</p>';
+       echo '<p class="um-notice success"><i class="um-icon-ios-close-empty" onclick="jQuery(this).parent().fadeOut();"></i>' . esc_html__('Password Changed Successfully.', 'sms-alert') . '</p>';
     }
 
     /**
@@ -374,6 +385,7 @@ class UltimateMemberRegistrationForm extends FormInterface
         if (! empty($phone_number) ) {
             SmsAlertUtility::initialize_transaction($this->form_session_var2);
             if (! empty($phone_number) ) {
+				$_SESSION['sa_um_user_id'] = absint($user->data->ID);
                 $this->startOtpTransaction($user->data->user_login, $user->data->user_login, null, $phone_number, null, null);
             }
         }
@@ -398,10 +410,11 @@ class UltimateMemberRegistrationForm extends FormInterface
             unset($_SESSION['sa_um_mobile_verified']);
             return false;
         }
-        $username = ! empty($args['user_login']) ? sanitize_text_field(wp_unslash($args['user_login'])) : '';
-        $email    = ! empty($args['user_email']) ? sanitize_text_field(wp_unslash($args['user_email'])) : '';
-        $password = ! empty($args['user_password']) ? sanitize_text_field(wp_unslash($args['user_password'])) : '';
-        if (isset($_REQUEST['option']) && 'smsalert_register_with_otp' === sanitize_text_field(wp_unslash($_REQUEST['option'])) ) {
+        $username = ! empty($args['user_login']) ? $args['user_login'] : '';
+        $email    = ! empty($args['user_email']) ? $args['user_email'] : '';
+        $password = ! empty($args['user_password']) ? $args['user_password'] : '';
+		
+        if (isset($args['sa_option']) && 'smsalert_register_with_otp' === $args['sa_option'] ) {
             SmsAlertUtility::initialize_transaction($this->form_session_var3);
         } else {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
@@ -412,9 +425,9 @@ class UltimateMemberRegistrationForm extends FormInterface
             UM()->form()->add_error('registration-error-invalid-phone', __('Please enter phone number.', 'sms-alert'));
         }
         
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         if (! SmsAlertUtility::validatePhoneNumber($user_phone) ) {
-            UM()->form()->add_error('billing_phone_error', str_replace('##phone##', $user_phone, $phoneLogic->_get_otp_invalid_format_message()));
+            UM()->form()->add_error('billing_phone_error', str_replace('##phone##', $user_phone, $smsalert_phoneLogic->_get_otp_invalid_format_message()));
         }
         
         if (smsalert_get_option('allow_multiple_user', 'smsalert_general') !== 'on' && ! SmsAlertUtility::isBlank($args['billing_phone']) ) {
@@ -485,7 +498,7 @@ class UltimateMemberRegistrationForm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) && ! isset($_SESSION[ $this->form_session_var2 ]) && ! isset($_SESSION[ $this->form_session_var3 ]) ) {
@@ -513,13 +526,14 @@ class UltimateMemberRegistrationForm extends FormInterface
             return;
         }
         $_SESSION['sa_um_mobile_verified'] = true;
+		$_SESSION['sa_um_mobile'] = $phone_number;
         if (isset($_SESSION[ $this->form_session_var3 ]) ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
         }
 
         if (isset($_SESSION[ $this->form_session_var2 ]) ) {
 			$_SESSION[ $this->form_session_var2 ] = 'validated';
-            smsalertAskForResetPassword($_SESSION['user_login'], $_SESSION['phone_number_mo'], __('Please change Your password', 'sms-alert'), 'phone', false, 'smsalert-um-reset-pwd-action');
+            smsalertAskForResetPassword((isset($_SESSION['user_login'])?sanitize_text_field($_SESSION['user_login']):''), (isset($_SESSION['phone_number_mo'])?sanitize_text_field($_SESSION['phone_number_mo']):''), __('Please change Your password', 'sms-alert'), 'phone', false, 'smsalert-um-reset-pwd-action');
         } 
     }
 
@@ -534,6 +548,8 @@ class UltimateMemberRegistrationForm extends FormInterface
         unset($_SESSION[ $this->form_session_var ]);
         unset($_SESSION[ $this->form_session_var2 ]);
         unset($_SESSION[ $this->form_session_var3 ]);
+		unset($_SESSION['sa_um_mobile']);
+        unset($_SESSION['sa_um_user_id']);
     }
 
     /**

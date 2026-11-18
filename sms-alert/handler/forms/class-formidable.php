@@ -118,6 +118,9 @@ class Formidable extends FormInterface
      */
     public function validateValue($errors, $values, $args)
     {   
+	    if (isset( $values[ 'frm_submit_entry_' . $values['form_id'] ] ) && ! wp_verify_nonce( $values[ 'frm_submit_entry_' . $values['form_id'] ], 'frm_submit_entry_nonce' ) ) { 
+		     return $errors;
+		}
         if (! empty($errors)) {
             return $errors;
         }
@@ -129,7 +132,7 @@ class Formidable extends FormInterface
         }        
         $datas = self::get_form_settings($form_id);
         $visitor_phone         = isset($datas['visitor_phone'])?$datas['visitor_phone']:'';
-        $phone = !empty($_POST['item_meta'][$visitor_phone])?$_POST['item_meta'][$visitor_phone]:'';          
+        $phone = !empty($_POST['item_meta'][$visitor_phone])?sanitize_text_field(wp_unslash($_POST['item_meta'][$visitor_phone])):'';          
         if (isset($phone) && SmsAlertUtility::isBlank($phone)) {            
             wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter phone number.', 'sms-alert'), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
@@ -146,10 +149,10 @@ class Formidable extends FormInterface
      */
     public function processFormFields( $phone )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $phone);
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
+            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
         }        
         smsalert_site_challenge_otp('test', null, null, $phone_num, 'phone', null, null, 'ajax');
@@ -176,7 +179,7 @@ class Formidable extends FormInterface
 
             if (( '1' === $smsalert_enable_message || '1' === $enable_otp ) && $visitor_phone!='') {
                 $field_table_name = $wpdb->prefix . 'frm_fields';
-                $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM $field_table_name where `id`= %d and `form_id`= %d", $visitor_phone, $form_id));
+                $results = $wpdb->get_results($wpdb->prepare("SELECT * FROM `" . esc_sql($field_table_name) . "` where `id`= %d and `form_id`= %d", $visitor_phone, $form_id));
 
                 if (!empty($results) && '1' === $enable_otp ) {
                     $frm_settings = new FrmSettings();
@@ -239,7 +242,7 @@ class Formidable extends FormInterface
     {
         global $wpdb;
         $form_table_name     = $wpdb->prefix . 'frm_forms';
-        $data                 = $wpdb->get_results($wpdb->prepare("SELECT * FROM $form_table_name where `id`= %d", $form_id));
+        $data                 = $wpdb->get_results($wpdb->prepare("SELECT * FROM `" . esc_sql($form_table_name) . "` where `id`= %d", $form_id));
         $datas                 = maybe_unserialize($data[0]->options);
         return $datas;
     }
@@ -255,7 +258,7 @@ class Formidable extends FormInterface
     {
         global $wpdb;
         $table_name = $wpdb->prefix . 'frm_fields';
-        $results     = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name where `form_id`= %d", $form_id));
+        $results     = $wpdb->get_results($wpdb->prepare("SELECT * FROM `" . esc_sql($table_name) . "` where `form_id`= %d", $form_id));
         return $results;
     }
 
@@ -286,7 +289,7 @@ class Formidable extends FormInterface
      *
      * @return void
      */
-    public static function smsalert_settings( $values )
+    public static function smsalert_settings( $smsalert_values )
     {
         include plugin_dir_path(__DIR__) . '../views/formidable-settings.php';
     }
@@ -301,6 +304,9 @@ class Formidable extends FormInterface
      */
     public function formidableFormSubmit( $entry_id, $form_id )
     {
+		if (isset($_POST['form_id']) && isset( $_POST[ 'frm_submit_entry_' . $_POST['form_id'] ] ) && ! wp_verify_nonce( sanitize_text_field(wp_unslash($_POST[ 'frm_submit_entry_' . $_POST['form_id'] ])), 'frm_submit_entry_nonce' ) ) { 
+		     return;
+		}
         $datas = self::get_form_settings($form_id);
         
         if (!empty($datas)) {
@@ -311,12 +317,12 @@ class Formidable extends FormInterface
             $admin_message         = isset($datas['admin_message'])?$datas['admin_message']:'';
             if ('1' === $enable_message && '' != $visitor_message ) {
                 if (isset($_POST['item_meta'][$visitor_phone])) {
-                    $phone = $_POST['item_meta'][$visitor_phone];
-                    do_action('sa_send_sms', $phone,  self::parseSmsContent($form_id, $visitor_message));
+                    $phone = !empty($_POST['item_meta'][$visitor_phone])?sanitize_text_field(wp_unslash($_POST['item_meta'][$visitor_phone])):'';;
+                    do_action('smsalert_send_sms', $phone,  self::parseSmsContent($form_id, $visitor_message,wp_unslash($_POST['item_meta'])));
                 }
             }
             if (!empty($admin_number) ) {
-                do_action('sa_send_sms', $admin_number, self::parseSmsContent($form_id, $admin_message));
+                do_action('smsalert_send_sms', $admin_number, self::parseSmsContent($form_id, $admin_message,wp_unslash($_POST['item_meta'])));
             }
         }
     }
@@ -342,13 +348,13 @@ class Formidable extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -375,7 +381,7 @@ class Formidable extends FormInterface
             return;
         }
         $_SESSION['sa_fr_mobile_verified'] = true;
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -415,13 +421,13 @@ class Formidable extends FormInterface
      *
      * @return string
      */
-    public static function parseSmsContent( $form_id, $content = null )
+    public static function parseSmsContent( $form_id, $content = null, $item_meta = array() )
     {
         $find=array();$replace=array();
         $fields = self::getFormFields($form_id);
         foreach ($fields as $field) {
             $find[]        = '['.$field->name.'_'.$field->id.']';
-            $val         = !empty($_POST['item_meta'][$field->id])?$_POST['item_meta'][$field->id]:'';
+            $val         = !empty($item_meta[$field->id])?sanitize_text_field(wp_unslash($item_meta[$field->id])):'';
             $replace[]     = is_array($val) ? current($val) : $val;
         }
         $content = str_replace($find, $replace, $content);

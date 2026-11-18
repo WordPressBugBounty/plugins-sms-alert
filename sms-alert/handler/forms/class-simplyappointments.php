@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 if (is_plugin_active('simply-schedule-appointments/simply-schedule-appointments.php') === false) {
@@ -74,7 +74,14 @@ class SimplyAppoinments extends FormInterface
         global $wpdb;
         $tableName          = $wpdb->prefix.'smsalert_booking_reminder';
         $source              = 'simply-appointments';
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $booking_id and source = '$source'");
+        $booking_details = $wpdb->get_results($wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$booking_id,
+				$source
+			));
         if ($bookingStatus === 'booked' && $customerNotify === 'on') {
             if ($booking_details) {
                 $wpdb->update(
@@ -120,13 +127,27 @@ class SimplyAppoinments extends FormInterface
         $schedulerData = get_option('smsalert_ssa_reminder_scheduler');
 
         foreach ($schedulerData['cron'] as $sdata) {            
-            $datetime = current_time('mysql');            
-            $fromdate = date('Y-m-d H:i:s', strtotime('+'.($sdata['frequency'] * 60 - $cronFrequency).' minutes', strtotime($datetime)));           
-            $todate = date('Y-m-d H:i:s', strtotime('+'.$cronFrequency.' minutes', strtotime($fromdate)));
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
+
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM '.$tableName." WHERE start_date > '".$fromdate."' AND start_date <= '".$todate."' AND source = '$source' ",
-                ARRAY_A
-            );
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);
             if ($rowsToPhone) {    
 
                 // If we have new rows in the database
@@ -139,7 +160,13 @@ class SimplyAppoinments extends FormInterface
                         $appointment_id               = $data['booking_id'];
                         $obj[$key]['number']   = $data['phone'];
                         $table_name = $wpdb->prefix . 'ssa_appointments';                        
-                        $form_data     = $wpdb->get_row("SELECT * FROM ".$table_name." WHERE id=".$appointment_id."", ARRAY_A);
+                        $form_data = $wpdb->get_row(
+							$wpdb->prepare(
+								"SELECT * FROM `" . esc_sql($table_name) . "` WHERE id = %d",
+								$appointment_id
+							),
+							ARRAY_A
+						);
                         $appoinmentStatus = '';
                         if (!empty($form_data)) {        
                             $appoinmentStatus = $form_data['status'];
@@ -270,6 +297,7 @@ class SimplyAppoinments extends FormInterface
             $schedulerData  = array();
             $schedulerData['cron'][] = [
                 'frequency' => '1',
+				// translators: 1: Customer name, 2: Appointment ID, 3: Store name, 4: Appoinment date.
                 'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[Name]', '#[id]', '[store_name]', '[start_date]', PHP_EOL, PHP_EOL),
             ];
         }
@@ -313,7 +341,7 @@ class SimplyAppoinments extends FormInterface
              $currentVal = smsalert_get_option('customer_ssa_notify_'.strtolower($ks), 'smsalert_ssa_general', 'on');
              $checkboxMameId = 'smsalert_ssa_general[customer_ssa_notify_'.strtolower($ks).']';
              $textareaNameId = 'smsalert_ssa_message[customer_sms_ssa_body_'.strtolower($ks).']';
-
+             // translators: 1: Customer name, 2: Appoinment ID, 3: Store name.
              $defaultTemplate = sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[Name]', '[id]', '[store_name]', strtolower($vs), PHP_EOL, PHP_EOL);
 
              $textBody = smsalert_get_option('customer_sms_ssa_body_'.strtolower($ks), 'smsalert_ssa_message', $defaultTemplate);
@@ -349,7 +377,7 @@ class SimplyAppoinments extends FormInterface
             $currentVal      = smsalert_get_option('admin_ssa_notify_'.strtolower($ks), 'smsalert_ssa_general', 'on');
             $checkboxMameId  = 'smsalert_ssa_general[admin_ssa_notify_'.strtolower($ks).']';
             $textareaNameId  = 'smsalert_ssa_message[admin_sms_ssa_body_'.strtolower($ks).']';
-
+            // translators: 1: Store name. 
             $defaultTemplate = sprintf(__('Hello admin, status of your booking with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL);
 
             $textBody       = smsalert_get_option('admin_sms_ssa_body_'.strtolower($ks), 'smsalert_ssa_message', $defaultTemplate);
@@ -425,7 +453,7 @@ class SimplyAppoinments extends FormInterface
         $customerNotify    = smsalert_get_option('customer_ssa_notify_' . $appoinmentStatus, 'smsalert_ssa_general', 'on');        
         if ($customerNotify === 'on' && $customerMessage !== '') {            
             $buyerMessage = $this->parseSmsBody($appointment_id, $form_data, $appoinmentStatus, $customerMessage);            
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
         // send msg to admin.
         $adminPhoneNumber       = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -437,7 +465,7 @@ class SimplyAppoinments extends FormInterface
             $adminMessage       = smsalert_get_option('admin_sms_ssa_body_' . $appoinmentStatus, 'smsalert_ssa_message', '');
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($appointment_id, $form_data, $appoinmentStatus, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         } 
 
@@ -530,7 +558,7 @@ class SimplyAppoinments extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('simply-schedule-appointments/simply-schedule-appointments.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
 
@@ -564,7 +592,7 @@ class SimplyAppoinments extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
 
     }//end handle_failed_verification()

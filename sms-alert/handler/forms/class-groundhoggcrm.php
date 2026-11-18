@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -142,7 +142,7 @@ class Groundhoggcrm extends FormInterface
             $currentVal = smsalert_get_option('customer_gdh_notify_'.strtolower($vs), 'smsalert_gdh_general', 'on');
             $checkboxNameId = 'smsalert_gdh_general[customer_gdh_notify_'.strtolower($vs).']';
             $textareaNameId = 'smsalert_gdh_message[customer_sms_gdh_body_'.strtolower($vs).']';
-
+            // translators: 1: Customer first name, 2: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_gdh_body_'.strtolower($vs), 'smsalert_gdh_message', sprintf(__('Hello %1$s, status of your contact with %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[store_name]', $title, PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_gdh_body_'.strtolower($vs), 'smsalert_gdh_message', $defaultTemplate);
@@ -177,7 +177,7 @@ class Groundhoggcrm extends FormInterface
             $currentVal     = smsalert_get_option('admin_gdh_notify_'.strtolower($vs), 'smsalert_gdh_general', 'on');
             $checkboxNameId = 'smsalert_gdh_general[admin_gdh_notify_'.strtolower($vs).']';
             $textareaNameId = 'smsalert_gdh_message[admin_sms_gdh_body_'.strtolower($vs).']';
-
+            // translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_gdh_body_'.strtolower($vs), 'smsalert_gdh_message', sprintf(__('Hello admin, status of your contact with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $title, PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('admin_sms_gdh_body_'.strtolower($vs), 'smsalert_gdh_message', $defaultTemplate);
@@ -231,7 +231,7 @@ class Groundhoggcrm extends FormInterface
        
         if ($customerRrNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseSmsBody($contact, $customerMessage);
-            do_action('sa_send_sms', $userPhone, $buyerMessage);
+            do_action('smsalert_send_sms', $userPhone, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -245,7 +245,7 @@ class Groundhoggcrm extends FormInterface
             $adminMessage  = smsalert_get_option('admin_sms_gdh_body_'.$status, 'smsalert_gdh_message', '');
             if ('on' === $adminRrNotify && '' !== $adminMessage) {
                 $adminMessage = $this->parseSmsBody($contact, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
 
@@ -366,7 +366,7 @@ class Groundhoggcrm extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('groundhogg/groundhogg.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
 
@@ -400,7 +400,7 @@ class Groundhoggcrm extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
 
     }//end handle_failed_verification()

@@ -1,21 +1,27 @@
-﻿=== SMS Alert – SMS Notifications & OTP Login, COD Verification, Abandoned Cart Recovery ===
+﻿=== SMS Alert – WooCommerce SMS Notifications & COD OTP Verification ===
 
 Contributors: cozyvision1
-Tags: woocommerce sms, otp verification, login with otp, cod verification, abandoned cart
-Requires at least: 4.6
+Tags: WooCommerce SMS, SMS notifications, OTP verification, COD verification, Login with OTP
+Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 4.0.3
+Stable tag: 4.0.4
 Requires PHP: 5.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WooCommerce SMS notifications, COD OTP verification, Login with OTP, abandoned cart recovery SMS and order updates for customers & admins.
+WooCommerce SMS notifications, COD OTP verification, OTP login, abandoned cart reminders and order updates for customers and admins.
 
 == Description ==
 
-**SMS Alert is an all-in-one SMS and OTP plugin for WooCommerce.** Send automatic order status SMS to customers and admins, verify buyers with a one-time password (including OTP for Cash on Delivery orders only), let customers log in or register with OTP, recover abandoned carts by SMS, and tell shoppers when a product is back in stock.
+SMS Alert is a complete SMS plugin for WordPress and WooCommerce that helps businesses automate customer notifications, verify Cash on Delivery (COD) orders with OTP, and send transactional SMS.
 
-It also works without WooCommerce: add SMS notifications and mobile number OTP verification to popular form builders, booking plugins, membership and LMS plugins.
+Send WooCommerce order confirmation, processing, shipping and delivery SMS automatically. Prevent fake COD orders with OTP verification, enable passwordless login, recover abandoned carts and notify customers when products are back in stock.
+
+SMS Alert also integrates with 50+ WordPress plugins, including Contact Form 7, WPForms, Elementor, Dokan, booking systems, membership plugins and CRM platforms.
+
+Unlike multi-gateway SMS plugins, SMS Alert provides a dedicated SMS gateway with account management, messaging credits and support from one provider. A free SMS Alert account with demo credits is available to test the integration.
+
+Integrates with 50+ WordPress plugins, including Contact Form 7, WPForms, Elementor, Dokan and popular booking and membership plugins. Requires an SMS Alert account.
 
 = What store owners use it for =
 
@@ -121,7 +127,7 @@ Compatible with WPML and Loco Translate. Help translate the plugin at [translate
 * [Documentation](https://kb.smsalert.co.in/wordpress)
 
 == External Services ==
-This plugin connects to the **SMS Alert** service (https://www.smsalert.co.in), operated by Cozy Vision Technologies Pvt. Ltd., to send SMS and OTP messages. The plugin cannot send messages without an SMS Alert account.
+This plugin connects to the [SMS Alert](https://www.smsalert.co.in) service, operated by Cozy Vision Technologies Pvt. Ltd., to send SMS and OTP messages. The plugin cannot send messages without an SMS Alert account.
 
 Data sent to SMS Alert and when:
 * **When you save or verify your settings:** your SMS Alert account credentials, to authenticate with the service.
@@ -189,7 +195,7 @@ Yes. It works with many form builders, booking plugins and membership systems. S
 
 = Is it DLT compliant for Indian SMS regulations? =
 
-Yes. SMS Alert supports DLT compliant transactional SMS delivery for Indian businesses.
+MS Alert supports DLT-enabled transactional SMS delivery in India. Businesses must complete the applicable Principal Entity registration and configure their approved sender IDs (headers) and SMS content templates with their telecom provider. SMS delivery is subject to applicable TRAI regulations and telecom operator requirements.
 
 = Which countries can I send SMS to? =
 
@@ -201,11 +207,11 @@ Yes. It is designed for high-volume transactional messaging.
 
 = How do I change the Sender ID? =
 
-Request a Sender ID after logging in to your [SMS Alert](https://www.smsalert.co.in) account, from Manage Sender ID. Sender IDs are available only for transactional accounts.
+Request a Sender ID after logging in to your [SMS Alert](https://www.smsalert.co.in) account, from Manage Sender ID. Sender IDs are available only for paid transactional accounts.
 
 = I signed up for a demo account but did not receive any test SMS =
 
-Under TRAI guidelines, promotional SMS can be sent only between 9 am and 9 pm, so please test during that window. Also check that your number is not registered in the NDNC registry. If you still have issues, contact our team on the [support forum](https://wordpress.org/support/plugin/sms-alert).
+Please use default templates, of the plugin to test. If you still have issues, contact our team on the [support forum](https://wordpress.org/support/plugin/sms-alert).
 
 = What happens when my demo credits are over? =
 
@@ -297,6 +303,10 @@ Report security bugs through the [Patchstack Vulnerability Disclosure Program](h
 == Changelog ==
 
 For earlier versions, see changelog.txt.
+
+= 4.0.4 =
+* Enhancement: Security fixes.
+* Enhancement: Compatibility fix for latest WPML translation
 
 = 4.0.3 =
 * Enhancement: Security fixes.

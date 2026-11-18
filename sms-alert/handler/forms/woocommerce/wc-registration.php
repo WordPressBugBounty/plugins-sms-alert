@@ -213,7 +213,7 @@ class WooCommerceRegistrationForm extends FormInterface
 
                 $getusers = SmsAlertUtility::getUsersByPhone('billing_phone', $user_phone, array( 'exclude' => array( $user_id ) ));
                 if (count($getusers) > 0 ) {
-                    wc_add_notice(sprintf(__('An account is already registered with this mobile number.', 'woocommerce'), '<strong>Billing Phone</strong>'), 'error');
+                    wc_add_notice(sprintf(__('An account is already registered with this mobile number.', 'sms-alert'), '<strong>Billing Phone</strong>'), 'error');
                 }
             }
         }
@@ -272,7 +272,7 @@ class WooCommerceRegistrationForm extends FormInterface
                 wp_send_json(SmsAlertUtility::_create_json_response(__('The reCaptcha verification failed. Please try again.', 'sms-alert'), 'error'));
             }
         }
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         if (isset($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option']) === 'smsalert-registration-with-mobile') ) {
             $phone_no = ! empty($_REQUEST['billing_phone']) ? sanitize_text_field(wp_unslash($_REQUEST['billing_phone'])) : '';
 
@@ -281,7 +281,7 @@ class WooCommerceRegistrationForm extends FormInterface
                 wp_send_json(SmsAlertUtility::_create_json_response(__('Please enter phone number.', 'sms-alert'), 'error'));
             } else if (! $billing_phone ) {
 
-                $message = str_replace('##phone##', $phone_no, $phoneLogic->_get_otp_invalid_format_message());
+                $message = str_replace('##phone##', $phone_no, $smsalert_phoneLogic->_get_otp_invalid_format_message());
 
                 wp_send_json(SmsAlertUtility::_create_json_response($message, 'error'));
             }
@@ -325,7 +325,7 @@ class WooCommerceRegistrationForm extends FormInterface
             return;
         }
 
-        if (strcmp($_SESSION['phone_number_mo'], $data['billing_phone']) ) {
+        if (isset($_SESSION['phone_number_mo']) && !empty($data['billing_phone']) && strcmp(sanitize_text_field($_SESSION['phone_number_mo']), $data['billing_phone']) ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('The phone number OTP was sent to and the phone number in contact submission do not match.', 'sms-alert'), 'error'));
         } else {
             do_action('smsalert_validate_otp', 'phone');
@@ -339,13 +339,13 @@ class WooCommerceRegistrationForm extends FormInterface
      */
     public static function smsalertDisplayRegisterOTPBtn()
     {
-        $unique_class    = 'sa-class-'.mt_rand(1, 100);
+        $unique_class    = 'sa-class-'.wp_rand(1, 100);
         echo '<script>
 			jQuery("form.register").each(function () 
 			{
 				if(!jQuery(this).hasClass("sa-reg-form"))
 				{
-				jQuery(this).addClass("'.$unique_class.' sa-reg-form");
+				jQuery(this).addClass("'.esc_js($unique_class).' sa-reg-form");
 				}		
 			});			
 		</script>';
@@ -360,13 +360,13 @@ class WooCommerceRegistrationForm extends FormInterface
      */
     public static function xooElSmsalertDisplayRegisterOTPBtn()
     {
-        $unique_class    = 'sa-class-'.mt_rand(1, 100);
+        $unique_class    = 'sa-class-'.wp_rand(1, 100);
         echo '<script>
 			jQuery("form.xoo-el-form-register").each(function () 
 			{
 				if(!jQuery(this).hasClass("sa-reg-form"))
 				{
-				jQuery(this).addClass("'.$unique_class.' sa-reg-form");
+				jQuery(this).addClass("'.esc_js($unique_class).' sa-reg-form");
 				}		
 			});			
 		</script>';
@@ -411,11 +411,18 @@ class WooCommerceRegistrationForm extends FormInterface
      */
     public function woocommerceSiteRegistrationErrors( $errors, $username, $email )
     {
+		if (isset($_POST['woocommerce-register-nonce']) && !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['woocommerce-register-nonce'])), 'woocommerce-register')) {
+		   return $errors;	
+		}
         SmsAlertUtility::checkSession();
         $user_phone = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : ''; 
 		
         if (SmsAlertUtility::isBlank($user_phone) ) {
-            return new WP_Error('registration-error-invalid-phone', __('Please enter phone number.', 'sms-alert'));
+			$errors->add(
+				'registration-error-invalid-phone',
+				__('Please enter phone number.', 'sms-alert')
+			);
+			return $errors;
         }	
 		
         if (! SmsAlertcURLOTP::validateCountryCode($user_phone)) {        
@@ -426,7 +433,7 @@ class WooCommerceRegistrationForm extends FormInterface
             unset($_SESSION['sa_mobile_verified']);
             return $errors;
         }
-        $password = ! empty($_REQUEST['password']) ? sanitize_text_field(wp_unslash($_REQUEST['password'])) : '';
+        $password = '';
         if (! SmsAlertUtility::isBlank(array_filter($errors->errors)) ) {
             return $errors;
         }
@@ -442,17 +449,21 @@ class WooCommerceRegistrationForm extends FormInterface
 
             $getusers = SmsAlertUtility::getUsersByPhone('billing_phone', $user_phone);
             if (count($getusers) > 0 ) {
-                return new WP_Error('registration-error-number-exists', __('An account is already registered with this mobile number. Please login.', 'sms-alert'));
+				$errors->add(
+					'registration-error-number-exists',
+					__('An account is already registered with this mobile number. Please login.', 'sms-alert')
+				);
+				return $errors;
             }
         }
 
         do_action('woocommerce_register_post', $username, $email, $errors);
 
         if ($errors->get_error_code() ) {
-            throw new Exception($errors->get_error_message());
+            throw new Exception(esc_html($errors->get_error_message()));
         }
         
-        return $this->processFormFields($username, $email, $errors, $password);
+        return $this->processFormFields($username, $email, $errors, $password, $user_phone);
     }
 
     /**
@@ -465,16 +476,19 @@ class WooCommerceRegistrationForm extends FormInterface
      *
      * @return void.
      */
-    public function processFormFields( $username, $email, $errors, $password )
+    public function processFormFields( $username, $email, $errors, $password, $user_phone )
     {
-        global $phoneLogic;
-        $phone_no  = ( ! empty($_POST['billing_phone']) ) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
-        $phone_num = preg_replace('/[^0-9]/', '', $phone_no);
+        global $smsalert_phoneLogic;
+        $user_phone = preg_replace('/[^0-9]/', '', $user_phone);
 
-        if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            return new WP_Error('billing_phone_error', str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()));
+        if (! isset($user_phone) || ! SmsAlertUtility::validatePhoneNumber($user_phone) ) {
+			$errors->add(
+				'billing_phone_error',
+				str_replace('##phone##', $user_phone, $smsalert_phoneLogic->_get_otp_invalid_format_message())
+			);
+			return $errors;
         }
-        smsalert_site_challenge_otp($username, $email, $errors, $phone_num, 'phone', $password);
+        smsalert_site_challenge_otp($username, $email, $errors, $user_phone, 'phone', $password);
     }
 
     /**
@@ -570,7 +584,7 @@ class WooCommerceRegistrationForm extends FormInterface
      *
      * @return void.
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) && ! isset($_SESSION[ $this->form_session_var2 ]) && ! isset($_SESSION[ $this->form_session_var3 ]) ) {
@@ -671,6 +685,10 @@ class WooCommerceRegistrationForm extends FormInterface
      */
     public function processRegistration()
     {
+		$verify = check_ajax_referer('smsalert_wp_signupwithmobile_nonce', 'smsalert_signupwithmobile_nonce', false);
+        if (!$verify) {
+            wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
+        }
         SmsAlertUtility::checkSession();
         if (isset($_POST['smsalert_name']) && $_POST['smsalert_name']!='' && isset($_SESSION['sa_mobile_verified']) && isset($_SESSION['sa_mobile'])) {
             $mail = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
@@ -687,7 +705,7 @@ class WooCommerceRegistrationForm extends FormInterface
                 exit();
 			}
             //number already exists then auto login
-            $user_info    = !empty($_SESSION['sa_login_user_id'])?get_user_by('ID', $_SESSION['sa_login_user_id']):'';
+            $user_info    = !empty($_SESSION['sa_login_user_id'])?get_user_by('ID', sanitize_text_field($_SESSION['sa_login_user_id'])):'';
 			$redirect = '';
             if ($user_info) {
 				$account_phone = get_user_meta($user_info->ID, 'billing_phone', true);
@@ -732,7 +750,7 @@ class WooCommerceRegistrationForm extends FormInterface
 				unset($_SESSION['sa_mobile_verified']);
 				unset($_SESSION['sa_mobile']);
 				unset($_SESSION['sa_login_user_id']);
-                wp_redirect($redirect);
+                wp_safe_redirect($redirect);
                 exit();
             }
 
@@ -813,7 +831,7 @@ class WooCommerceRegistrationForm extends FormInterface
 				if (isset($_SESSION['sa_mobile']) ) {
 					unset($_SESSION['sa_mobile']);
 				}
-                wp_redirect($redirect);
+                wp_safe_redirect($redirect);
                 exit();
             } else {
                 //$validation_error->add('Error',__('Please try again','sms-alert'));

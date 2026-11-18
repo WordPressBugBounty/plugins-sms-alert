@@ -12,7 +12,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -115,7 +115,7 @@ class SA_Paidmembershipspro extends FormInterface
     public function saUpdateBillingPhone($billing_phone, $user_id)
     {
         if (isset($_POST['bphone'])) {
-            $phone = $_POST['bphone'];
+            $phone = !empty($_POST['bphone'])?sanitize_text_field(wp_unslash($_POST['bphone'])):'';
             return ( ! empty($billing_phone) ) ? $billing_phone : $phone;
         }
         return $billing_phone;
@@ -172,13 +172,26 @@ class SA_Paidmembershipspro extends FormInterface
         $buyerMob          = $order->billing->phone;
         $table_name        = $wpdb->prefix .'smsalert_renewal_reminders';
         
-        $subscription_details = $wpdb->get_results("SELECT next_payment_date, notification_sent_date FROM $table_name WHERE subscription_id = $order_id and source = '$source'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT next_payment_date, notification_sent_date
+				FROM `" . esc_sql($table_name) . "`
+				WHERE subscription_id = %d
+				AND source = %s",
+				$order_id,
+				$source
+			)
+		);
         if ('success' === $status && 'on' === $customerNotify && $expiry) {
             $scheduler_data = get_option('smsalert_pmp_renewal_scheduler');
             if (isset($scheduler_data['cron']) && ! empty($scheduler_data['cron']) ) {
                 foreach ( $scheduler_data['cron'] as $sdata ) {
-                    $next_payment_date    = date('Y-m-d', strtotime($expiry));
-                    $notify_days_before   = date('Y-m-d', strtotime('-' . $sdata['frequency'] . ' days', strtotime($next_payment_date)));
+                    $next_payment_date = (new DateTimeImmutable($expiry, wp_timezone()))
+						->format('Y-m-d');
+
+					$notify_days_before = (new DateTimeImmutable($next_payment_date, wp_timezone()))
+						->modify('-' . (int) $sdata['frequency'] . ' days')
+						->format('Y-m-d');
                     if ($sdata['frequency'] > 0 && $sdata['message'] != '' ) {
                         if ($subscription_details ) {
                       
@@ -227,7 +240,16 @@ class SA_Paidmembershipspro extends FormInterface
         $schedulerData        = get_option('smsalert_pmp_reminder_scheduler');
         $today                = new DateTime();
         $today                = $today->format('Y-m-d');
-        $subscription_details = $wpdb->get_results("SELECT * FROM $table_name WHERE notification_sent_date = '$today' and source = '$source'");
+        $subscription_details = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($table_name) . "`
+				WHERE notification_sent_date = %s
+				AND source = %s",
+				$today,
+				$source
+			)
+		);
         if ('on' === $customerNotify && $subscription_details) { 
             foreach ( $subscription_details as $subscription ) {
                 $subscription_id                  = $subscription->subscription_id;
@@ -239,7 +261,7 @@ class SA_Paidmembershipspro extends FormInterface
                 $cust_sms_data['number']   = $buyerMob;
                 $cust_sms_data['sms_body'] = $customer_msg;
                 $customer_msg              = ( ! empty($cust_sms_data['sms_body']) ) ? $cust_sms_data['sms_body'] : '';
-                do_action('sa_send_sms', $buyerMob, $customer_msg);
+                do_action('smsalert_send_sms', $buyerMob, $customer_msg);
             }
         }
     }
@@ -302,10 +324,12 @@ class SA_Paidmembershipspro extends FormInterface
             $schedulerData = array();
             $schedulerData['cron'][] = array(
                 'frequency' => '1',
+				// translators: 1: User name, 2: Order ID, 3: Store name, 4: Membership expiry date.
                 'message'   => sprintf(__('Hello %1$s, your membership %2$s with %3$s is expired on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[userName]', '#[order_id]', '[store_name]', '[membership_expiration_date]', PHP_EOL, PHP_EOL),
             );
             $schedulerData['cron'][] = array(
                 'frequency' => '2',
+				// translators: 1: User name, 2: Order ID, 3: Store name, 4: Membership expiry date.
                 'message'   => sprintf(__('Hello %1$s, your membership %2$s with %3$s is expired on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[userName]', '#[order_id]', '[store_name]', '[membership_expiration_date]', PHP_EOL, PHP_EOL),
             );
         }
@@ -345,6 +369,7 @@ class SA_Paidmembershipspro extends FormInterface
             $currentVal      = smsalert_get_option('customer_pmp_notify_' . strtolower($ms), 'smsalert_pmp_general', 'on');
             $checkboxNameId  = 'smsalert_pmp_general[customer_pmp_notify_' . strtolower($ms) . ']';
             $textareaNameId  = 'smsalert_pmp_message[customer_sms_pmp_body_' . strtolower($ms) . ']';
+			// translators: 1: User name, 2: Membership ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('customer_sms_pmp_body_' . strtolower($ms), 'smsalert_pmp_message', sprintf(__('Hello %1$s, status of your membership #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[userName]', '[membership_id]', '[store_name]', $ms, PHP_EOL, PHP_EOL));
             $textBody       = smsalert_get_option('customer_sms_pmp_body_' . strtolower($ms), 'smsalert_pmp_message', $defaultTemplate);
             $templates[$ws]['title']          = 'When membership status is ' . ucwords($ms);
@@ -361,6 +386,7 @@ class SA_Paidmembershipspro extends FormInterface
                 $currentVal      = smsalert_get_option('customer_pmp_notify_' . strtolower($vs), 'smsalert_pmp_general', 'on');
                 $checkboxNameId  = 'smsalert_pmp_general[customer_pmp_notify_' . strtolower($vs) . ']';
                 $textareaNameId  = 'smsalert_pmp_message[customer_sms_pmp_body_' . strtolower($vs) . ']';
+				// translators: 1: Customer first name, 2: Order ID, 3: Store name.
                 $defaultTemplate = smsalert_get_option('customer_sms_pmp_body_' . strtolower($vs), 'smsalert_pmp_message', sprintf(__('Hello %1$s, status of your order #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
                 $textBody       = smsalert_get_option('customer_sms_pmp_body_' . strtolower($vs), 'smsalert_pmp_message', $defaultTemplate);
                 $templates[$ws]['title']          = 'When order status is ' . ucwords($vs);
@@ -392,6 +418,7 @@ class SA_Paidmembershipspro extends FormInterface
                 $currentVal      = smsalert_get_option('admin_pmp_notify_' . strtolower($ms), 'smsalert_pmp_general', 'on');
                 $checkboxNameId  = 'smsalert_pmp_general[admin_pmp_notify_' . strtolower($ms) . ']';
                 $textareaNameId  = 'smsalert_pmp_message[admin_sms_pmp_body_' . strtolower($ms) . ']';
+				// translators: 1: Store name.
                 $defaultTemplate = smsalert_get_option('admin_sms_pmp_body_' . strtolower($ms), 'smsalert_pmp_message', sprintf(__('Hello admin, status of your membership with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $ms, PHP_EOL, PHP_EOL));
                 $textBody = smsalert_get_option('admin_sms_pmp_body_' . strtolower($ms), 'smsalert_pmp_message', $defaultTemplate);
                 $templates[$ws]['title']          = 'When admin change membership status to ' . $ms;
@@ -409,6 +436,7 @@ class SA_Paidmembershipspro extends FormInterface
                 $currentVal      = smsalert_get_option('admin_pmp_notify_' . strtolower($vs), 'smsalert_pmp_general', 'on');
                 $checkboxNameId  = 'smsalert_pmp_general[admin_pmp_notify_' . strtolower($vs) . ']';
                 $textareaNameId  = 'smsalert_pmp_message[admin_sms_pmp_body_' . strtolower($vs) . ']';
+				// translators: 1: Store name.
                 $defaultTemplate = smsalert_get_option('admin_sms_pmp_body_' . strtolower($vs), 'smsalert_pmp_message', sprintf(__('Hello admin, status of your membership with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL));
                 $textBody = smsalert_get_option('admin_sms_pmp_body_' . strtolower($vs), 'smsalert_pmp_message', $defaultTemplate);
                 $templates[$ws]['title']          = 'When admin change status to ' . $vs;
@@ -443,7 +471,7 @@ class SA_Paidmembershipspro extends FormInterface
             $customerNotify    = smsalert_get_option('customer_pmp_notify_active', 'smsalert_pmp_general', 'on');
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                   $buyerMessage = $this->parseSmsBody($data,  $customerMessage);
-                do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
             }
         }
         
@@ -469,7 +497,7 @@ class SA_Paidmembershipspro extends FormInterface
             $customerNotify    = smsalert_get_option('customer_pmp_notify_cancel', 'smsalert_pmp_general', 'on');
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                   $buyerMessage = $this->parseSmsBody($data,  $customerMessage);
-                do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
             }
         }
     }  
@@ -583,7 +611,7 @@ class SA_Paidmembershipspro extends FormInterface
             $buyerNumber            = get_user_meta($user_id, 'pmpro_bphone', true);
             if (($customerNotify === 'on' && $customerMessage !== '')) {
                 $buyerMessage       = $this->parseSmsBody($order, $customerMessage);
-                do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+                do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
             }
             // Send msg to admin.
             $adminPhoneNumber   = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -595,7 +623,7 @@ class SA_Paidmembershipspro extends FormInterface
                 $adminPhoneNumber   = implode(',', $adminPhoneNumber);
                 if ($adminNotify === 'on' && $adminMessage !== '') {
                     $adminMessage   = $this->parseSmsBody($order, $adminMessage);
-                    do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                    do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
                 }
             }
         }
@@ -742,7 +770,7 @@ class SA_Paidmembershipspro extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('paid-memberships-pro/paid-memberships-pro.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }
@@ -772,13 +800,13 @@ class SA_Paidmembershipspro extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if (! empty($extra_data['option']) && 'smsalert-validate-otp-form' === $extra_data['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -804,7 +832,7 @@ class SA_Paidmembershipspro extends FormInterface
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false ) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if (! empty($extraData['option']) && 'smsalert-validate-otp-form' === $extraData['option'] ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

@@ -54,7 +54,7 @@ class SA_Backend
             break;
         case 'remind-later':
             $smsalert_admin_notice_user_meta = array(
-            'date-dismissed' => date('Y-m-d'),
+            'date-dismissed' => current_datetime()->format('Y-m-d'),
             );
             update_user_meta(get_current_user_id(), 'smsalert_review_remind_later', $smsalert_admin_notice_user_meta);
             break;
@@ -68,23 +68,34 @@ class SA_Backend
      */
     public function smsalertReview()
     {
-        $current_date = date('Y-m-d');
-        $date         = get_option('smsalert_activation_date', date('Y-m-d'));
-        $show_date    = date('Y-m-d', strtotime('+1 month', strtotime($date)));
-        $show         = get_option('smsalert_review_not_show_again', 1);
-        $user_meta    = get_user_meta(get_current_user_id(), 'smsalert_review_remind_later');
-        $remind       = 0;
-        if (isset($user_meta[0]['date-dismissed']) ) {
-            $date_1 = $user_meta[0]['date-dismissed'];
-            $date_2 = date('Y-m-d', strtotime('+7 days', strtotime($date_1)));
+        $current_datetime = current_datetime();
+		$current_date     = $current_datetime->format('Y-m-d');
 
-            if ($current_date > $date_2 ) {
-                $remind = 0;
-            } else {
-                $remind = 1;
-            }
-        }
-        if ('1' === $show && '0' === $remind && $current_date > $show_date ) {
+		$date = get_option('smsalert_activation_date', $current_date);
+
+		$show_date = (new DateTimeImmutable($date, wp_timezone()))
+			->modify('+1 month')
+			->format('Y-m-d');
+
+		$show      = get_option('smsalert_review_not_show_again', 1);
+		$user_meta = get_user_meta(get_current_user_id(), 'smsalert_review_remind_later');
+		$remind    = 0;
+
+		if (isset($user_meta[0]['date-dismissed'])) {
+			$date_1 = $user_meta[0]['date-dismissed'];
+
+			$date_2 = (new DateTimeImmutable($date_1, wp_timezone()))
+				->modify('+7 days')
+				->format('Y-m-d');
+
+			if ($current_date > $date_2) {
+				$remind = 0;
+			} else {
+				$remind = 1;
+			}
+		}
+
+		if ('1' === $show && '0' === $remind && $current_date > $show_date) {
             $current_user = wp_get_current_user();
             ?>
             <div class="notice notice-info">

@@ -1,3 +1,19 @@
+<?php
+/**
+ * Abandoned cart setting template.
+ * PHP version 5
+ *
+ * @category Template
+ * @package  SMSAlert
+ * @author   SMS Alert <support@cozyvision.com>
+ * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * @link     https://www.smsalert.co.in/
+ */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+}
+?>
 <div class="cvt-accordion">
     <div class="accordion-section">        
         <div class="cvt-accordion-body-title" data-href="#accordion_Abandoned_cart_cust_0">
@@ -6,42 +22,42 @@
         </div>
         <div id="accordion_Abandoned_cart_cust_0" class="cvt-accordion-body-content">
             <?php
-            $count = 0;
-            $total_frequency = array();
-            $enable_quiet_hours   = smsalert_get_option('enable_quiet_hours', 'smsalert_abandoned_cart', '0');
-            foreach ( $templates as $template ) {
-                if ($template['text-body'] == '' ) {
+            $smsalert_count = 0;
+            $smsalert_total_frequency = array();
+            $smsalert_enable_quiet_hours   = smsalert_get_option('enable_quiet_hours', 'smsalert_abandoned_cart', '0');
+            foreach ( $templates as $smsalert_template ) {
+                if ($smsalert_template['text-body'] == '' ) {
                     continue;
                 }
                 ?>
-            <table class="form-table ab_cart_sche bottom-border" id="scheduler_<?php echo esc_attr($count); ?>">
+            <table class="form-table ab_cart_sche bottom-border" id="scheduler_<?php echo esc_attr($smsalert_count); ?>">
                 <tr valign="top">
                     <th>
                         <label><?php esc_html_e('Send sms to abandoned cart', 'sms-alert'); ?></label>
                     </th>
                     <td>
                 <?php
-                $hours = $template['frequency'];
+                $smsalert_hours = $smsalert_template['frequency'];
                     
-                array_push($total_frequency, $hours);
-                if ('' === $hours ) {
-                    $hours = 60;
+                array_push($smsalert_total_frequency, $smsalert_hours);
+                if ('' === $smsalert_hours ) {
+                    $smsalert_hours = 60;
                 }
                 ?>
-                        <select id="<?php echo esc_attr($template['selectNameId']); ?>" name="<?php echo esc_attr($template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" class="smsalert_abandoned_cart_scheduler">
-                            <option value='10' <?php selected($hours, 10); ?>><?php esc_html_e('After 10 minutes', 'sms-alert'); ?></option>
-                            <option value='20' <?php selected($hours, 20); ?>><?php esc_html_e('After 20 minutes', 'sms-alert'); ?></option>
-                            <option value='30' <?php selected($hours, 30); ?>><?php esc_html_e('After 30 minutes', 'sms-alert'); ?></option>
-                            <option value='60' <?php selected($hours, 60); ?>><?php esc_html_e('After 1 hour', 'sms-alert'); ?></option>
-                            <option value='120' <?php selected($hours, 120); ?>><?php esc_html_e('After 2 hours', 'sms-alert'); ?></option>
-                            <option value='180' <?php selected($hours, 180); ?>><?php esc_html_e('After 3 hours', 'sms-alert'); ?></option>
-                            <option value='240' <?php selected($hours, 240); ?>><?php esc_html_e('After 4 hours', 'sms-alert'); ?></option>
-                            <option value='300' <?php selected($hours, 300); ?>><?php esc_html_e('After 5 hours', 'sms-alert'); ?></option>
-                            <option value='360' <?php selected($hours, 360); ?>><?php esc_html_e('After 6 hours', 'sms-alert'); ?></option>
-                            <option value='720' <?php selected($hours, 720); ?>><?php esc_html_e('After 12 hours', 'sms-alert'); ?></option>
-                            <option value='1440' <?php selected($hours, 1440); ?>><?php esc_html_e('After 24 hours', 'sms-alert'); ?></option>
-                            <option value='2880' <?php selected($hours, 2880); ?>><?php esc_html_e('After 48 hours', 'sms-alert'); ?></option>
-                            <option value='0' <?php selected($hours, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
+                        <select id="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" name="<?php echo esc_attr($smsalert_template['selectNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" class="smsalert_abandoned_cart_scheduler">
+                            <option value='10' <?php selected($smsalert_hours, 10); ?>><?php esc_html_e('After 10 minutes', 'sms-alert'); ?></option>
+                            <option value='20' <?php selected($smsalert_hours, 20); ?>><?php esc_html_e('After 20 minutes', 'sms-alert'); ?></option>
+                            <option value='30' <?php selected($smsalert_hours, 30); ?>><?php esc_html_e('After 30 minutes', 'sms-alert'); ?></option>
+                            <option value='60' <?php selected($smsalert_hours, 60); ?>><?php esc_html_e('After 1 hour', 'sms-alert'); ?></option>
+                            <option value='120' <?php selected($smsalert_hours, 120); ?>><?php esc_html_e('After 2 hours', 'sms-alert'); ?></option>
+                            <option value='180' <?php selected($smsalert_hours, 180); ?>><?php esc_html_e('After 3 hours', 'sms-alert'); ?></option>
+                            <option value='240' <?php selected($smsalert_hours, 240); ?>><?php esc_html_e('After 4 hours', 'sms-alert'); ?></option>
+                            <option value='300' <?php selected($smsalert_hours, 300); ?>><?php esc_html_e('After 5 hours', 'sms-alert'); ?></option>
+                            <option value='360' <?php selected($smsalert_hours, 360); ?>><?php esc_html_e('After 6 hours', 'sms-alert'); ?></option>
+                            <option value='720' <?php selected($smsalert_hours, 720); ?>><?php esc_html_e('After 12 hours', 'sms-alert'); ?></option>
+                            <option value='1440' <?php selected($smsalert_hours, 1440); ?>><?php esc_html_e('After 24 hours', 'sms-alert'); ?></option>
+                            <option value='2880' <?php selected($smsalert_hours, 2880); ?>><?php esc_html_e('After 48 hours', 'sms-alert'); ?></option>
+                            <option value='0' <?php selected($smsalert_hours, 0); ?>><?php esc_html_e('Disable notifications', 'sms-alert'); ?></option>
                         </select>                        
                         <a href="#" onclick="return false;" class="sa-delete-btn alignright"><span class="dashicons dashicons-dismiss"></span><?php esc_html_e('Remove', 'sms-alert'); ?></a>
                     </td>
@@ -50,23 +66,23 @@
                     <td colspan="2">
                         <div class="smsalert_tokens">
                 <?php
-                foreach ( $template['token'] as $vk => $vv ) {
-                    echo wp_kses_post(sprintf("<a href='#' data-val='%s'>%s</a> | ", $vk, $vv));
+                foreach ( $smsalert_template['token'] as $smsalert_vk => $smsalert_vv ) {
+                    echo wp_kses_post(sprintf("<a href='#' data-val='%s'>%s</a> | ", $smsalert_vk, $smsalert_vv));
                 }
                 ?>
-                <?php if (! empty($template['moreoption']) ) { ?>
+                <?php if (! empty($smsalert_template['moreoption']) ) { ?>
                                 <a href="<?php echo esc_url($url); ?>" class="thickbox search-token-btn">[...More]</a>
                 <?php } ?>
                         </div>
-                        <textarea name="<?php echo esc_attr($template['textareaNameId']); ?>" id="<?php echo esc_attr($template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" <?php echo( ( 'on' === $template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($template['text-body']); ?></textarea>
-                        <div id="menu_abandoned_cart<?php echo $count ?>" class="sa-menu-token" role="listbox"></div>
+                        <textarea name="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" id="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" <?php echo( ( 'on' === $smsalert_template['enabled'] ) ? '' : "readonly='readonly'" ); ?> class="token-area"><?php echo esc_textarea($smsalert_template['text-body']); ?></textarea>
+                        <div id="menu_abandoned_cart<?php echo esc_attr($smsalert_count) ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>
             </table>
-                <?php $count++; 
+                <?php $smsalert_count++; 
             } ?>
             <div style="padding: 10px 0px 0px 10px;">
-                <button class="button action" id="addNew" type="button" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>">
+                <button class="button action" id="addNew" type="button" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>">
                 <span class="dashicons dashicons-plus-alt2"></span> <?php esc_html_e('Add New', 'sms-alert'); ?></button>
             </div>
         </div>
@@ -74,7 +90,7 @@
             <table class="form-table">
              <tr>
                     <td class="td-heading">
-                    <input id="enable_quiet_hours" type="checkbox" name="smsalert_abandoned_cart[enable_quiet_hours]" value="1" <?php echo checked(1, $enable_quiet_hours, false); ?> data-parent_id="smsalert_abandoned_cart[customer_notify]" />
+                    <input id="enable_quiet_hours" type="checkbox" name="smsalert_abandoned_cart[enable_quiet_hours]" value="1" <?php echo checked(1, $smsalert_enable_quiet_hours, false); ?> data-parent_id="smsalert_abandoned_cart[customer_notify]" />
                         <label for="enable_quiet_hours"><?php esc_html_e('Quiet Hours:', 'sms-alert'); ?><span class="tooltip" data-title="Quiet Hours"><span class="dashicons dashicons-info"></span></span></label>
                     </td>
                     <td>
@@ -87,12 +103,12 @@
                 </table>
                 </div>
         <?php
-        $exit_intent_on   = smsalert_get_option('cart_exit_intent_status', 'smsalert_abandoned_cart', '0');
-        $test_mode_on     = smsalert_get_option('cart_exit_intent_test_mode', 'smsalert_abandoned_cart', '0');
+        $smsalert_exit_intent_on   = smsalert_get_option('cart_exit_intent_status', 'smsalert_abandoned_cart', '0');
+        $smsalert_test_mode_on     = smsalert_get_option('cart_exit_intent_test_mode', 'smsalert_abandoned_cart', '0');
         ?>
         <div>        
         <div class="cvt-accordion-body-title">
-            <input type="checkbox" id="smsalert_abandoned_cart[cart_exit_intent_status]" name="smsalert_abandoned_cart[cart_exit_intent_status]" data-parent_id="smsalert_abandoned_cart[customer_notify]" class="notify_box" value="1" <?php echo checked(1, $exit_intent_on, false); ?> /><label><?php esc_html_e('Enable Exit Intent', 'sms-alert'); ?></label>     
+            <input type="checkbox" id="smsalert_abandoned_cart[cart_exit_intent_status]" name="smsalert_abandoned_cart[cart_exit_intent_status]" data-parent_id="smsalert_abandoned_cart[customer_notify]" class="notify_box" value="1" <?php echo checked(1, $smsalert_exit_intent_on, false); ?> /><label><?php esc_html_e('Enable Exit Intent', 'sms-alert'); ?></label>     
         </div> 
         
        </div>        
@@ -104,10 +120,10 @@
                     </th>
                     <td>
                        <?php
-                        $disabled = (! is_plugin_active('elementor/elementor.php')) ? "anchordisabled" : "";
+                        $smsalert_disabled = (! is_plugin_active('elementor/elementor.php')) ? "anchordisabled" : "";
                         $post = get_page_by_path('exitintent_style', OBJECT, 'sms-alert'); 
                         ?>              
-                <a href= <?php get_admin_url() ?>"edit.php?post_name=exitintent_style" data-parent_id="smsalert_abandoned_cart[cart_exit_intent_status]" class="button <?php echo $disabled; ?> exitintent action" target="_blank" style="float:left;"><?php esc_html_e('Edit With Elementor', 'sms-alert'); ?></a>
+                <a href= <?php echo esc_url(get_admin_url() . 'edit.php?post_name=exitintent_style'); ?>" data-parent_id="smsalert_abandoned_cart[cart_exit_intent_status]" class="button <?php echo esc_attr($smsalert_disabled); ?> exitintent action" target="_blank" style="float:left;"><?php esc_html_e('Edit With Elementor', 'sms-alert'); ?></a>
                 <?php if (!empty($post->post_type)) {?>
                 <a href="#" onclick="return false;" data-parent_id="smsalert_abandoned_cart[cart_exit_intent_status]" id="btn_reset_style" temp-style="exitintent_style" class="btn_reset_style btn-outline" style="float:left;"><?php esc_html_e('Reset', 'sms-alert'); ?></a>
                     <?php
@@ -115,7 +131,7 @@
                 ?>
                 <span class="reset_style"></span>    
             <?php
-            if ($disabled!='') {
+            if ($smsalert_disabled!='') {
                 ?>        
             <span><?php esc_html_e('To edit, please install elementor plugin', 'sms-alert'); ?>    </span>
                 <?php
@@ -128,7 +144,7 @@
                         <label for="cart-exit-intent-test-mode"><?php esc_html_e('Enable test mode:', 'sms-alert'); ?></label>
                     </th>
                     <td style="position: relative;">
-                        <input id="smsalert_abandoned_cart[cart-exit-intent-test-mode]" type="checkbox" name="smsalert_abandoned_cart[cart_exit_intent_test_mode]" data-parent_id="smsalert_abandoned_cart[cart_exit_intent_status]" value="1" <?php echo checked(1, $test_mode_on, false); ?> >    
+                        <input id="smsalert_abandoned_cart[cart-exit-intent-test-mode]" type="checkbox" name="smsalert_abandoned_cart[cart_exit_intent_test_mode]" data-parent_id="smsalert_abandoned_cart[cart_exit_intent_status]" value="1" <?php echo checked(1, $smsalert_test_mode_on, false); ?> >    
                         <span style="top: 16px;" class="tooltip" data-title="<?php esc_html_e('If Enabled, go to your store and add a product to your shopping cart. Please note that only users with Admin rights will be able to see the Exit Intent and appearance limits have been removed - it will be shown each time you try to leave your shop.', 'sms-alert'); ?>"><span class="dashicons dashicons-info"></span></span>
                     </td>
                 </tr>
@@ -166,7 +182,7 @@
         }
     });
     jQuery(document).ready(function(){
-        var frequency_arr = <?php echo json_encode($total_frequency) ?>;
+        var frequency_arr = <?php echo json_encode($smsalert_total_frequency) ?>;
         
         var frequency_sch = jQuery(".smsalert_abandoned_cart_scheduler").length;
         

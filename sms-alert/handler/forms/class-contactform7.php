@@ -89,8 +89,8 @@ class ContactForm7 extends FormInterface
         add_filter('wpcf7_validate_tel*', array( $this, 'validateFormPost' ), 1, 2);
         add_filter('wpcf7_validate_billing_phone*', array( $this, 'validateFormPost' ), 10, 2);
         add_filter('wpcf7_validate_smsalert_otp_input*', array( $this, 'validateFormPost' ), 1, 2);
-        add_shortcode('smsalert_verify_phone', array( $this, 'cf7PhoneShortcode' ));
-        $this->routeData();
+        //add_shortcode('smsalert_verify_phone', array( $this, 'cf7PhoneShortcode' ));
+        //$this->routeData();
         add_filter('wpcf7_editor_panels', array( $this, 'newMenuSmsAlert' ), 98);
         add_action('wpcf7_after_save', array( &$this, 'saveForm' ));
         add_action('wpcf7_before_send_mail', array( $this, 'sendsmsC7' ));
@@ -117,10 +117,18 @@ class ContactForm7 extends FormInterface
      */
     public function smsalertValidation($result, $tags)
     { 
+	    if (!$result->is_valid()) {
+			return $result;
+		}
         $invalid_fields = $result->get_invalid_fields();        
         if (!empty($invalid_fields)) {
             return $result;
         }
+		$submission = WPCF7_Submission::get_instance();
+
+		if (!$submission) {
+			return $result;
+		}
 		$filtered_tags = array_filter($tags, function ($tag) {
 			return strpos($tag->type, 'billing_phone') === 0;
 		});
@@ -128,25 +136,23 @@ class ContactForm7 extends FormInterface
 		if (!$tag || !$tag->has_option('otp_enabled_popup')) {
 			return $result;
 		}
-        
-        $id = $_POST['_wpcf7'];
+
+        $posted_data = $submission->get_posted_data();
+		$contact_form = $submission->get_contact_form();
+        $id = $contact_form ? $contact_form->id() : '';
+		$posted_data['_wpcf7'] = $id;
         $options         = get_option('smsalert_sms_c7_' . $id);
-        $visitor_number = !empty($options['visitorNumber'])?$this->getCf7TagSToString($options['visitorNumber'], $_POST):'';
+        $visitor_number = !empty($options['visitorNumber'])?$this->getCf7TagSToString($options['visitorNumber'], $posted_data):'';
 		if (! SmsAlertcURLOTP::validateCountryCode($visitor_number)) {        
             return $result;
         }
-        if (isset($_REQUEST['option']) && 'smsalert_wpcf7_form_otp' === sanitize_text_field(wp_unslash($_REQUEST['option']))) {
-			$verify = check_ajax_referer('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', false);
-			if (!$verify) {
-			   wp_send_json(SmsAlertUtility::_create_json_response(__('Sorry, nonce did not verify.', 'sms-alert'), 'error'));
-			}
+        if (isset($posted_data['sa_option']) && 'smsalert_wpcf7_form_otp' === $posted_data['sa_option']) {
             SmsAlertUtility::initialize_transaction($this->form_session_var);
         } else {
             SmsAlertUtility::checkSession();
-            $form_id = !empty($_POST['_wpcf7'])?$_POST['_wpcf7']:'';
-			if(isset($_SESSION['sa_cf7_form_verified'.$form_id]))
+			if(isset($_SESSION['sa_cf7_form_verified'.$id]))
 			{
-				unset($_SESSION['sa_cf7_form_verified'.$form_id]);
+				unset($_SESSION['sa_cf7_form_verified'.$id]);
 				return $result;
 			}
 			else
@@ -161,7 +167,7 @@ class ContactForm7 extends FormInterface
             exit();
         }
 
-        return $this->processFormFields($visitor_number,$_POST);         
+        return $this->processFormFields($visitor_number,$posted_data);         
     }
 
     /**
@@ -173,11 +179,11 @@ class ContactForm7 extends FormInterface
      */
     public function processFormFields( $visitor_number, $data )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         $phone_num = preg_replace('/[^0-9]/', '', $visitor_number);
 
         if (! isset($phone_num) || ! SmsAlertUtility::validatePhoneNumber($phone_num) ) {
-            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $phone_num, $phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
+            wp_send_json(SmsAlertUtility::_create_json_response(str_replace('##phone##', $phone_num, $smsalert_phoneLogic->_get_otp_invalid_format_message()), SmsAlertConstants::ERROR_JSON_TYPE));
             exit();
         }
         
@@ -199,7 +205,7 @@ class ContactForm7 extends FormInterface
             return;
         }
         if (!empty($_REQUEST['post'])) {
-            $options         = get_option('smsalert_sms_c7_' .$_REQUEST['post']);
+            $options         = get_option('smsalert_sms_c7_' .sanitize_text_field(wp_unslash($_REQUEST['post'])));
             if (((!empty($options['visitor_notification']) && 'on' === $options['visitor_notification']) || (!empty($options['auto_sync']) && 'on' === $options['auto_sync'])) && (empty($options['visitorNumber']) || (!empty($options['visitorNumber']) && strpos('[billing_phone', $options['visitorNumber']) !== false))) {
                 echo sprintf(
                     '<div id="message" class="notice notice-warning"><p>%s</p></div>',
@@ -304,13 +310,13 @@ class ContactForm7 extends FormInterface
         );
 
         if ($tag->has_option('otp_enabled_popup') ) {
-            $html .= do_shortcode("[sa_verify phone_selector='.wpcf7-billing_phone' submit_selector='#" . $unit_tag . " .wpcf7-submit' placeholder='" . $placeholder . "']").wp_nonce_field('smsalert_wp_cf7_nonce', 'smsalert_cf7_nonce', true, false);
+            $html .= do_shortcode("[sa_verify phone_selector='.wpcf7-billing_phone' submit_selector='#" . $unit_tag . " .wpcf7-submit' placeholder='" . $placeholder . "']");
         } elseif ($tag->has_option('otp_enabled') ) {
-            $html .= '<div style="margin-bottom:3%">
+           /*  $html .= '<div style="margin-bottom:3%">
 			<input class="smsalert_cf7_otp_btn" type="button" class="button alt" style="width:100%" title="Please Enter a phone number to enable this." value="Click here to verify your Phone"><div id="salert_message" style="background-color: #f7f6f7;padding: 1em 2em 1em 3.5em;display:none;"></div>
 			</div>';
 
-            $html .= $this->cf7PhoneShortcode();
+            $html .= $this->cf7PhoneShortcode(); */
         }
         return $html;
     }
@@ -324,7 +330,7 @@ class ContactForm7 extends FormInterface
     {
         if (class_exists('WPCF7_TagGenerator') ) {
             $tag_generator = WPCF7_TagGenerator::get_instance();
-            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorTextV2' ),array('version'=>2));
+            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'sms-alert'), array( $this, 'smsalertWpcf7TagGeneratorTextV2' ),array('version'=>2));
         }
     }
 	
@@ -337,7 +343,7 @@ class ContactForm7 extends FormInterface
     {
         if (class_exists('WPCF7_TagGenerator') ) {
             $tag_generator = WPCF7_TagGenerator::get_instance();
-            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'contact-form-7'), array( $this, 'smsalertWpcf7TagGeneratorText' ));
+            $tag_generator->add('billing_phone', __('SMSALERT PHONE', 'sms-alert'), array( $this, 'smsalertWpcf7TagGeneratorText' ));
         }
     }
 	
@@ -360,17 +366,17 @@ class ContactForm7 extends FormInterface
     <table class="form-table">
     <tbody>
         <tr>
-        <th scope="row"><?php esc_html_e('Field type', 'contact-form-7'); ?></th>
+        <th scope="row"><?php esc_html_e('Field type', 'sms-alert'); ?></th>
         <td>
             <fieldset>
-            <legend class="screen-reader-text"><?php esc_html_e('Field type', 'contact-form-7'); ?></legend>
-            <label><input type="checkbox" name="required" checked="checked"/> <?php esc_html_e('Required field', 'contact-form-7'); ?></label>
+            <legend class="screen-reader-text"><?php esc_html_e('Field type', 'sms-alert'); ?></legend>
+            <label><input type="checkbox" name="required" checked="checked"/> <?php esc_html_e('Required field', 'sms-alert'); ?></label>
             </fieldset>
         </td>
         </tr>
 
         <tr>
-        <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-name'); ?>"><?php esc_html_e('Name', 'contact-form-7'); ?></label></th>
+        <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-name'); ?>"><?php esc_html_e('Name', 'sms-alert'); ?></label></th>
 
         <?php
         if ('smsalert_otp_input' === $type ) {
@@ -386,22 +392,22 @@ class ContactForm7 extends FormInterface
             <th scope="row"></th>
             <td>
         <?php if ('billing_phone' === $type ) { ?>
-            <label><input type="checkbox" name="otp_enabled_popup" class="option" /> <?php esc_html_e('Use this field for sending OTP to Mobile Number', 'contact-form-7'); ?></label>
+            <label><input type="checkbox" name="otp_enabled_popup" class="option" /> <?php esc_html_e('Use this field for sending OTP to Mobile Number', 'sms-alert'); ?></label>
         <?php } ?>
             </td>
         </tr>
         <tr>
-            <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-values'); ?>"><?php esc_html_e('Default value', 'contact-form-7'); ?></label></th>
+            <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-values'); ?>"><?php esc_html_e('Default value', 'sms-alert'); ?></label></th>
             <td><input type="text" name="values" class="oneline" id="<?php echo esc_attr($args['content'] . '-values'); ?>" /><br />
-            <label><input type="checkbox" name="placeholder" class="option" /> <?php esc_html_e('Use this text as the placeholder of the field', 'contact-form-7'); ?></label></td>
+            <label><input type="checkbox" name="placeholder" class="option" /> <?php esc_html_e('Use this text as the placeholder of the field', 'sms-alert'); ?></label></td>
         </tr>
         <tr>
-            <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-id'); ?>"><?php esc_html_e('Id attribute', 'contact-form-7'); ?></label></th>
-            <td><input type="text" name="id" class="idvalue oneline option" id="<?php echo $args['content'] . '-id'; ?>" /></td>
+            <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-id'); ?>"><?php esc_html_e('Id attribute', 'sms-alert'); ?></label></th>
+            <td><input type="text" name="id" class="idvalue oneline option" id="<?php echo esc_attr($args['content']) . '-id'; ?>" /></td>
         </tr>
 
         <tr>
-            <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-class'); ?>"><?php esc_html_e('Class attribute', 'contact-form-7'); ?></label></th>
+            <th scope="row"><label for="<?php echo esc_attr($args['content'] . '-class'); ?>"><?php esc_html_e('Class attribute', 'sms-alert'); ?></label></th>
             <td><input type="text" name="class" class="classvalue oneline option" id="<?php echo esc_attr($args['content'] . '-class'); ?>" /></td>
         </tr>
     </tbody>
@@ -413,12 +419,14 @@ class ContactForm7 extends FormInterface
         <input type="text" name="<?php echo esc_attr($type); ?>" class="tag code" readonly="readonly" onfocus="this.select()" />
 
         <div class="submitbox">
-        <input type="button" class="button button-primary insert-tag" value="<?php echo esc_attr(__('Insert Tag', 'contact-form-7')); ?>" />
+        <input type="button" class="button button-primary insert-tag" value="<?php echo esc_attr(__('Insert Tag', 'sms-alert')); ?>" />
         </div>
 
         <br class="clear" />
-
-        <p class="description mail-tag"><label for="<?php echo esc_attr($args['content'] . '-mailtag'); ?>"><?php echo wp_kses_post(sprintf(__('To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.', 'sms-alert'), '<strong><span class="mail-tag"></span></strong>')); ?><input type="text" class="mail-tag code hidden" readonly="readonly" id="<?php echo esc_attr($args['content'] . '-mailtag'); ?>" /></label></p>
+        // translators: 1: Store name.
+        <p class="description mail-tag"><label for="<?php echo esc_attr($args['content'] . '-mailtag'); ?>"><?php
+		// translators: %s: Mail-tag placeholder displayed to the user.
+		echo wp_kses_post(sprintf(__('To use the value input through this field in a mail field, you need to insert the corresponding mail-tag (%s) into the field on the Mail tab.', 'sms-alert'), '<strong><span class="mail-tag"></span></strong>')); ?><input type="text" class="mail-tag code hidden" readonly="readonly" id="<?php echo esc_attr($args['content'] . '-mailtag'); ?>" /></label></p>
     </div>
         <?php
     }
@@ -491,7 +499,7 @@ class ContactForm7 extends FormInterface
      *
      * @return void
      */
-    public function routeData()
+    /* public function routeData()
     {
         if (! array_key_exists('option', $_GET) ) {
             return;
@@ -502,7 +510,7 @@ class ContactForm7 extends FormInterface
             $this->handleCf7ContactForm($_POST);
             break;
         }
-    }
+    } */
 
     /**
      * Start otp process for contact form 7.
@@ -518,6 +526,7 @@ class ContactForm7 extends FormInterface
 
         if (array_key_exists('user_phone', $getdata) && ! SmsAlertUtility::isBlank($getdata['user_phone']) ) {
             $_SESSION[ $this->form_phone_ver ] = trim($getdata['user_phone']);
+			// translators: 1: Customer phone.
             $message                           = str_replace('##phone##', $getdata['user_phone'], sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'));
             smsalert_site_challenge_otp('test', null, null, trim($getdata['user_phone']), 'phone', null, null, true);
         } else {
@@ -610,7 +619,7 @@ class ContactForm7 extends FormInterface
      */
     public function wpcf7BillingPhoneMessages( $messages )
     {
-        global $phoneLogic;
+        global $smsalert_phoneLogic;
         return array_merge(
             $messages,
             array(
@@ -632,14 +641,14 @@ class ContactForm7 extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
 
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -669,7 +678,7 @@ class ContactForm7 extends FormInterface
 		{
           $_SESSION['sa_cf7_form_verified'.$extra_data['_wpcf7']] = true;
 		}
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -684,7 +693,7 @@ class ContactForm7 extends FormInterface
      */
     public function validateOTPRequest()
     {
-        do_action('smsalert_validate_otp', $_SESSION[ $this->form_session_tag_name ], null);
+        do_action('smsalert_validate_otp', !empty($_SESSION[ $this->form_session_tag_name ])?sanitize_text_field($_SESSION[ $this->form_session_tag_name ]):'', null);
     }
 
     /**
@@ -695,7 +704,7 @@ class ContactForm7 extends FormInterface
     public function processOTPEntered()
     {
         $this->validateOTPRequest();
-        return strcasecmp($_SESSION[ $this->form_session_var ], 'validated') !== 0 ? false : true;
+        return strcasecmp(!empty($_SESSION[ $this->form_session_var ])?sanitize_text_field($_SESSION[ $this->form_session_var ]):'', 'validated') !== 0 ? false : true;
     }
 
     /**
@@ -725,7 +734,7 @@ class ContactForm7 extends FormInterface
      *
      * @return string
      */
-    public function cf7PhoneShortcode()
+    /* public function cf7PhoneShortcode()
     {
         $html  = '<script>jQuery(window).on(\'load\', function(){	jQuery(".smsalert_cf7_otp_btn,#smsalert_customer_validation_otp_token").unbind().click(function(o){';
         $html .= ' var target = jQuery(this); var e=target.parents("form").find("input[name=' . $this->phone_field_key . ']").val();
@@ -739,7 +748,7 @@ class ContactForm7 extends FormInterface
         $html .= 'error:function(o,e,n){console.log("error"+o)}})});jQuery("[name=smsalert_customer_validation_otp_token]").on("change",function(){ jQuery(this).find("#salert_message").empty().css("border-top","none")});});</script>';
 
         return $html;
-    }
+    } */
 
     /**
      * Clear otp session variable
@@ -787,7 +796,7 @@ class ContactForm7 extends FormInterface
     public function newMenuSmsAlert( $panels )
     {
         $panels['sms-alert-sms-panel'] = array(
-        'title'    => __('SMS Alert'),
+        'title'    => __('SMS Alert', 'sms-alert'),
         'callback' => array( $this, 'addPanelSmsAlert' ),
         );
         return $panels;
@@ -832,8 +841,8 @@ class ContactForm7 extends FormInterface
      */
     public function saveForm( $form)  
     {
-        $wpcf7smsalert_settings = ( ! empty($_POST['wpcf7smsalert-settings']) ) ? wp_unslash($_POST['wpcf7smsalert-settings']) : '';
-        update_option('smsalert_sms_c7_' . ( method_exists($form, 'id') ? $form->id() : $form->id ), smsalert_sanitize_array($wpcf7smsalert_settings));
+        $wpcf7smsalert_settings = ( ! empty($_POST['wpcf7smsalert-settings']) ) ? smsalert_sanitize_array(wp_unslash($_POST['wpcf7smsalert-settings'])) : '';
+        update_option('smsalert_sms_c7_' . ( method_exists($form, 'id') ? $form->id() : $form->id ), $wpcf7smsalert_settings);
     
     }
 
@@ -890,11 +899,11 @@ class ContactForm7 extends FormInterface
         }
 
         if ($send_to_admin ) {
-            do_action('sa_send_sms', $admin_number, $admin_message);
+            do_action('smsalert_send_sms', $admin_number, $admin_message);
         }
 
         if ($send_to_vistor ) {
-            do_action('sa_send_sms', $visitor_number, $visitor_message);
+            do_action('smsalert_send_sms', $visitor_number, $visitor_message);
         }
 
         if (!empty($options['auto_sync']) && 'on' === $options['auto_sync'] ) {

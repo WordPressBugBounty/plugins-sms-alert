@@ -37,7 +37,7 @@ class SmsAlertEdd
      */
     public function __construct()
     {
-        //add_filter( 'sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1 );
+        //add_filter( 'smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1 );
         add_action('edd_purchase_form_user_info', __CLASS__ . '::smsalertEddDisplayCheckoutFields');
         add_action('edd_checkout_error_checks', __CLASS__ . '::smsalertEddValidateCheckoutFields', 10, 2);
         add_filter('edd_purchase_form_required_fields', __CLASS__ . '::smsalertEddRequiredCheckoutFields');
@@ -75,6 +75,7 @@ class SmsAlertEdd
             $text_body = smsalert_get_option(
                 'edd_sms_body_' . $vs,
                 'edd_settings',
+				// translators: 1: Customer first name, 2: Order ID, 3: Store name, 4: Order status.
                 sprintf(__('Hello %1$s, status of your order %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[first_name]', '[order_id]', '[store_name]', '[order_status]', PHP_EOL, PHP_EOL)
             );
             
@@ -109,6 +110,7 @@ class SmsAlertEdd
             $text_body = smsalert_get_option(
                 'edd_admin_sms_body_' . $vs,
                 'edd_settings',
+				// translators: 1: Store name, 2: Order ID, 3: Order status.
                 sprintf(__('%1$s: status of order %2$s has been changed to %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '#[order_id]', '[order_status]', PHP_EOL, PHP_EOL)
             );
 
@@ -265,7 +267,7 @@ class SmsAlertEdd
     {
 
         if (did_action('edd_purchase') ) {
-            $payment_meta['phone'] = isset($_POST['billing_phone']) ? sanitize_text_field($_POST['billing_phone']) : '';
+            $payment_meta['phone'] = isset($_POST['billing_phone']) ? sanitize_text_field(wp_unslash($_POST['billing_phone'])) : '';
         }
         return $payment_meta;
     }

@@ -40,7 +40,7 @@ class Sa_Return_Warranty
     public function __construct()
     {
 
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('wc_warranty_settings_tabs', __CLASS__ . '::smsalertWarrantyTab');
         add_action('wc_warranty_settings_panels', __CLASS__ . '::smsalertWarrantySettingsPanels');
         add_action('admin_post_wc_warranty_settings_update', array( $this, 'updateWcWarrantySettings' ), 5);
@@ -72,7 +72,7 @@ class Sa_Return_Warranty
      */
     public function updateWcWarrantySettings( $data )
     {
-		if(current_user_can('manage_options') && wp_verify_nonce( $_POST['smsalert_nonce'], 'smsalert_wp_nonce' ))
+		if(current_user_can('manage_options') && !empty($_POST['smsalert_nonce']) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['smsalert_nonce'])), 'smsalert_wp_nonce' ))
         {
           $options = $_POST;
           if ('smsalert_warranty' === $options['tab'] ) {
@@ -149,7 +149,7 @@ class Sa_Return_Warranty
             $buyer_sms_data             = WooCommerceCheckOutForm::pharseSmsBody($buyer_sms_data, $order_id);
             $message                    = ( ! empty($buyer_sms_data['sms_body']) ) ? $buyer_sms_data['sms_body'] : '';
 
-            do_action('sa_send_sms', $buyer_mob, $message);
+            do_action('smsalert_send_sms', $buyer_mob, $message);
         }
     }
     
@@ -202,7 +202,7 @@ class Sa_Return_Warranty
     {
         $active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : '';
         ?>
-        <a href="admin.php?page=warranties-settings&tab=smsalert_warranty" class="nav-tab <?php echo ( 'smsalert_warranty' === $active_tab ) ? 'nav-tab-active' : ''; ?>"><?php esc_attr_e('SMS Alert', 'wc_warranty'); ?></a>
+        <a href="admin.php?page=warranties-settings&tab=smsalert_warranty" class="nav-tab <?php echo ( 'smsalert_warranty' === $active_tab ) ? 'nav-tab-active' : ''; ?>"><?php esc_attr_e('SMS Alert', 'sms-alert'); ?></a>
         <?php
     }
 
@@ -220,7 +220,17 @@ class Sa_Return_Warranty
             'checkTemplateFor' => 'return_warranty',
             'templates'        => self::getReturnWarrantyTemplates(),
             );
-			echo wp_nonce_field('smsalert_wp_nonce', 'smsalert_nonce', true, false);
+			echo wp_kses(
+				wp_nonce_field('smsalert_wp_nonce', 'smsalert_nonce', true, false),
+				array(
+					'input' => array(
+						'type'  => true,
+						'id'    => true,
+						'name'  => true,
+						'value' => true,
+					),
+				)
+			);
             get_smsalert_template('views/message-template.php', $return_warranty_param);
         }
     }
@@ -271,7 +281,7 @@ class Sa_Return_Warranty
 
             $checkbox_name_id  = 'smsalert_warranty[warranty_status_' . $vs . ']';
             $text_area_name_id = 'smsalert_warranty[sms_text_' . $vs . ']';
-
+            // translators: 1: Customer first name, 2: RMA number, 3: Store name, 4: RMA status.
             $text_body = smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '') ? smsalert_get_option('sms_text_' . $vs, 'smsalert_warranty', '') : sprintf(__('Hello %1$s, status of your RMA no. %2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[billing_first_name]', '[rma_number]', '[store_name]', '[rma_status]', PHP_EOL, PHP_EOL);
 
             $templates[ $ks ]['title']          = 'When RMA is ' . ucwords($vs);

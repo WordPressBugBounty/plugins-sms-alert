@@ -33,7 +33,7 @@ class WCAbandonedCart
      */
     public function __construct()
     {
-        add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+        add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
         add_action('cartbounty_notification_sendout_hook', array( $this, 'smsalertSendSms' ), 1);
         add_action('cartbounty_pro_notification_sendout_hook', array( $this, 'smsalertSendSms' ), 1);
         add_action('sa_addTabs', array( $this, 'addTabs' ), 100);
@@ -88,6 +88,7 @@ class WCAbandonedCart
         $current_val      = smsalert_get_option('customer_notify', 'smsalert_ac_general', 'on');
         $checkbox_name_id = 'smsalert_ac_general[customer_notify]';
         $textarea_name_id = 'smsalert_ac_message[customer_notify]';
+		// translators: 1: Customer name, 2: Checkout url.
         $text_body        = smsalert_get_option('customer_notify', 'smsalert_ac_message', sprintf(__('Hey %1$s, We noticed you could not complete your order. Click on the link below to place your order. Shop Now - %2$s%3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[name]', '[checkout_url]', PHP_EOL, PHP_EOL));
 
         $templates = array();
@@ -104,6 +105,7 @@ class WCAbandonedCart
         $current_val      = smsalert_get_option('admin_notify', 'smsalert_ac_general', 'on');
         $checkbox_name_id = 'smsalert_ac_general[admin_notify]';
         $textarea_name_id = 'smsalert_ac_message[admin_notify]';
+		// translators: 1: Store name, 2: Item name, 3: Customer name.
         $text_body        = smsalert_get_option('admin_notify', 'smsalert_ac_message', sprintf(__('%1$s: Product %2$s is left in cart by %3$s.%4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[store_name]', '[item_name]', '[name]', PHP_EOL, PHP_EOL));
 
         $templates['cartbounty-admin']['title']          = 'Send message to admin when product is left in cart';
@@ -137,15 +139,26 @@ class WCAbandonedCart
             $time       = smsalert_get_option('hours', 'cartbounty_notification_frequency', '60');
         }
 
-        $timezone      = wp_timezone_string();
-        $datetime      = get_gmt_from_date('UTC' . $timezone);
-        $time_interval = date('Y-m-d H:i:s', strtotime('-' . $time . ' Minutes', strtotime($datetime)));
+        $datetime = current_datetime()->setTimezone(new DateTimeZone('UTC'));
+		$time_interval = $datetime
+			->modify('-' . absint($time) . ' minutes')
+			->format('Y-m-d H:i:s');
 
-        // send msg to user.
-        $rows_to_phone = $wpdb->get_results(
-            'SELECT * FROM ' . $table_name . " WHERE mail_sent = 0 AND cart_contents != '' AND time < '" . $time_interval . "'",
-            ARRAY_A
-        );
+		// Send msg to user.
+		$table_name = esc_sql($table_name);
+
+		$rows_to_phone = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM `" . esc_sql($table_name) . "`
+				WHERE mail_sent = %d
+				AND cart_contents != %s
+				AND time < %s",
+				0,
+				'',
+				$time_interval
+			),
+			ARRAY_A
+		);
 
         if ($rows_to_phone ) {
             $smsalert_ac_customer_notify  = smsalert_get_option('customer_notify', 'smsalert_ac_general', 'on');
@@ -156,7 +169,7 @@ class WCAbandonedCart
                     if ($set_checkout_url ) {
                         $data['checkout_url'] = $plugin_admin->create_cart_url($data['email'], $data['session_id'], $data['id']);
                     }
-                    do_action('sa_send_sms', $data['phone'], $this->parseSmsBody($data, $smsalert_ac_customer_message));
+                    do_action('smsalert_send_sms', $data['phone'], $this->parseSmsBody($data, $smsalert_ac_customer_message));
                 }
             }
 
@@ -169,7 +182,7 @@ class WCAbandonedCart
                 if ('on' === $smsalert_ac_admin_notify && '' !== $smsalert_ac_admin_message ) {
                     $sms_admin_phone = explode(',', $sms_admin_phone);
                     foreach ( $sms_admin_phone as $phone ) {
-                        do_action('sa_send_sms', $phone, $this->parseSmsBody($data, $smsalert_ac_admin_message));
+                        do_action('smsalert_send_sms', $phone, $this->parseSmsBody($data, $smsalert_ac_admin_message));
                     }
                 }
             }

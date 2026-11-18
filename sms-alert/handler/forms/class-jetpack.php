@@ -4,14 +4,14 @@
  *
  * PHP version 5
  *
- * @category Handler
+ * @category Handler156
  * @package  SMSAlert
  * @author   SMS Alert <support@cozyvision.com>
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -152,7 +152,7 @@ class jetPackCRM extends FormInterface
 
             $checkboxNameId = 'smsalert_jcm_general[customer_jcm_notify_'.strtolower($vs).']';
             $textareaNameId = 'smsalert_jcm_message[customer_sms_jcm_body_'.strtolower($vs).']';
-
+            // translators: 1: Customer name, 2: Contact ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_jcm_body_'.strtolower($vs), 'smsalert_jcm_message', sprintf(__('Hello %1$s, status of your contact #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[name]', '[contact_id]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_jcm_body_'.strtolower($vs), 'smsalert_jcm_message', $defaultTemplate);
@@ -191,7 +191,7 @@ class jetPackCRM extends FormInterface
             $currentVal     = smsalert_get_option('admin_jcm_notify_'.strtolower($vs), 'smsalert_jcm_general', 'on');
             $checkboxNameId = 'smsalert_jcm_general[admin_jcm_notify_'.strtolower($vs).']';
             $textareaNameId = 'smsalert_jcm_message[admin_sms_jcm_body_'.strtolower($vs).']';
-
+            // translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_jcm_body_'.strtolower($vs), 'smsalert_jcm_message', sprintf(__('Hello admin, status of your contact with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('admin_sms_jcm_body_'.strtolower($vs), 'smsalert_jcm_message', $defaultTemplate);
@@ -229,7 +229,7 @@ class jetPackCRM extends FormInterface
         $customerRrNotify = smsalert_get_option('customer_jcm_notify_new', 'smsalert_jcm_general', 'on');
         if ($customerRrNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseSmsBody($cust, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -245,7 +245,7 @@ class jetPackCRM extends FormInterface
 
             if ('on' === $adminRrNotify && '' !== $adminMessage) {
                 $adminMessage = $this->parseSmsBody($cust, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
 
@@ -270,7 +270,7 @@ class jetPackCRM extends FormInterface
         $customerNotify  = smsalert_get_option('customer_jcm_notify_'.$bookingStatus, 'smsalert_jcm_general', 'on');
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseSmsBody($cust, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -287,7 +287,7 @@ class jetPackCRM extends FormInterface
 
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($cust, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
 
@@ -367,7 +367,7 @@ class jetPackCRM extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('zero-bs-crm/ZeroBSCRM.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__.'::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__.'::add_default_setting', 1);
             add_action('sa_addTabs', [$this, 'addTabs'], 10);
         }
 
@@ -401,7 +401,7 @@ class jetPackCRM extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
 
     }//end handle_failed_verification()

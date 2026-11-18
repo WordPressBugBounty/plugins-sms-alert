@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Fat Service Booking helper.
  *
@@ -12,7 +11,7 @@
  * @link     https://www.smsalert.co.in/
  */
 
-if (defined('ABSPATH') === false) {
+if (! defined( 'ABSPATH' )) {
     exit;
 }
 
@@ -72,14 +71,23 @@ class FatServiceBooking extends FormInterface
         $bookingStatus = self::$b_status[$booking->b_process_status];
         $bookingId     = $booking->b_id;
         $bookingDate          = $booking->b_date;
-        $bookingTime          = date("H:i", mktime(0, $booking->b_time));        
+        $bookingTime = (new DateTimeImmutable('today', wp_timezone()))
+			->modify('+' . $booking->b_time . ' minutes')
+			->format('H:i');       
         $bookingStart    = $bookingDate . ' ' . $bookingTime;         
         $buyerMob      = $booking->c_phone;
         $customerNotify = smsalert_get_option('customer_notify', 'smsalert_fsb_general', 'on');
         global $wpdb;
         $tableName           = $wpdb->prefix . 'smsalert_booking_reminder';
         $source = 'fat_services_booking';
-        $booking_details = $wpdb->get_results("SELECT * FROM $tableName WHERE booking_id = $bookingId and source = '$source'");
+        $booking_details = $wpdb->get_results($wpdb->prepare(
+				"SELECT *
+				FROM `" . esc_sql($tableName) . "`
+				WHERE booking_id = %d
+				AND source = %s",
+				$bookingId,
+				$source
+			));
         if ($bookingStatus === 'approved' && $customerNotify === 'on') {
             if ($booking_details) {
                 $wpdb->update(
@@ -124,13 +132,27 @@ class FatServiceBooking extends FormInterface
         $schedulerData = get_option('smsalert_fsb_reminder_scheduler');
 
         foreach ($schedulerData['cron'] as $sdata) {
-            $datetime = current_time('mysql');
-            $fromdate = date('Y-m-d H:i:s', strtotime('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes', strtotime($datetime)));
-            $todate   = date('Y-m-d H:i:s', strtotime('+' . $cronFrequency . ' minutes', strtotime($fromdate)));
+            $datetime = current_datetime();
+			$fromdate = $datetime
+				->modify('+' . ($sdata['frequency'] * 60 - $cronFrequency) . ' minutes')
+				->format('Y-m-d H:i:s');
+
+			$todate = (new DateTimeImmutable($fromdate, wp_timezone()))
+				->modify('+' . $cronFrequency . ' minutes')
+				->format('Y-m-d H:i:s');
             $rowsToPhone = $wpdb->get_results(
-                'SELECT * FROM ' . $tableName . " WHERE start_date > '" . $fromdate . "' AND start_date <= '" . $todate . "' AND source = '$source' ",
-                ARRAY_A
-            );            
+				$wpdb->prepare(
+					"SELECT *
+					FROM `" . esc_sql($tableName) . "`
+					WHERE start_date > %s
+					AND start_date <= %s
+					AND source = %s",
+					$fromdate,
+					$todate,
+					$source
+				),
+				ARRAY_A
+			);        
             if ($rowsToPhone) { // If we have new rows in the database
                 $customerMessage = $sdata['message'];                
                 $frequencyTime   = $sdata['frequency'];                
@@ -258,6 +280,7 @@ class FatServiceBooking extends FormInterface
             $schedulerData  = array();
             $schedulerData['cron'][] = array(
                 'frequency' => '1',
+				// translators: 1: Customer first name, 2: Booking ID, 3: Store name.
                 'message'   => sprintf(__('Hello %1$s, your booking %2$s with %3$s is fixed on %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[c_first_name]', '#[b_id]', '[store_name]', '[b_date]', PHP_EOL, PHP_EOL),
             );
         }
@@ -298,6 +321,7 @@ class FatServiceBooking extends FormInterface
             $currentVal = smsalert_get_option('customer_fsb_notify_' . strtolower($vs), 'smsalert_fsb_general', 'on');
             $checkboxNameId = 'smsalert_fsb_general[customer_fsb_notify_' . strtolower($vs) . ']';
             $textareaNameId = 'smsalert_fsb_message[customer_sms_fsb_body_' . strtolower($vs) . ']';
+			// translators: 1: Customer first name, 2: Booking ID, 3: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_fsb_body_' . strtolower($vs), 'smsalert_fsb_message', sprintf(__('Hello %1$s, status of your booking #%2$s with %3$s has been changed to %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[c_first_name]', '[b_id]', '[store_name]', strtolower($vs), PHP_EOL, PHP_EOL));
             $textBody = smsalert_get_option('customer_sms_fsb_body_' . strtolower($vs), 'smsalert_fsb_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When customer booking is ' . ucwords($vs);
@@ -329,6 +353,7 @@ class FatServiceBooking extends FormInterface
             $currentVal     = smsalert_get_option('admin_fsb_notify_' . strtolower($vs), 'smsalert_fsb_general', 'on');
             $checkboxNameId = 'smsalert_fsb_general[admin_fsb_notify_' . strtolower($vs) . ']';
             $textareaNameId = 'smsalert_fsb_message[admin_sms_fsb_body_' . strtolower($vs) . ']';
+			// translators: 1: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_fsb_body_' . strtolower($vs), 'smsalert_fsb_message', sprintf(__('Hello admin, status of your booking with %1$s has been changed to %2$s. %3$sPowered by%4$swww.smsalert.co.in', 'sms-alert'), '[store_name]', strtolower($vs), PHP_EOL, PHP_EOL));
             $textBody = smsalert_get_option('admin_sms_fsb_body_' . strtolower($vs), 'smsalert_fsb_message', $defaultTemplate);
             $templates[$ks]['title']          = 'When admin change status to ' . ucwords($vs);
@@ -353,25 +378,24 @@ class FatServiceBooking extends FormInterface
     {
         // code
         global $wpdb;
-        $sql = "SELECT *
-                FROM {$wpdb->prefix}fat_sb_booking
-                INNER JOIN {$wpdb->prefix}fat_sb_customers
-                    ON {$wpdb->prefix}fat_sb_booking.b_customer_id = {$wpdb->prefix}fat_sb_customers.c_id
-                    AND {$wpdb->prefix}fat_sb_booking.b_id=%d
-                INNER JOIN {$wpdb->prefix}fat_sb_employees
-                    ON {$wpdb->prefix}fat_sb_booking.b_employee_id = {$wpdb->prefix}fat_sb_employees.e_id
-                INNER JOIN {$wpdb->prefix}fat_sb_locations
-                    ON {$wpdb->prefix}fat_sb_booking.b_loc_id = {$wpdb->prefix}fat_sb_locations.loc_id
-                INNER JOIN {$wpdb->prefix}fat_sb_services
-                    ON {$wpdb->prefix}fat_sb_booking.b_service_id = {$wpdb->prefix}fat_sb_services.s_id
-                ";
-        $sql = $wpdb->prepare($sql, $booking_id);
-        $booking = $wpdb->get_results($sql);
-        if (count($booking) > 0) { 
-            return $booking[0];
-        } else {
-            return array();
-        }
+        $booking = $wpdb->get_row($wpdb->prepare(
+			"SELECT *
+			FROM {$wpdb->prefix}fat_sb_booking
+			INNER JOIN {$wpdb->prefix}fat_sb_customers
+				ON {$wpdb->prefix}fat_sb_booking.b_customer_id = {$wpdb->prefix}fat_sb_customers.c_id
+				AND {$wpdb->prefix}fat_sb_booking.b_id = %d
+			INNER JOIN {$wpdb->prefix}fat_sb_employees
+				ON {$wpdb->prefix}fat_sb_booking.b_employee_id = {$wpdb->prefix}fat_sb_employees.e_id
+			INNER JOIN {$wpdb->prefix}fat_sb_locations
+				ON {$wpdb->prefix}fat_sb_booking.b_loc_id = {$wpdb->prefix}fat_sb_locations.loc_id
+			INNER JOIN {$wpdb->prefix}fat_sb_services
+				ON {$wpdb->prefix}fat_sb_booking.b_service_id = {$wpdb->prefix}fat_sb_services.s_id",
+			$booking_id
+		));
+        if ($booking) {
+			return $booking;
+		}
+		return array();
     }
     
     /**
@@ -407,7 +431,7 @@ class FatServiceBooking extends FormInterface
         $customerNotify = smsalert_get_option('customer_fsb_notify_' . $bookingStatus, 'smsalert_fsb_general', 'on');
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseSmsBody($booking, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
         // Send msg to admin.
          $adminPhoneNumber = smsalert_get_option('sms_admin_phone', 'smsalert_message', '');
@@ -423,7 +447,7 @@ class FatServiceBooking extends FormInterface
             $adminPhoneNumber = implode(',', $adminPhoneNumber);
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($booking, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         } 
     }//end sendsmsBookingUpdate()
@@ -440,7 +464,9 @@ class FatServiceBooking extends FormInterface
     {    
         $bookibgId            = $booking->b_id;        
         $bookingDate          = $booking->b_date;
-        $bookingTime           = date("H:i", mktime(0, $booking->b_time));
+        $bookingTime = (new DateTimeImmutable('today', wp_timezone()))
+			->modify('+' . (int) $booking->b_time . ' minutes')
+			->format('H:i');
         $bookingTotalpay      = $booking->b_total_pay;
         $bookingDescription   = $booking->b_description;
         $bookingSatus         = $this->b_status[$booking->b_process_status];
@@ -597,7 +623,7 @@ class FatServiceBooking extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('fat-services-booking/fat-services-booking.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }//end handleFormOptions()
@@ -627,7 +653,7 @@ class FatServiceBooking extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {       
     }//end handle_failed_verification()
 

@@ -11,18 +11,9 @@
  * @link     https://www.smsalert.co.in/
  */
 
-/**
- * This is Class dive helper.
- *
- * PHP version 5
- *
- * @category Handler
- * @package  SMSAlert
- * @author   SMS Alert <support@cozyvision.com>
- * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
- * @link     https://www.smsalert.co.in/
- * SMSAlertDivi Class.
- */
+if (! defined('ABSPATH') ) {
+    exit;
+}
 
 class SMSAlertDivi
 {

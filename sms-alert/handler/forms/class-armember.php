@@ -10,16 +10,17 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
-
+ 
 namespace SMS_ALERT;
+
+if (! defined( 'ABSPATH' )) {
+    exit;
+}
+
 use FormInterface;
 use smsalert_Setting_Options;
 use FormSessionVars;
 use SmsAlertUtility;
-
-if (defined('ABSPATH') === false) {
-    exit;
-}
 
 if (is_plugin_active('armember-membership/armember-membership.php') === false) {
     return;
@@ -204,7 +205,7 @@ class Armember extends FormInterface
 
             $checkboxNameId = 'smsalert_arm_general[customer_arm_notify_' . strtolower($vs) . ']';
             $textareaNameId = 'smsalert_arm_message[customer_sms_arm_body_' . strtolower($vs) . ']';
-
+            // translators: 1: Member name, 2: Plan name, 3: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_arm_body_' . strtolower($vs), 'smsalert_arm_message', sprintf(__('Hello %1$s, status of your plan %2$s with %3$s has been %4$s.%5$sPowered by%6$swww.smsalert.co.in', 'sms-alert'), '[member_name]', '[plan_name]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
             $textBody = smsalert_get_option('customer_sms_arm_body_' . strtolower($vs), 'smsalert_arm_message', $defaultTemplate);
@@ -240,7 +241,7 @@ class Armember extends FormInterface
             $currentVal     = smsalert_get_option('admin_arm_notify_' . strtolower($vs), 'smsalert_arm_general', 'on');
             $checkboxNameId = 'smsalert_arm_general[admin_arm_notify_' . strtolower($vs) . ']';
             $textareaNameId = 'smsalert_arm_message[admin_sms_arm_body_' . strtolower($vs) . ']';
-
+            // translators: 1: Plan name, 3: Store name.
             $defaultTemplate = smsalert_get_option('admin_sms_arm_body_' . strtolower($vs), 'smsalert_arm_message', sprintf(__('Hello admin, status of your plan %1$s with %2$s has been changed to %3$s. %4$sPowered by%5$swww.smsalert.co.in', 'sms-alert'), '[plan_name]', '[store_name]', $vs, PHP_EOL, PHP_EOL));
 
 
@@ -275,7 +276,7 @@ class Armember extends FormInterface
         $customerRrNotify = smsalert_get_option('customer_arm_notify_renewed', 'smsalert_arm_general', 'on');
         if ($customerRrNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseSmsBody($planData, $user_id, $customerMessage);
-            do_action('sa_send_sms', $user_phone, $buyerMessage);
+            do_action('smsalert_send_sms', $user_phone, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -289,7 +290,7 @@ class Armember extends FormInterface
             $adminMessage   = smsalert_get_option('admin_sms_arm_body_renewed', 'smsalert_arm_message', '');
             if ('on' === $adminRrNotify && '' !== $adminMessage) {
                 $adminMessage = $this->parseSmsBody($planData, $user_id, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
        
@@ -312,7 +313,7 @@ class Armember extends FormInterface
         $customerRrNotify = smsalert_get_option('customer_arm_notify_cancelled', 'smsalert_arm_general', 'on');
         if ($customerRrNotify === 'on' && $customerMessage !== '') {
             $buyerMessage = $this->parseSmsBody($planData, $user_id, $customerMessage);
-            do_action('sa_send_sms', $user_phone, $buyerMessage);
+            do_action('smsalert_send_sms', $user_phone, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -326,7 +327,7 @@ class Armember extends FormInterface
             $adminMessage   = smsalert_get_option('admin_sms_arm_body_cancelled', 'smsalert_arm_message', '');
             if ('on' === $adminRrNotify && '' !== $adminMessage) {
                 $adminMessage = $this->parseSmsBody($planData, $user_id, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
     }
@@ -349,7 +350,7 @@ class Armember extends FormInterface
         $customerNotify = smsalert_get_option('customer_arm_notify_' . $subscriptionstatus, 'smsalert_arm_general', 'on');
         if (($customerNotify === 'on' && $customerMessage !== '')) {
             $buyerMessage = $this->parseSmsBody($planData, $user_id, $customerMessage);
-            do_action('sa_send_sms', $buyerNumber, $buyerMessage);
+            do_action('smsalert_send_sms', $buyerNumber, $buyerMessage);
         }
 
         // Send msg to admin.
@@ -363,7 +364,7 @@ class Armember extends FormInterface
             $adminPhoneNumber = implode(',', $adminPhoneNumber);
             if ($adminNotify === 'on' && $adminMessage !== '') {
                 $adminMessage = $this->parseSmsBody($planData, $user_id, $adminMessage);
-                do_action('sa_send_sms', $adminPhoneNumber, $adminMessage);
+                do_action('smsalert_send_sms', $adminPhoneNumber, $adminMessage);
             }
         }
     
@@ -454,7 +455,7 @@ class Armember extends FormInterface
     public function handleFormOptions()
     {
         if (is_plugin_active('armember-membership/armember-membership.php') === true) {
-            add_filter('sAlertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
+            add_filter('smsalertDefaultSettings', __CLASS__ . '::add_default_setting', 1);
             add_action('sa_addTabs', array($this, 'addTabs'), 10);
         }
     }//end handleFormOptions()
@@ -484,13 +485,13 @@ class Armember extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification($userLogin, $userEmail, $phoneNumber)
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if ((empty($extra_data['option']) === false) && $extra_data['option'] === 'smsalert-validate-otp-form') {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -518,7 +519,7 @@ class Armember extends FormInterface
         if (isset($_SESSION[$this->form_session_var]) === false) {
             return;
         }
-        if ((empty($_REQUEST['option']) === false ) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form') {
+        if ((empty($extraData['option']) === false ) && $extraData['option'] === 'smsalert-validate-otp-form') {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {
@@ -550,7 +551,7 @@ class Armember extends FormInterface
     public function is_ajax_form_in_play($isAjax)
     {
         SmsAlertUtility::checkSession();
-        if ($_SESSION[$this->form_session_var] === true) {
+        if (!empty($_SESSION[$this->form_session_var]) && $_SESSION[$this->form_session_var] === true) {
             return true;
         } else {
             return $isAjax;

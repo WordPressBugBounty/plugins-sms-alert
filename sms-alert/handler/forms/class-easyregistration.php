@@ -127,6 +127,7 @@ class EasyRegistration extends FormInterface
 
         if (array_key_exists('user_phone', $getdata) && ! SmsAlertUtility::isBlank($getdata['user_phone']) ) {
             $_SESSION[ $this->form_session_var ] = trim($getdata['user_phone']);
+			// translators: 1: Customer phone.
             $message                             = str_replace('##phone##', $getdata['user_phone'], sprintf(__('A OTP (One Time Passcode) has been sent to %s. Please enter the OTP in the field below to verify your phone.', 'sms-alert'), '##phone##'));
             smsalert_site_challenge_otp('test', null, null, trim($getdata['user_phone']), 'phone', null, null, true);
         } else {
@@ -146,11 +147,11 @@ class EasyRegistration extends FormInterface
     public function saUpdateBillingPhone( $billing_phone, $user_id )
     {
         if (isset($_POST['erform_id'])) {
-            $fields  = erforms_get_form_input_fields($_POST['erform_id']);
+            $fields  = erforms_get_form_input_fields(!empty($_POST['erform_id'])?sanitize_text_field(wp_unslash($_POST['erform_id'])):'');
             $user_phone = '';
             foreach ( $fields as $field ) {
                 if (array_key_exists('addUserFieldMap', $field) && 'billing_phone' === $field['addUserFieldMap'] ) {
-                    $user_phone = $_POST[$field['name']];
+                    $user_phone = !empty($_POST[$field['name']])?sanitize_text_field(wp_unslash($_POST[$field['name']])):'';
                 }
             }
             return ( ! empty($billing_phone) ) ? $billing_phone : $user_phone;
@@ -180,13 +181,13 @@ class EasyRegistration extends FormInterface
      *
      * @return void
      */
-    public function handle_failed_verification( $user_login, $user_email, $phone_number )
+    public function handle_failed_verification( $user_login, $user_email, $phone_number, $extra_data )
     {
         SmsAlertUtility::checkSession();
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('Invalid one time passcode. Please enter a valid passcode.', 'sms-alert'), 'error'));
             exit();
         } else {
@@ -212,7 +213,7 @@ class EasyRegistration extends FormInterface
         if (! isset($_SESSION[ $this->form_session_var ]) ) {
             return;
         }
-        if (! empty($_REQUEST['option']) && sanitize_text_field(wp_unslash($_REQUEST['option'])) === 'smsalert-validate-otp-form' ) {
+        if (! empty($extra_data['option']) && $extra_data['option'] === 'smsalert-validate-otp-form' ) {
             wp_send_json(SmsAlertUtility::_create_json_response(__('OTP Validated Successfully.', 'sms-alert'), 'success'));
             exit();
         } else {

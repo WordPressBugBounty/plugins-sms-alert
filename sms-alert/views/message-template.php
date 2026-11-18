@@ -9,8 +9,12 @@
  * @license  URI: http://www.gnu.org/licenses/gpl-2.0.html
  * @link     https://www.smsalert.co.in/
  */
+ 
+if (! defined('ABSPATH') ) {
+    exit;
+} 
 add_thickbox();
-$url = add_query_arg(
+$smsalert_url = add_query_arg(
     array(
         'action'    => 'foo_modal_box',
         'TB_iframe' => 'true',
@@ -23,27 +27,27 @@ $url = add_query_arg(
 <!-- Admin-accordion -->
 <div class="cvt-accordion"><!-- cvt-accordion -->
     <div class="accordion-section">
-        <?php foreach ( $templates as $template ) { ?>
-        <div class="cvt-accordion-body-title" data-href="#accordion_<?php echo esc_attr($checkTemplateFor); ?>_<?php echo esc_attr($template['status']); ?>">
-            <input type="checkbox" name="<?php echo esc_attr($template['checkboxNameId']); ?>" id="<?php echo esc_attr($template['checkboxNameId']); ?>" class="notify_box" <?php echo ( 'on' === $template['enabled'] ) ? "checked='checked'" : ''; ?> <?php echo ( ! empty($template['chkbox_val']) ) ? "value='" . esc_attr($template['chkbox_val']) . "'" : ''; ?>  /><label><?php echo esc_html($template['title']); ?></label>
+        <?php foreach ( $templates as $smsalert_template ) { ?>
+        <div class="cvt-accordion-body-title" data-href="#accordion_<?php echo esc_attr($checkTemplateFor); ?>_<?php echo esc_attr($smsalert_template['status']); ?>">
+            <input type="checkbox" name="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" class="notify_box" <?php echo ( 'on' === $smsalert_template['enabled'] ) ? "checked='checked'" : ''; ?> <?php echo ( ! empty($smsalert_template['chkbox_val']) ) ? "value='" . esc_attr($smsalert_template['chkbox_val']) . "'" : ''; ?>  /><label><?php echo esc_html($smsalert_template['title']); ?></label>
             <span class="expand_btn"></span>
         </div>
-        <div id="accordion_<?php echo esc_attr($checkTemplateFor); ?>_<?php echo esc_attr($template['status']); ?>" class="cvt-accordion-body-content">
+        <div id="accordion_<?php echo esc_attr($checkTemplateFor); ?>_<?php echo esc_attr($smsalert_template['status']); ?>" class="cvt-accordion-body-content">
             <table class="form-table">
                 <tr valign="top" style="position:relative">
                     <td>
                         <div class="smsalert_tokens">
             <?php
-            foreach ( $template['token'] as $vk => $vv ) {
-                echo  "<a href='#' data-val='".esc_attr($vk)."'>".esc_attr($vv)."</a> | ";
+            foreach ( $smsalert_template['token'] as $smsalert_vk => $smsalert_vv ) {
+                echo  "<a href='#' data-val='".esc_attr($smsalert_vk)."'>".esc_attr($smsalert_vv)."</a> | ";
             }
             ?>
-            <?php if (! empty($template['moreoption']) ) { ?>
-                                <a href="<?php echo esc_url($url); ?>" class="thickbox search-token-btn">[...More]</a>
+            <?php if (! empty($smsalert_template['moreoption']) ) { ?>
+                                <a href="<?php echo esc_url($smsalert_url); ?>" class="thickbox search-token-btn">[...More]</a>
             <?php } ?>
                         </div>
-                        <textarea name="<?php echo esc_attr($template['textareaNameId']); ?>" id="<?php echo esc_attr($template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($template['checkboxNameId']); ?>" <?php echo( ( 'on' === $template['enabled'] ) ? '' : "readonly='readonly'" );?>  class="token-area" ><?php echo esc_textarea($template['text-body']); ?></textarea>
-                        <div id="menu_<?php echo esc_attr($checkTemplateFor); ?>_<?php echo $template['status']; ?>" class="sa-menu-token" role="listbox"></div>
+                        <textarea name="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" id="<?php echo esc_attr($smsalert_template['textareaNameId']); ?>" data-parent_id="<?php echo esc_attr($smsalert_template['checkboxNameId']); ?>" <?php echo( ( 'on' === $smsalert_template['enabled'] ) ? '' : "readonly='readonly'" );?>  class="token-area" ><?php echo esc_textarea($smsalert_template['text-body']); ?></textarea>
+                        <div id="menu_<?php echo esc_attr($checkTemplateFor); ?>_<?php echo esc_attr($smsalert_template['status']); ?>" class="sa-menu-token" role="listbox"></div>
                     </td>
                 </tr>
             </table>
@@ -54,10 +58,10 @@ $url = add_query_arg(
 </div>
 <!--help links-->
 <?php
-foreach ( $templates as $template ) {
-    if (!empty($template['help_links']) ) {
+foreach ( $templates as $smsalert_template ) {
+    if (!empty($smsalert_template['help_links']) ) {
             
-        foreach ($template['help_links'] as $link) {
+        foreach ($smsalert_template['help_links'] as $link) {
             echo wp_kses_post('<a href="'.$link['href'].'" alt="'.$link['alt'].'" target="'.$link['target'].'" class="'.$link['class'].'">'.$link['icon']." ".$link['label'].'</a>');
         }
     } 
@@ -82,8 +86,8 @@ foreach ( $templates as $template ) {
 <!-- Cartbounty -->
 <?php
 if ('cartbounty' === $checkTemplateFor ) {
-    $options = get_option('cartbounty_notification_frequency');
-    if (0 === $options['hours'] ) {
+    $smsalert_options = get_option('cartbounty_notification_frequency');
+    if (0 === $smsalert_options['hours'] ) {
         ?>
 <br>
 <div class="cvt-accordion" style="padding: 0px 10px 10px 10px;">
